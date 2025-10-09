@@ -9,24 +9,33 @@ import java.util.HashMap
 
 class AppambitPackage : BaseReactPackage() {
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
-    return if (name == AppambitModule.NAME) {
-      AppambitModule(reactContext)
-    } else {
-      null
+    return when (name) {
+      AppambitModule.NAME -> AppambitModule(reactContext)
+      AppambitCrashesModule.NAME -> AppambitCrashesModule(reactContext)
+      AppambitAnalyticsModule.NAME -> AppambitAnalyticsModule(reactContext)
+      else -> null
     }
   }
 
   override fun getReactModuleInfoProvider(): ReactModuleInfoProvider {
     return ReactModuleInfoProvider {
       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
-      moduleInfos[AppambitModule.NAME] = ReactModuleInfo(
-        AppambitModule.NAME,
-        AppambitModule.NAME,
-        false,  // canOverrideExistingModule
-        false,  // needsEagerInit
-        false,  // isCxxModule
-        true // isTurboModule
-      )
+
+      fun addInfo(name: String) {
+        moduleInfos[name] = ReactModuleInfo(
+          name,
+          name,
+          false,
+          false,
+          false,
+          true
+        )
+      }
+
+      addInfo(AppambitModule.NAME)
+      addInfo(AppambitCrashesModule.NAME)
+      addInfo(AppambitAnalyticsModule.NAME)
+
       moduleInfos
     }
   }
