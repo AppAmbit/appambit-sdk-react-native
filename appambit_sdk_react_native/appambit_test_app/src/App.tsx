@@ -94,7 +94,7 @@ export default function App() {
         title="Track Event"
         onPress={() => {
           trackEvent("Login", { method: "Google", success: "true" });
-          Alert.alert("AppAmbit", "Evento 'Login' registrado");
+          Alert.alert("AppAmbit", "Event 'Login' tracked");
         }}
       />
 
@@ -141,10 +141,10 @@ export default function App() {
               logError(
                 { stack: e.stack, exception: e, classFqn: e.constructor.name },
               );
-              console.trace("Errores: Stack" + e.stack);
+              console.trace("Error: Stack" + e.stack);
               console.log("Exception: " + e );
 
-              Alert.alert("AppAmbit", "Excepción JS registrada correctamente");
+              Alert.alert("AppAmbit", "Exception JS logged" );
             }
           }
         }
