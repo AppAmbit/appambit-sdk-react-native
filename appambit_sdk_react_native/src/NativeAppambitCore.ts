@@ -4,4 +4,4 @@ export interface Spec extends TurboModule {
   start(appkey: string): void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbit/core');
+export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbitCore');
