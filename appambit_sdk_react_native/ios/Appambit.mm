@@ -1,4 +1,5 @@
 #import "Appambit.h"
+#import <Appambit-Swift.h>
 
 @implementation AppAmbit
 RCT_EXPORT_MODULE(AppAmbitCore);
@@ -9,9 +10,8 @@ RCT_EXPORT_MODULE(AppAmbitCore);
     return std::make_shared<facebook::react::NativeAppambitCoreSpecJSI>(params);
 }
 
-
 - (void)start:(nonnull NSString *)appkey {
-  
+  [AppAmbitSdkWrapper startWithAppKey:appkey];
 }
 
 @end

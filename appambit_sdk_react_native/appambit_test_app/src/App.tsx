@@ -22,7 +22,7 @@ export default function App() {
   useEffect(() => {
     //Uncomment the line for automatic session management
     //enableManualSession();
-    start("<YOUR-APPKEY>");
+    start("d12c9a0c-dc04-4e06-b46a-3cc7e11de4cc");
   }, []);
 
   return (
