@@ -89,7 +89,7 @@
     "react-native": "*"
   },
   "workspaces": [
-    "AppAmbitTestingApp"
+    "appambit_test_app"
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {

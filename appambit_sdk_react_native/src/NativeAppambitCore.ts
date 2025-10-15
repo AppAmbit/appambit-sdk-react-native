@@ -1,7 +1,7 @@
 import { TurboModuleRegistry, type TurboModule } from 'react-native';
 
 export interface Spec extends TurboModule {
-  multiply(a: number, b: number): number;
+  start(appkey: string): void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('Appambit');
+export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbit/core');
