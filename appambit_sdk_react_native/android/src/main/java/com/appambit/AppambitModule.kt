@@ -17,6 +17,6 @@ class AppambitModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = "AppAmbit/core"
+    const val NAME = "AppAmbitCore"
   }
 }

@@ -22,7 +22,7 @@ export default function App() {
   useEffect(() => {
     //Uncomment the line for automatic session management
     //enableManualSession();
-    start("d12c9a0c-dc04-4e06-b46a-3cc7e11de4cc");
+    start("<YOUR-APPKEY>");
   }, []);
 
   return (
@@ -141,9 +141,7 @@ export default function App() {
               logError(
                 { stack: e.stack, exception: e, classFqn: e.constructor.name },
               );
-              console.trace("Error: Stack" + e.stack);
-              console.log("Exception: " + e );
-
+              Alert.alert(e.stack, e);
               Alert.alert("AppAmbit", "Exception JS logged" );
             }
           }

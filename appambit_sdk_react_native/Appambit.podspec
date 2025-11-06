@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,cpp,swift}"
   s.private_header_files = "ios/**/*.h"
   
-  s.dependency 'AppAmbitSdk', '~> 0.0.8'
+  s.dependency 'AppAmbitSdk', '~> 0.0.9'
 
   install_modules_dependencies(s)
 end
