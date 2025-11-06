@@ -141,7 +141,6 @@ export default function App() {
               logError(
                 { stack: e.stack, exception: e, classFqn: e.constructor.name },
               );
-              Alert.alert(e.stack, e);
               Alert.alert("AppAmbit", "Exception JS logged" );
             }
           }
