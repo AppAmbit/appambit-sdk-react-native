@@ -51,7 +51,17 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Create keystore and key.properties
+      - name: Install Node dependencies
+        working-directory: ${{ env.ROOT_DIR }}
+        run: |
+          yarn install --immutable
+
+      - name: Install Node Android dependencies
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
+        run: |
+          yarn install --immutable
+
+      - name: Create keystore
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > ${{ env.KEYSTORE_FILE_NAME }}
