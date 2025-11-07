@@ -54,7 +54,7 @@ jobs:
       - name: Install Node Android dependencies
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
         run: |
-          yarn install --immutable
+          yarn install
 
       - name: Create keystore
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
