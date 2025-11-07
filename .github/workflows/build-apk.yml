@@ -16,6 +16,10 @@ jobs:
       ROOT_DIR: appambit_sdk_react_native
       TEST_PROJECT_NAME: appambit_test_app
       NODE_VERSION: '20'
+      KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      SIGNING_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
     steps:
       - name: Checkout repository
@@ -51,18 +55,6 @@ jobs:
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > ${{ env.KEYSTORE_FILE_NAME }}
-
-          cat <<EOF > key.properties
-          keyAlias=${KEY_ALIAS}
-          keyPassword=${KEY_PASSWORD}
-          storeFile=../${{ env.KEYSTORE_FILE_NAME }}
-          storePassword=${KEYSTORE_PASSWORD}
-          EOF
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build Release APK
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
