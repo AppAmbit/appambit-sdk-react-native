@@ -67,14 +67,14 @@ jobs:
           ./gradlew assembleRelease
 
       - name: Locate and rename APK
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
         run: |
-          cd ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android
-          APK_FILE=$(find . -name "*release*.apk" | head -n 1)
+          APK_FILE=$(find app/build/outputs/apk/release -name "*release*.apk" | head -n 1)
           echo "APK found - $APK_FILE"
           DIR=$(dirname "$APK_FILE")
           NEW_NAME="${{ env.ARTIFACT_NAME }}_${{ env.TYPE_RELEASE }}.apk"
           mv "$APK_FILE" "$DIR/$NEW_NAME"
-          echo "APK_PATH=$DIR/$NEW_NAME" >> "$GITHUB_ENV"
+          echo "APK_PATH=${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android/$DIR/$NEW_NAME" >> "$GITHUB_ENV"
           echo "Final APK - $DIR/$NEW_NAME"
 
       - name: Upload release APK
