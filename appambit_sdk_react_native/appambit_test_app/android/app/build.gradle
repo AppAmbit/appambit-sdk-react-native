@@ -93,12 +93,10 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('../appambit.keystore')) {
-                storeFile file('../appambit.keystore')
-                storePassword System.getenv("SIGNING_STORE_PASSWORD")
-                keyAlias System.getenv("SIGNING_KEY_ALIAS")
-                keyPassword System.getenv("SIGNING_KEY_PASSWORD")
-            }
+            storeFile file('../appambit.keystore')
+            storePassword System.getenv("SIGNING_STORE_PASSWORD")
+            keyAlias System.getenv("SIGNING_KEY_ALIAS")
+            keyPassword System.getenv("SIGNING_KEY_PASSWORD")
         }
     }
     buildTypes {
