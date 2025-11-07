@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - alpha/added-android-ios-cicd
+      - alpha/add-android-ios-cicd
 
 jobs:
   build:
