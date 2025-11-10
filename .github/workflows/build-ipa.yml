@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - alpha/add-android-ios-cicd
-
+  
 jobs:
   build:
     runs-on: macos-latest
