@@ -51,6 +51,6 @@ class AppambitAnalyticsModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = "AppAmbit/analytics"
+    const val NAME = "AppAmbitAnalytics"
   }
 }

@@ -77,6 +77,6 @@ class AppambitCrashesModule(reactContext: ReactApplicationContext) :
   }
 
   companion object {
-    const val NAME = "AppAmbit/crashes"
+    const val NAME = "AppAmbitCrashes"
   }
 }

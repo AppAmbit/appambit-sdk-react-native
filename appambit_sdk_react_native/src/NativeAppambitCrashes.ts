@@ -20,4 +20,4 @@ interface ErrorPayload {
   properties?: { [key: string]: string };
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbit/crashes');
+export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbitCrashes');
