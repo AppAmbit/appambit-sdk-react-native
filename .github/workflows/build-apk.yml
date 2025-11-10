@@ -1,9 +1,7 @@
 name: Build APK
 
 on:
-  push:
-    branches:
-      - alpha/add-android-ios-cicd
+  workflow_dispatch:
 
 jobs:
   build:
