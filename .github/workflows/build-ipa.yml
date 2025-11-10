@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
           xcodebuild -scheme $SCHEME \
-          -archivePath $PWD/build/${{ env.ARCHIVE_PATH }} \
+          -archivePath build/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
           -configuration $CONFIGURATION \
           -workspace $WORKSPACE \
@@ -133,9 +133,9 @@ jobs:
             EOF
 
       - name: Export IPA
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          cd ${{ github.workspace }}
-          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/$ARCHIVE_PATH -exportOptionsPlist $IOS_INFO_PLIST -exportPath $RUNNER_TEMP/build
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/$ARCHIVE_PATH -exportOptionsPlist $IOS_INFO_PLIST -exportPath build
       
       - name: Rename IPA output
         run: |
