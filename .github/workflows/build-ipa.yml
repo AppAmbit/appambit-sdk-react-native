@@ -98,7 +98,7 @@ jobs:
           -archivePath $PWD/build/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
           -configuration $CONFIGURATION \
-          -workspace $WORKSPACE
+          -workspace $WORKSPACE  \
           -destination $DESTINATION \
           clean archive
       
