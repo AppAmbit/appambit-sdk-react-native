@@ -17,9 +17,10 @@ jobs:
       DESTINATION: generic/platform=iOS
       ROOT_DIR: appambit_sdk_react_native
       TEST_PROJECT_NAME: appambit_test_app
+      ARCHIVE_PATH: AppambitExample.xcarchive
       SCHEME: AppambitExample
       IOS_INFO_PLIST: AppAmbit-Testing-App-Info-plist
-      ARCHIVE_PATH: AppambitExample.xcworkspace
+      WORKSPACE: AppambitExample.xcworkspace
       NODE_VERSION: '20'
       XCODE-VERSION: 16.2
 
@@ -94,9 +95,10 @@ jobs:
         run: |
           ls
           xcodebuild -scheme $SCHEME \
-          -archivePath ${{ env.ROOT_DIR }}/${{ env.ARCHIVE_PATH }} \
+          -archivePath $PWD/build/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
           -configuration $CONFIGURATION \
+          -workspace $WORKSPACE
           -destination $DESTINATION \
           clean archive
       
