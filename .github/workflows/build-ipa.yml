@@ -135,13 +135,17 @@ jobs:
       - name: Export IPA
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/$ARCHIVE_PATH -exportOptionsPlist $IOS_INFO_PLIST -exportPath build
-      
+          xcodebuild -exportArchive \
+          -archivePath $RUNNER_TEMP/$ARCHIVE_PATH \
+          -exportOptionsPlist $IOS_INFO_PLIST \
+          -exportPath $PWD/build
+
       - name: Rename IPA output
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          ORIGINAL_IPA=$(find $RUNNER_TEMP/build -name "*.ipa" | head -n 1)
-          echo "IPA found: $ORIGINAL_IPA"
-          DIR=$(dirname "$ORIGINAL_IPA")
+          ORIGINAL_IPA=$(find $PWD/build -name "*.ipa" | head -n 1)
+          echo "IPA found at: $ORIGINAL_IPA"
+          
           cd $RUNNER_TEMP
           mkdir -p artifact
           cp "$ORIGINAL_IPA" "$RUNNER_TEMP/artifact/${IPA_NAME}_${TYPE_RELEASE}.ipa"
