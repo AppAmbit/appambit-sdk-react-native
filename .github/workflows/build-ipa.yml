@@ -90,7 +90,7 @@ jobs:
           cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$UUID.mobileprovision
           echo "UUID=$UUID" >> $GITHUB_ENV
       
-      - name: build archive
+      - name: Build archive
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
           xcodebuild -scheme $SCHEME \
@@ -102,8 +102,8 @@ jobs:
           clean archive
       
       - name: Create ExportOption.plist file
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          cd ${{ github.workspace }}
           cat > $IOS_INFO_PLIST <<EOF
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
