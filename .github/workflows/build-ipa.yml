@@ -22,7 +22,7 @@ jobs:
       IOS_INFO_PLIST: AppAmbit-Testing-App-Info-plist
       WORKSPACE: AppambitExample.xcworkspace
       NODE_VERSION: '20'
-      XCODE-VERSION: 16.2
+      XCODE-VERSION: 26.0.1
 
     steps:
       - name: Checkout repository
@@ -93,12 +93,11 @@ jobs:
       - name: build archive
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          ls
           xcodebuild -scheme $SCHEME \
           -archivePath $PWD/build/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
           -configuration $CONFIGURATION \
-          -workspace $WORKSPACE  \
+          -workspace $WORKSPACE \
           -destination $DESTINATION \
           clean archive
       
