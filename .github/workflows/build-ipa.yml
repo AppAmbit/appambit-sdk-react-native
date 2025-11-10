@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - alpha/add-android-ios-cicd
-  
+
 jobs:
   build:
     runs-on: macos-latest
@@ -14,9 +14,10 @@ jobs:
       IPA_NAME: app_appambit_testapp
       CONFIGURATION: Release
       SDK: iphoneos
+      DESTINATION: generic/platform=iOS
       ROOT_DIR: appambit_sdk_react_native
       TEST_PROJECT_NAME: appambit_test_app
-      SCHEME: AppAmbitTestingApp
+      SCHEME: AppambitExample
       IOS_INFO_PLIST: AppAmbit-Testing-App-Info-plist
       ARCHIVE_PATH: AppambitExample.xcworkspace
       NODE_VERSION: '20'
@@ -89,8 +90,9 @@ jobs:
           echo "UUID=$UUID" >> $GITHUB_ENV
       
       - name: build archive
+        working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
-          cd ${{ github.workspace }}
+          ls
           xcodebuild -scheme $SCHEME \
           -archivePath ${{ env.ROOT_DIR }}/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
