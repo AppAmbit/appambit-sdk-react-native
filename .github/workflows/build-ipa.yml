@@ -94,7 +94,7 @@ jobs:
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/ios
         run: |
           xcodebuild -scheme $SCHEME \
-          -archivePath build/${{ env.ARCHIVE_PATH }} \
+          -archivePath $RUNNER_TEMP/${{ env.ARCHIVE_PATH }} \
           -sdk $SDK \
           -configuration $CONFIGURATION \
           -workspace $WORKSPACE \
