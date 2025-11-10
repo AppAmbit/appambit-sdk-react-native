@@ -44,9 +44,9 @@ jobs:
           xcode-version: ${{ env.XCODE-VERSION }}
 
       - name: Set up Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       
       - name: Install Node iOS dependencies
         working-directory: ${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}
