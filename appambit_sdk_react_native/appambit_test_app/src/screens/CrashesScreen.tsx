@@ -14,22 +14,17 @@ import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
 
 export default function CrashesScreen() {
-  const [crashedLast, setCrashedLast] = useState<boolean>(false);
   const [userId] = useState<string>(uuidv4());
 
   return (
     <ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 20 }}>
       <View style={{ height: 30 }} />
       <Text style={{ fontSize: 22, fontWeight: "bold" }}>Crashes</Text>
-      <Text style={{ marginBottom: 20 }}>
-        Did crash last session: {crashedLast ? "Yes" : "No"}
-      </Text>
-
+      <View style={{ height: 30 }} />
       <CustomButton
         title="Did the app crash during your last session?"
-        onPress={() => {
-          const result = didCrashInLastSession();
-          setCrashedLast(result);
+        onPress={async () => {
+          const result = await didCrashInLastSession();
           Alert.alert("Info", result ? "Application did crash in the last session" : "Application did not crash in the last session")
         }}
       />
