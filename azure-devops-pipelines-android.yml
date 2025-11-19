@@ -1,0 +1,113 @@
+name: Android React Native APK
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: ANDROID VARIABLES
+- name: APK_NAME
+  value: "app_appambit_testapp"
+- name: PROJECT_PATH
+  value: "appambit_sdk_react_native/appambit_test_app"
+- name: ARTIFACTS_DIR
+  value: "artifacts"
+- name: KEYSTORE_NAME
+  value: "appambit.keystore"
+- name: NODE_VERSION
+  value: "20"
+- name: JAVA_VERSION
+  value: "17"
+- name: ANDROID_SDK_VERSION
+  value: "34"
+- name: BUILD_TOOLS_VERSION
+  value: "34.0.0"
+- name: ANDROID_NDK_VERSION
+  value: "27.1.12297006"
+
+jobs:
+- job: BuildAPK
+  displayName: 'Build Signed Release APK'
+  timeoutInMinutes: 20
+  steps:
+
+    - checkout: self
+      displayName: "Checkout repository"
+
+    - script: |
+        echo "Current branch: $(Build.SourceBranch)"
+        FULL_BRANCH="$(Build.SourceBranch)"
+        FULL_BRANCH="${FULL_BRANCH#refs/heads/}"
+        echo "Sanitized branch: $FULL_BRANCH"
+
+        if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+          TYPE_RELEASE="${FULL_BRANCH%%/*}"
+          echo "##vso[task.setvariable variable=TYPE_RELEASE]$TYPE_RELEASE"
+        else
+          echo "Branch must start with alpha/, beta/ or production/. Exiting..."
+          exit 1
+        fi
+      displayName: "Determine release type"
+
+    - task: NodeTool@0
+      displayName: "Install Node.js"
+      inputs:
+        versionSpec: "$(NODE_VERSION)"
+
+    - task: JavaToolInstaller@0
+      displayName: "Install Java"
+      inputs:
+        versionSpec: "$(JAVA_VERSION)"
+        jdkArchitectureOption: "x64"
+        jdkSourceOption: "PreInstalled"
+
+    - script: |
+        echo "Updating PATH for Android SDK tools..."
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
+
+        echo "Installing Android dependencies..."
+        yes | sdkmanager --licenses
+        sdkmanager --install "platform-tools" "platforms;android-$(ANDROID_SDK_VERSION)" "build-tools;$(BUILD_TOOLS_VERSION)" "ndk;$(ANDROID_NDK_VERSION)"
+      displayName: "Install Android SDK + NDK"
+
+    - script: |
+        cd $(PROJECT_PATH)/android
+        yarn install
+      displayName: "Install Node Android dependencies"
+
+    - task: DownloadSecureFile@1
+      name: downloadKeystore
+      inputs:
+        secureFile: "$(KEYSTORE_NAME)"
+
+    - script: |
+        cp "$(downloadKeystore.secureFilePath)" "$(PROJECT_PATH)/android/$(KEYSTORE_NAME)"
+      displayName: "Place Keystore"
+
+    - task: Bash@3
+      displayName: 'Build Android APK'
+      inputs:
+        targetType: 'inline'
+        script: |
+          cd $(PROJECT_PATH)/android
+          chmod +x ./gradlew
+          ./gradlew assembleRelease
+      env:
+        SIGNING_STORE_PASSWORD: $(STORE_PASSWORD)
+        SIGNING_KEY_PASSWORD: $(KEY_PASSWORD)
+        SIGNING_KEY_ALIAS: kavaup
+
+    - script: |
+        APK_FILE=$(find $(PROJECT_PATH)/android/app/build/outputs/apk/release -name "*release*.apk" | head -n 1)
+        mkdir -p $(PROJECT_PATH)/$(ARTIFACTS_DIR)
+        NEW_APK_NAME="$(APK_NAME)_$(TYPE_RELEASE).apk"
+        cp "$APK_FILE" "$(PROJECT_PATH)/$(ARTIFACTS_DIR)/$NEW_APK_NAME"
+      displayName: "Copy final APK"
+
+    - task: PublishBuildArtifacts@1
+      displayName: "Publish APK Artifact"
+      inputs:
+        PathtoPublish: "$(PROJECT_PATH)/$(ARTIFACTS_DIR)"
+        ArtifactName: "apk"
