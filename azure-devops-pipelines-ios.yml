@@ -1,0 +1,168 @@
+name: iOS React Native IPA
+
+trigger: none
+
+pool:
+  vmImage: macos-latest
+
+variables:
+- group: IOS VARIABLES
+- name: IPA_NAME
+  value: "app_appambit_testapp"
+- name: ROOT_DIR
+  value: "appambit_sdk_react_native"
+- name: BUNDLE_IDENTIFIER
+  value: "com.AppAmbit.TestApp"
+- name: IOS_INFO_PLIST
+  value: "ExportOptions.plist"
+- name: TEST_PROJECT_NAME
+  value: "appambit_test_app"
+- name: CONFIGURATION
+  value: "Release"
+- name: SDK
+  value: "iphoneos"
+- name: DESTINATION
+  value: "generic/platform=iOS"
+- name: ARCHIVE_PATH
+  value: "AppambitExample.xcarchive"
+- name: SCHEME
+  value: "AppambitExample"
+- name: WORKSPACE
+  value: "AppambitExample.xcworkspace"
+- name: NODE_VERSION
+  value: '20'
+- name: XCODE-VERSION
+  value: "Xcode_26.0.1"
+
+jobs:
+- job: BuildReactNativeIPA
+  displayName: 'Build React Native IPA'
+  timeoutInMinutes: 30
+  steps:
+    - checkout: self
+      clean: true
+      fetchDepth: 1
+
+    - script: |
+        echo "Current branch: $(Build.SourceBranch)"
+        FULL_BRANCH="$(Build.SourceBranch)"
+        FULL_BRANCH="${FULL_BRANCH#refs/heads/}"
+        echo "Sanitized branch: $FULL_BRANCH"
+
+        if [[ "$FULL_BRANCH" == alpha/* || "$FULL_BRANCH" == beta/* || "$FULL_BRANCH" == production/* ]]; then
+          TYPE_RELEASE="${FULL_BRANCH%%/*}"
+          echo "##vso[task.setvariable variable=TYPE_RELEASE]$TYPE_RELEASE"
+        else
+          echo "Branch must start with alpha/, beta/ or production/. Exiting..."
+          exit 1
+        fi
+      displayName: "Determine release type"
+
+    - task: NodeTool@0
+      displayName: "Install Node.js"
+      inputs:
+        versionSpec: "$(NODE_VERSION)"
+
+    - script: |
+        if [ -d "/Applications/$(XCODE_VERSION).app" ]; then
+          sudo xcode-select -s /Applications/$(XCODE_VERSION).app/Contents/Developer
+        else
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+        fi
+        sudo xcodebuild -license accept
+        echo "Xcode path: $(xcode-select -p)"
+        xcodebuild -version
+      displayName: 'Select and confirm Xcode version'
+    
+    - script: |
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)
+        yarn install
+      displayName: "Install Node dependencies"
+
+    - task: CocoaPods@0
+      displayName: 'Install CocoaPods'
+      inputs:
+        workingDirectory: '$(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios'
+
+    - script: |
+        security delete-keychain build.keychain || true
+        security create-keychain -p "" build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-keychain-settings -t 3600 -l build.keychain
+      displayName: 'Reset Keychain'
+
+    - task: InstallAppleCertificate@2
+      displayName: "Install P12 Certificate"
+      inputs:
+        certSecureFile: '$(IOS_P12_CERTIFICATE)'
+        certPwd: '$(IOS_APPLE_P12_PASSWORD)'
+
+    - task: InstallAppleProvisioningProfile@1
+      displayName: "Install provisioning profile"
+      inputs:
+        provProfileSecureFile: '$(IOS_PROVISIONING_PROFILE_3)'
+
+    - script: |
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios
+        cat > $(IOS_INFO_PLIST) <<EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>compileBitcode</key>
+          <true/>
+          <key>method</key>
+          <string>ad-hoc</string>
+          <key>provisioningProfiles</key>
+          <dict>
+            <key>$(BUNDLE_IDENTIFIER)</key>
+            <string>$(IOS_ADHOC_PROFILE)</string>
+          </dict>
+          <key>signingCertificate</key>
+          <string>iPhone Distribution</string>
+          <key>signingStyle</key>
+          <string>manual</string>
+          <key>stripSwiftSymbols</key>
+          <true/>
+          <key>teamID</key>
+          <string>$(IOS_APPLE_TEAM_ID)</string>
+          <key>thinning</key>
+          <string>&lt;none&gt;</string>
+        </dict>
+        </plist>
+        EOF
+      displayName: "Create ExportOptions.plist"
+
+    - script: |
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios
+        xcodebuild -scheme $(SCHEME) \
+        -archivePath build/$(ARCHIVE_PATH) \
+        -sdk $(SDK) \
+        -configuration $(CONFIGURATION) \
+        -workspace $(WORKSPACE) \
+        -destination $(DESTINATION) \
+        archive
+      displayName: "Build archive"
+
+    - script: |
+        cd $(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios
+        xcodebuild -exportArchive \
+        -archivePath build/$(ARCHIVE_PATH) \
+        -exportOptionsPlist $(IOS_INFO_PLIST) \
+        -exportPath build
+
+        echo "Renaming IPA..."
+        cd build
+        IPA_OUTPUT_NAME="$(IPA_NAME)_$(TYPE_RELEASE).ipa"
+        mv *.ipa "$IPA_OUTPUT_NAME"
+        echo "Final IPA name: $IPA_OUTPUT_NAME"
+        echo "##vso[task.setvariable variable=IPA_OUTPUT_NAME]$IPA_OUTPUT_NAME"
+      displayName: "Build IPA and rename"
+
+    - task: PublishBuildArtifacts@1
+      displayName: "Publish IPA Artifact"
+      inputs:
+        PathtoPublish: "$(ROOT_DIR)/$(TEST_PROJECT_NAME)/ios/build/$(IPA_OUTPUT_NAME)"
+        ArtifactName: "ipa"
+        publishLocation: "Container"

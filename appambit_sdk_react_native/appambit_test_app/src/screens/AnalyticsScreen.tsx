@@ -93,7 +93,7 @@ export default function AnalyticsScreen() {
       />
 
       <CustomButton
-        title="Send Send Max-20-Properties Event"
+        title="Send Max-20-Properties Event"
         onPress={() => {
           trackEvent("TestMaxProperties", {
             "01": "01", "02": "02", "03": "03", "04": "04", "05": "05",

@@ -1,4 +1,4 @@
-package appambit.example
+package com.AppAmbit.TestApp
 
 import android.app.Application
 import com.facebook.react.PackageList

@@ -1,4 +1,4 @@
-package appambit.example
+package com.AppAmbit.TestApp
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
