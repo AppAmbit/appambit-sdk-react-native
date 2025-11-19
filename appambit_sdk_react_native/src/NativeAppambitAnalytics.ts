@@ -11,4 +11,4 @@ export interface Spec extends TurboModule {
     generateTestEvent(): void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbit/analytics');
+export default TurboModuleRegistry.getEnforcing<Spec>('AppAmbitAnalytics');
