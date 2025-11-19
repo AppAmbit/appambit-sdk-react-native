@@ -1,8 +1,9 @@
 name: Build APK
 
 on:
-  branch:
-    - alpha/*
+  push:
+    branches:
+      - 'alpha/*'
 
 jobs:
   build:
