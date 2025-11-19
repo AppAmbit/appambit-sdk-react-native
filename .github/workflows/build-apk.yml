@@ -1,7 +1,8 @@
 name: Build APK
 
 on:
-  workflow_dispatch:
+  branch:
+    - alpha/*
 
 jobs:
   build:
@@ -69,11 +70,17 @@ jobs:
         run: |
           APK_FILE=$(find app/build/outputs/apk/release -name "*release*.apk" | head -n 1)
           echo "APK found - $APK_FILE"
-          DIR=$(dirname "$APK_FILE")
+          
+          DIR_REL=$(dirname "$APK_FILE")
+          DIR_ABS="$(pwd)/$DIR_REL"
+
           NEW_NAME="${{ env.ARTIFACT_NAME }}_${{ env.TYPE_RELEASE }}.apk"
-          mv "$APK_FILE" "$DIR/$NEW_NAME"
-          echo "APK_PATH=${{ env.ROOT_DIR }}/${{ env.TEST_PROJECT_NAME }}/android/$DIR/$NEW_NAME" >> "$GITHUB_ENV"
-          echo "Final APK - $DIR/$NEW_NAME"
+          mv "$APK_FILE" "$DIR_REL/$NEW_NAME"
+
+          FINAL_APK="$DIR_ABS/$NEW_NAME"
+          echo "APK_PATH=$FINAL_APK" >> "$GITHUB_ENV"
+          
+          echo "Final APK - $FINAL_APK"
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
