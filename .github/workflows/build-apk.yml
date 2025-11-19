@@ -1,9 +1,7 @@
 name: Build APK
 
 on:
-  push:
-    branches:
-      - 'alpha/*'
+  workflow_dispatch:
 
 jobs:
   build:
