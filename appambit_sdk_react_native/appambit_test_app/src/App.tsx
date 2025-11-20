@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import { start, enableManualSession } from "appambit";
+import { start, /* enableManualSession */ } from "appambit";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
