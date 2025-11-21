@@ -2,7 +2,7 @@ import { TurboModuleRegistry, type TurboModule } from 'react-native';
 
 export interface Spec extends TurboModule {
     generateTestCrash(): void;
-    didCrashInLastSession(): boolean;
+    didCrashInLastSession(): Promise<boolean>;
     logErrorMessage(
         message: string,
         properties?: { [key: string]: string }

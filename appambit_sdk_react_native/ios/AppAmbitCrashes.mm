@@ -10,14 +10,11 @@ RCT_EXPORT_MODULE(AppAmbitCrashes);
     return std::make_shared<facebook::react::NativeAppambitCrashesSpecJSI>(params);
 }
 
-- (nonnull NSNumber *)didCrashInLastSession {
-    __block NSNumber *result = @(NO);
-
+- (void)didCrashInLastSession:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject {
     [AppAmbitSdkWrapper didCrashInLastSessionWithCompletion:^(BOOL crashed) {
-        result = @(crashed);
+        resolve(@(crashed));
     }];
-
-    return result;
 }
 
 - (void)generateTestCrash { 

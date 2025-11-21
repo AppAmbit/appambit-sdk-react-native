@@ -1,6 +1,6 @@
 PODS:
   - Appambit (0.0.1):
-    - AppAmbitSdk (~> 0.0.9)
+    - AppAmbitSdk (~> 0.1.0)
     - boost
     - DoubleConversion
     - fast_float
@@ -28,7 +28,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AppAmbitSdk (0.0.9)
+  - AppAmbitSdk (0.1.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
@@ -2605,8 +2605,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: 903162ea7a585f011837eecd63452f7e7f78381f
-  AppAmbitSdk: e6d4e454fe24fbc48030ac0a327a44b7a8bc0c37
+  Appambit: b810634a2bbcbc56a48182ac244c62d962e14fee
+  AppAmbitSdk: 234bc6d33d4243271d978e6d6b767e2fe383c940
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6

@@ -3,6 +3,8 @@ package com.appambit
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.ReadableMapKeySetIterator
 import com.facebook.react.bridge.ReadableMap as RNReadableMap
+import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactMethod
 
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.annotations.ReactModule
@@ -15,8 +17,14 @@ class AppambitCrashesModule(reactContext: ReactApplicationContext) :
     return NAME
   }
 
-  override fun didCrashInLastSession(): Boolean {
-    return Crashes.didCrashInLastSession()
+  @ReactMethod
+  override fun didCrashInLastSession(promise: Promise) {
+    try {
+        val crashed = Crashes.didCrashInLastSession()
+        promise.resolve(crashed)
+    } catch (e: Exception) {
+        promise.reject("DID_CRASH_ERROR", e)
+    }
   }
 
   override fun generateTestCrash() {

@@ -54,7 +54,7 @@ export function generateTestEvent(): void {
 
 // Crashes methods
 
-export function didCrashInLastSession(): boolean {
+export function didCrashInLastSession(): Promise<boolean> {
   return AppambitCrashes.didCrashInLastSession();
 }
 
