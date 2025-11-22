@@ -1,0 +1,84 @@
+name: Publish React Native NPM Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+    publish:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            fetch-depth: 0
+        
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: '20'
+            registry-url: 'https://registry.npmjs.org'
+
+        - name: Install dependencies
+          run: npm install
+
+        - name: Read version from package.json
+          id: version
+          run: |
+            VERSION_NAME=$(jq -r .version package.json)
+            echo "VERSION_NAME=$VERSION_NAME"
+
+            echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+            echo "new_tag=v$VERSION_NAME" >> $GITHUB_OUTPUT
+
+            if [[ "$VERSION_NAME" == *"-"* ]]; then
+              echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            fi
+
+        - name: Check the version
+          id: check
+          run: |
+            CURRENT_VERSION=$(jq -r .version package.json)
+            echo "Current version: $CURRENT_VERSION"
+            LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            echo "Latest tag: $LATEST_TAG"
+
+            LATEST_VERSION=${LATEST_TAG#v}
+
+            if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; 
+            then
+              echo "Version changed"
+              echo "version_changed=true" >> $GITHUB_OUTPUT
+              echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            else
+              echo "Version not changed"
+              echo "version_changed=false" >> $GITHUB_OUTPUT
+            fi
+
+        - name: Extract latest changelog entry
+          id: changelog
+          run: |
+            LATEST_CHANGELOG=$(awk '/^## Version /{if (p) exit; p=1} p' CHANGELOG.md | sed '1d')
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$LATEST_CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+
+        - name: Show changelog
+          run: |
+            echo "Last changes:"
+            echo "${{ steps.changelog.outputs.changelog }}"
+
+        - name: Create GitHub Release
+          if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
+          uses: softprops/action-gh-release@v2
+          with:
+            tag_name: ${{ steps.version.outputs.new_tag }}
+            name: ${{ steps.version.outputs.new_tag }}
+            body: ${{ steps.changelog.outputs.changelog }}
+            prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+        - name: Publish
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          run: npm publish --access public --no-git-checks
+          env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
