@@ -1,5 +1,7 @@
 ___
 
-## Version 0.0.1
+## Version 0.1.0
 
-First publish.
+### AppAmbit
+
+* **[Feature]** Add Ambit Trail – records user navigation, app lifecycle events, network activity, and errors to provide deeper context for debugging and issue analysis
