@@ -58,7 +58,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 
 ### NPM
 
-Add the package to your MAUI project:
+Add the package to your React Native project:
 
 ```bash
 npm install appambit
@@ -71,7 +71,7 @@ npm install appambit@0.1.0
 
 Initialize the SDK with your **API key**.
 
-### Dart
+### Javascript
 
 ```javascript
 export default function App() {
