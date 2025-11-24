@@ -122,7 +122,11 @@ Add these permissions to your `AndroidManifest.xml`:
 
 ## Release Distribution
 
-* Push the artifact to your AppAmbit dashboard for distribution via email and direct installation.
+Upload your APK, AAB, or IPA directly to your AppAmbit dashboard.
+Distribute release builds through:
+* Direct install links
+* Email distribution
+* Environment-specific channels
 
 ---
 
