@@ -1,97 +1,187 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# AppAmbit React Native SDK
 
-# Getting Started
+**Track. Debug. Distribute.**
+**AppAmbit: track, debug, and distribute your apps from one dashboard.**
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+Lightweight SDK for analytics, events, logging, crashes, and offline support. Simple setup, minimal overhead.
 
-## Step 1: Start Metro
+> Full product docs live here: **[docs.appambit.com](https://docs.appambit.com)**
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+---
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+## Contents
 
-```sh
-# Using npm
-npm start
+* [Features](#features)
+* [Requirements](#requirements)
+* [Install](#install)
+* [Quickstart](#quickstart)
+* [Usage](#usage)
+* [Release Distribution](#release-distribution)
+* [Privacy and Data](#privacy-and-data)
+* [Troubleshooting](#troubleshooting)
+* [Contributing](#contributing)
+* [Versioning](#versioning)
+* [Security](#security)
+* [License](#license)
 
-# OR using Yarn
-yarn start
+---
+
+## Features
+
+* Session analytics with automatic lifecycle tracking
+* Event tracking with custom properties
+* Error logging for quick diagnostics 
+* Crash capture with stack traces and threads
+* Offline support with batching, retry, and queue
+* Create mutliple app profiles for staging and production
+* Small footprint
+
+---
+
+## Requirements
+
+- Node >= 20
+- Yarn >=3.6.1
+- **Android SDK with:**
+    - Android 5.0+
+    - compileSdkVersion 34
+    - targetSdkVersion 34
+    - minSdkVersion 21
+- **iOS SDK with:**
+    - Xcode 15+ (for iOS)
+    - macOS 13+
+
+---
+
+
+## Install
+
+### NPM
+
+Add the package to your MAUI project:
+
+```bash
+npm install appambit
+# or specify version
+npm install appambit@0.1.0
+```
+---
+
+## Quickstart
+
+Initialize the SDK with your **API key**.
+
+### Dart
+
+```javascript
+export default function App() {
+  useEffect(() => {
+    start("<YOUR-APPKEY>");
+  }, []);
+}
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Android App Requirements
 
-### Android
+Add these permissions to your `AndroidManifest.xml`:
 
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```xml
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+<uses-permission android:name="android.permission.INTERNET" />
 ```
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+## Usage
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+* **Session activity** – automatically tracks user session starts, stops, and durations
+* **Track events** – send structured events with custom properties
 
-```sh
-bundle install
-```
+  ```javascript
+    trackEvent("ButtonClicked", {"Count": "41"})
+  ```
+* **Logs**: add structured log messages for debugging
 
-Then, and every time you update your native dependencies, run:
+  ```javascript
+    try {
+        throw new Error();
+    } catch (e) {
+        logError(
+        { stack: e.stack, 
+        exception: e, 
+        classFqn: e.constructor.name, 
+        properties: {"user_id": "1"} },
+        );
+    }
+  ```
+* **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
 
-```sh
-bundle exec pod install
-```
+---
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## Release Distribution
 
-```sh
-# Using npm
-npm run ios
+* Push the artifact to your AppAmbit dashboard for distribution via email and direct installation.
 
-# OR using Yarn
-yarn ios
-```
+---
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+## Privacy and Data
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+* The SDK batches and transmits data efficiently
+* You control what is sent — avoid secrets or sensitive PII
+* Supports compliance with Google Play policies
 
-## Step 3: Modify your app
+For details, see the docs: **[docs.appambit.com](https://docs.appambit.com)**
 
-Now that you have successfully run the app, let's make changes!
+---
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## Troubleshooting
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+* **No data in dashboard** → check API key, endpoint, and network access
+* **React Native dependency not resolving** → run `npm install` and `yarn install` in folder `appambit_test_app` and verify again
+* **Crash not appearing** → crashes are sent on next launch
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+---
 
-## Congratulations! :tada:
+## Contributing
 
-You've successfully run and modified your React Native App. :partying_face:
+We welcome issues and pull requests.
 
-### Now what?
+* Fork the repo
+* Create a feature branch
+* Add tests where applicable
+* Open a PR with a clear summary
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Please follow React Native API design guidelines and document public APIs.
 
-# Troubleshooting
+---
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## Versioning
 
-# Learn More
+Semantic Versioning (`MAJOR.MINOR.PATCH`) is used.
 
-To learn more about React Native, take a look at the following resources:
+* Breaking changes → **major**
+* New features → **minor**
+* Fixes → **patch**
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+---
+
+## Security
+
+If you find a security issue, please contact us at **[hello@appambit.com](mailto:hello@appambit.com)** rather than opening a public issue.
+
+---
+
+## License
+
+Open source under the terms described in the [LICENSE](./LICENSE) file.
+
+---
+
+## Links
+
+* **Docs**: [docs.appambit.com](https://docs.appambit.com)
+* **Dashboard**: [appambit.com](https://appambit.com)
+* **Discord**: [discord.gg](https://discord.gg/nJyetYue2s)
+* **Examples**: Sample React Native test app included in repo.
