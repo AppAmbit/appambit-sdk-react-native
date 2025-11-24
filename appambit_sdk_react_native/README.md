@@ -139,7 +139,7 @@ For details, see the docs: **[docs.appambit.com](https://docs.appambit.com)**
 ## Troubleshooting
 
 * **No data in dashboard** → check API key, endpoint, and network access
-* **React Native dependency not resolving** → run `npm install` and `yarn install` in folder `appambit_test_app` and verify again
+* **React Native dependency not resolving** → run `npm install` or `yarn install` and verify again 
 * **Crash not appearing** → crashes are sent on next launch
 
 ---
