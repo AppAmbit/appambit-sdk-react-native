@@ -33,7 +33,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Error logging for quick diagnostics 
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
-* Create mutliple app profiles for staging and production
+* Create multiple app profiles for staging and production
 * Small footprint
 
 ---
