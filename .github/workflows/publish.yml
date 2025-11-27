@@ -6,6 +6,9 @@ on:
 jobs:
     publish:
       runs-on: ubuntu-latest
+      timeout-minutes: 10
+      env:
+        DIRECTORY: appambit_sdk_react_native
       steps:
         - uses: actions/checkout@v2
           with:
@@ -16,6 +19,9 @@ jobs:
           with:
             node-version: '20'
             registry-url: 'https://registry.npmjs.org'
+        
+        - name: Navigate to package directory
+          run: cd ${{ env.DIRECTORY }}
 
         - name: Install dependencies
           run: npm install
@@ -68,17 +74,17 @@ jobs:
             echo "Last changes:"
             echo "${{ steps.changelog.outputs.changelog }}"
 
-        - name: Create GitHub Release
-          if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
-          uses: softprops/action-gh-release@v2
-          with:
-            tag_name: ${{ steps.version.outputs.new_tag }}
-            name: ${{ steps.version.outputs.new_tag }}
-            body: ${{ steps.changelog.outputs.changelog }}
-            prerelease: ${{ steps.version.outputs.is_prerelease }}
+        # - name: Create GitHub Release
+        #   if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
+        #   uses: softprops/action-gh-release@v2
+        #   with:
+        #     tag_name: ${{ steps.version.outputs.new_tag }}
+        #     name: ${{ steps.version.outputs.new_tag }}
+        #     body: ${{ steps.changelog.outputs.changelog }}
+        #     prerelease: ${{ steps.version.outputs.is_prerelease }}
 
-        - name: Publish
-          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
-          run: npm publish --access public --no-git-checks
-          env:
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # - name: Publish
+        #   if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+        #   run: npm publish --access public --no-git-checks
+        #   env:
+        #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
