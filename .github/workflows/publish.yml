@@ -19,14 +19,13 @@ jobs:
           with:
             node-version: '20'
             registry-url: 'https://registry.npmjs.org'
-        
-        - name: Navigate to package directory
-          run: cd ${{ env.DIRECTORY }}
 
         - name: Install dependencies
+          working-directory: ${{ env.DIRECTORY }}
           run: npm install
 
         - name: Read version from package.json
+          working-directory: ${{ env.DIRECTORY }}
           id: version
           run: |
             VERSION_NAME=$(jq -r .version package.json)
@@ -42,6 +41,7 @@ jobs:
             fi
 
         - name: Check the version
+          working-directory: ${{ env.DIRECTORY }}
           id: check
           run: |
             CURRENT_VERSION=$(jq -r .version package.json)
@@ -62,6 +62,7 @@ jobs:
             fi
 
         - name: Extract latest changelog entry
+          working-directory: ${{ env.DIRECTORY }}
           id: changelog
           run: |
             LATEST_CHANGELOG=$(awk '/^## Version /{if (p) exit; p=1} p' CHANGELOG.md | sed '1d')
@@ -70,6 +71,7 @@ jobs:
             echo "EOF" >> $GITHUB_OUTPUT
 
         - name: Show changelog
+          working-directory: ${{ env.DIRECTORY }}
           run: |
             echo "Last changes:"
             echo "${{ steps.changelog.outputs.changelog }}"
