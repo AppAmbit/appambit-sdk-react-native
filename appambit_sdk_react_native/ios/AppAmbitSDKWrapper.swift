@@ -14,8 +14,8 @@ public class AppAmbitSDKWrapper: NSObject {
 
   // MARK: Breadcrumbs
   @objc
-  public static func addBreadcrumb(message: String) {
-    AppAmbit.addBreadcrumb(message: message)
+  public static func addBreadcrumb(name: String) {
+    AppAmbit.addBreadcrumb(name: name)
   }
   
   // MARK: - Analytics

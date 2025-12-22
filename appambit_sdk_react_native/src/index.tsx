@@ -16,35 +16,39 @@ type LogErrorParams = {
 export function registerNavigationTracking(
   navigationRef: NavigationContainerRefWithCurrent<any>
 ) {
+  let previousRouteKey: string | undefined;
   let previousRouteName: string | undefined;
 
-  const onStateChange = () => {
-    if (!navigationRef.isReady()) return;
+  const getCurrentRoute = () => {
+    if (!navigationRef.isReady()) return null;
+    return navigationRef.getCurrentRoute();
+  };
 
-    const route = navigationRef.getCurrentRoute();
+  const onStateChange = () => {
+    const route = getCurrentRoute();
     if (!route) return;
 
-    const currentRouteName = route.name;
+    const { key, name } = route;
 
-    if (previousRouteName === currentRouteName) {
+    if (previousRouteKey === key) {
       return;
     }
 
-    if (previousRouteName) {
+    if (previousRouteKey && previousRouteName) {
       addBreadcrumb(`On disappear: ${previousRouteName}`);
     }
 
-    addBreadcrumb(`On appear: ${currentRouteName}`);
+    addBreadcrumb(`On appear: ${name}`);
 
-    previousRouteName = currentRouteName;
+    previousRouteKey = key;
+    previousRouteName = name;
   };
 
-  if (navigationRef.isReady()) {
-    const initialRoute = navigationRef.getCurrentRoute();
-    if (initialRoute) {
-      previousRouteName = initialRoute.name;
-      addBreadcrumb(`On appear: ${previousRouteName}`);
-    }
+  const initialRoute = getCurrentRoute();
+  if (initialRoute) {
+    previousRouteKey = initialRoute.key;
+    previousRouteName = initialRoute.name;
+    addBreadcrumb(`On appear: ${initialRoute.name}`);
   }
 
   const unsubscribe = navigationRef.addListener("state", onStateChange);

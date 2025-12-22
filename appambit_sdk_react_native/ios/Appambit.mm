@@ -15,7 +15,7 @@ RCT_EXPORT_MODULE(AppAmbitCore);
 }
 
 - (void)addBreadcrumb:(nonnull NSString *)name {
-  [AppAmbitSdkWrapper addBreadcrumb:name];
+  [AppAmbitSdkWrapper addBreadcrumbWithName:name];
 }
 
 @end
