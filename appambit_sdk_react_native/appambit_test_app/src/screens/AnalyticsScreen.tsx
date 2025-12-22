@@ -1,8 +1,11 @@
 import { ScrollView, Text, Alert, View } from "react-native";
 import { trackEvent, generateTestEvent, clearToken, logErrorMessage, startSession, endSession } from "appambit";
 import CustomButton from "../components/CustomButton";
+import { useNavigation } from "@react-navigation/native";
 
 export default function AnalyticsScreen() {
+  
+  const navigation = useNavigation<any>();
 
   function tokenRefresh() {
     try {
@@ -116,6 +119,13 @@ export default function AnalyticsScreen() {
           }
           Alert.alert("Info", "Events generated")
           Alert.alert("Info", "Turn on internet to send the events")
+        }}
+      />
+
+      <CustomButton
+        title="Change to Second Screen"
+        onPress={() => {
+          navigation.navigate("SecondScreen");
         }}
       />
 

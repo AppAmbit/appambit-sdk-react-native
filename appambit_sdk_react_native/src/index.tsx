@@ -1,6 +1,7 @@
 import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
+import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 
 type LogErrorParams = {
   exception?: any;
@@ -12,10 +13,55 @@ type LogErrorParams = {
   properties?: Record<string, string>;
 };
 
+export function registerNavigationTracking(
+  navigationRef: NavigationContainerRefWithCurrent<any>
+) {
+  let previousRouteName: string | undefined;
+
+  const onStateChange = () => {
+    if (!navigationRef.isReady()) return;
+
+    const route = navigationRef.getCurrentRoute();
+    if (!route) return;
+
+    const currentRouteName = route.name;
+
+    if (previousRouteName === currentRouteName) {
+      return;
+    }
+
+    if (previousRouteName) {
+      addBreadcrumb(`On disappear: ${previousRouteName}`);
+    }
+
+    addBreadcrumb(`On appear: ${currentRouteName}`);
+
+    previousRouteName = currentRouteName;
+  };
+
+  if (navigationRef.isReady()) {
+    const initialRoute = navigationRef.getCurrentRoute();
+    if (initialRoute) {
+      previousRouteName = initialRoute.name;
+      addBreadcrumb(`On appear: ${previousRouteName}`);
+    }
+  }
+
+  const unsubscribe = navigationRef.addListener("state", onStateChange);
+
+  return unsubscribe;
+}
+
 // Start the Appambit SDK with the provided app key
 
 export function start(appkey: string): void {
   Appambit.start(appkey);
+}
+
+// Breadcrumbs
+
+export function addBreadcrumb(name: string): void {
+  Appambit.addBreadcrumb(name);
 }
 
 // Analytics methods
