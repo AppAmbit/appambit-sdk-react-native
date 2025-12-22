@@ -3,7 +3,7 @@ import CustomButton from "../components/CustomButton";
 import { type NativeStackScreenProps } from "@react-navigation/native-stack";
 
 type RootStackParamList = {
-  Home: undefined;
+  HomeScreen: undefined;
   SecondScreen: undefined;
 };
 
@@ -18,7 +18,7 @@ export default function SecondScreen({ navigation }: Props) {
 
       <CustomButton
         title="Back to Analytics"
-        onPress={() => navigation.goBack()}
+        onPress={() => navigation.navigate("HomeScreen")}
       />
     </View>
   );

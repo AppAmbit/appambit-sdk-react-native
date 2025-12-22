@@ -2,6 +2,7 @@ import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
+import { Platform } from 'react-native';
 
 type LogErrorParams = {
   exception?: any;
@@ -16,44 +17,30 @@ type LogErrorParams = {
 export function registerNavigationTracking(
   navigationRef: NavigationContainerRefWithCurrent<any>
 ) {
-  let previousRouteKey: string | undefined;
-  let previousRouteName: string | undefined;
-
-  const getCurrentRoute = () => {
-    if (!navigationRef.isReady()) return null;
-    return navigationRef.getCurrentRoute();
-  };
-
-  const onStateChange = () => {
-    const route = getCurrentRoute();
-    if (!route) return;
-
-    const { key, name } = route;
-
-    if (previousRouteKey === key) {
-      return;
-    }
-
-    if (previousRouteKey && previousRouteName) {
-      addBreadcrumb(`On disappear: ${previousRouteName}`);
-    }
-
-    addBreadcrumb(`On appear: ${name}`);
-
-    previousRouteKey = key;
-    previousRouteName = name;
-  };
-
-  const initialRoute = getCurrentRoute();
-  if (initialRoute) {
-    previousRouteKey = initialRoute.key;
-    previousRouteName = initialRoute.name;
-    addBreadcrumb(`On appear: ${initialRoute.name}`);
+  if (Platform.OS !== 'android') {
+    return () => {};
   }
 
-  const unsubscribe = navigationRef.addListener("state", onStateChange);
+  let lastTrackedKey: string | null = null;
+  let lastTrackedName: string | null = null;
 
-  return unsubscribe;
+  const onStateChange = () => {
+    if (!navigationRef.isReady()) return;
+
+    const route = navigationRef.getCurrentRoute();
+    if (!route || route.key === lastTrackedKey) return;
+
+    if (lastTrackedName) {
+      addBreadcrumb(`On disappear: ${lastTrackedName}`);
+    }
+
+    addBreadcrumb(`On appear: ${route.name}`);
+
+    lastTrackedKey = route.key;
+    lastTrackedName = route.name;
+  };
+
+  return navigationRef.addListener("state", onStateChange);
 }
 
 // Start the Appambit SDK with the provided app key
@@ -126,7 +113,7 @@ export async function logError({
   properties,
 }: LogErrorParams): Promise<void> {
   if (!AppambitCrashes) {
-    console.warn('AppambitCrashes not registered');
+    console.warn('AppAmbitCrashes not registered');
     return;
   }
 
