@@ -9,10 +9,9 @@ import AnalyticsScreen from "./screens/AnalyticsScreen";
 export default function App() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
 
-  //AppAmbit.enableManualSession();
+  AppAmbit.enableManualSession();
   AppAmbit.start("e1c87a4d-c5f9-4b68-9673-3441ca41abd4");
   AppAmbitPushNotifications.start();
-  AppAmbitPushNotifications.requestNotificationPermission();
 
   return (
     <View style={{ flex: 1 }}>
