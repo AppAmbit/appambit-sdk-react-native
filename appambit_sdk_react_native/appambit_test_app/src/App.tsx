@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import { start, /* enableManualSession */ } from "appambit";
+import * as AppAmbit from "appambit";
+import * as AppAmbitPushNotifications from "appambit-push-notifications";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
@@ -8,10 +9,10 @@ import AnalyticsScreen from "./screens/AnalyticsScreen";
 export default function App() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
 
-  useEffect(() => {
-    //enableManualSession();
-    start("<YOUR-APPKEY>");
-  }, []);
+  //AppAmbit.enableManualSession();
+  AppAmbit.start("e1c87a4d-c5f9-4b68-9673-3441ca41abd4");
+  AppAmbitPushNotifications.start();
+  AppAmbitPushNotifications.requestNotificationPermission();
 
   return (
     <View style={{ flex: 1 }}>
