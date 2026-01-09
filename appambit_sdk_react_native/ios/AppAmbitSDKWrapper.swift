@@ -11,6 +11,12 @@ public class AppAmbitSDKWrapper: NSObject {
   public static func start(appKey: String) {
     AppAmbit.start(appKey: appKey)
   }
+
+  // MARK: Breadcrumbs
+  @objc
+  public static func addBreadcrumb(name: String) {
+    AppAmbit.addBreadcrumb(name: name)
+  }
   
   // MARK: - Analytics
   @objc
