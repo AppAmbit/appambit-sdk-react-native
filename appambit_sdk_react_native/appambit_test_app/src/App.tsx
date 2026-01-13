@@ -10,7 +10,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
 
   //AppAmbit.enableManualSession();
-  AppAmbit.start("<YOUR-APPKEY>");
+  AppAmbit.start("e1c87a4d-c5f9-4b68-9673-3441ca41abd4");
+
+  AppAmbitPushNotifications.setNotificationCustomizer((data: Record<string, string>) => {
+    console.log("Customizer received data:", data);
+  });
+
   AppAmbitPushNotifications.start();
 
   return (
