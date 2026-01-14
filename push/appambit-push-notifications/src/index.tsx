@@ -19,6 +19,10 @@ export const requestNotificationPermission = (): void => {
   AppambitPushNotifications.requestNotificationPermission();
 };
 
+export const requestNotificationPermissionWithResult = async (): Promise<boolean> => {
+  return await AppambitPushNotifications.requestNotificationPermissionWithResult();
+};
+
 export const setNotificationsEnabled = (enabled: boolean): void => {
   AppambitPushNotifications.setNotificationsEnabled(enabled);
 };

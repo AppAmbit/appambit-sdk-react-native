@@ -29,6 +29,17 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  override fun requestNotificationPermissionWithResult(promise: Promise) {
+    val activity: Activity? = currentActivity
+    if (activity is ComponentActivity) {
+      PushNotifications.requestNotificationPermission(activity) { isGranted ->
+        promise.resolve(isGranted)
+      }
+    } else {
+        promise.resolve(false)
+    }
+  }
+
   override fun setNotificationsEnabled(enabled: Boolean) {
     PushNotifications.setNotificationsEnabled(
       reactApplicationContext.applicationContext,
@@ -47,13 +58,7 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
       try {
       PushNotifications.setNotificationCustomizer { _, _, notification ->
         val params = Arguments.createMap()
-        
-        // Mapping AppAmbitNotification fields based on user's class definition
-        params.putString("title", notification.title)
-        params.putString("body", notification.body)
-        params.putString("color", notification.color)
-        params.putString("icon", notification.smallIconName) // Mapped to 'icon' for JS
-        
+
         val data = notification.data
         val dataMap = Arguments.createMap()
         if (data != null && data.isNotEmpty()) {
