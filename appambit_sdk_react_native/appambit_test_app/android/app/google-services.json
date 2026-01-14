@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "86299298806",
-    "project_id": "reactnativepushtest-e073c",
-    "storage_bucket": "reactnativepushtest-e073c.firebasestorage.app"
+    "project_number": "761319447119",
+    "project_id": "rnpush-e5bd7",
+    "storage_bucket": "rnpush-e5bd7.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:86299298806:android:276c62dfdb4a18164055d7",
+        "mobilesdk_app_id": "1:761319447119:android:afe5684f0c68c7232be83a",
         "android_client_info": {
           "package_name": "com.AppAmbit.TestApp"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA2yUoRBV4jg5HaqeNMWfo6lpdcGFS912Q"
+          "current_key": "AIzaSyD2_tQCfQ8EntHF-Llhym9--gYKVwEi-Pc"
         }
       ],
       "services": {
