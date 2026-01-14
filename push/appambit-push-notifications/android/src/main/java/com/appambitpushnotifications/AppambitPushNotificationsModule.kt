@@ -44,16 +44,26 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
   }
 
   override fun setNotificationCustomizer() {
-    try {
+      try {
       PushNotifications.setNotificationCustomizer { _, _, notification ->
+        val params = Arguments.createMap()
+        
+        // Mapping AppAmbitNotification fields based on user's class definition
+        params.putString("title", notification.title)
+        params.putString("body", notification.body)
+        params.putString("color", notification.color)
+        params.putString("icon", notification.smallIconName) // Mapped to 'icon' for JS
+        
         val data = notification.data
+        val dataMap = Arguments.createMap()
         if (data != null && data.isNotEmpty()) {
-          val params = Arguments.createMap()
           for ((key, value) in data) {
-            params.putString(key, value)
+            dataMap.putString(key, value)
           }
-          sendEvent("onNotificationReceived", params)
         }
+        params.putMap("data", dataMap)
+
+        sendEvent("onNotificationReceived", params)
       }
     } catch (e: Exception) {
       e.printStackTrace()

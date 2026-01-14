@@ -14,6 +14,7 @@ export default function App() {
 
   AppAmbitPushNotifications.setNotificationCustomizer((data: Record<string, string>) => {
     console.log("Customizer received data:", data);
+    console.log("Returning customized notification payload.", data.title, data.body);
   });
 
   AppAmbitPushNotifications.start();
