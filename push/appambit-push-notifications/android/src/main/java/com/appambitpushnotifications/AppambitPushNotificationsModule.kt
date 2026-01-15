@@ -55,19 +55,20 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
   }
 
   override fun setNotificationCustomizer() {
-      try {
+    try {
       PushNotifications.setNotificationCustomizer { _, _, notification ->
         val params = Arguments.createMap()
 
-        val data = notification.data
-        val dataMap = Arguments.createMap()
-        if (data != null && data.isNotEmpty()) {
+        params.putString("title", notification.title)
+        params.putString("body", notification.body)
+
+        notification.data?.let { data ->
+          val dataMap = Arguments.createMap()
           for ((key, value) in data) {
             dataMap.putString(key, value)
           }
+          params.putMap("data", dataMap)
         }
-        params.putMap("data", dataMap)
-
         sendEvent("onNotificationReceived", params)
       }
     } catch (e: Exception) {

@@ -12,7 +12,7 @@ import {
 } from "appambit";
 import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
-import * as AppAmbitPushNotifications from "appambit-push-notifications";
+import * as PushNotifications from "appambit-push-notifications";
 
 export default function CrashesScreen() {
   const [userId] = useState<string>(uuidv4());
@@ -31,11 +31,17 @@ export default function CrashesScreen() {
           : 'Allow Notifications'
       }
       onPress={async () => {
-        AppAmbitPushNotifications.requestNotificationPermission();
-        const newValue = !notificationsEnabled;
-
-        AppAmbitPushNotifications.setNotificationsEnabled(newValue);
-        setNotificationsEnabledState(newValue);
+          PushNotifications.requestNotificationPermissionWithResult().then(
+            (granted: boolean) => {
+              console.log("Notification permission granted:", granted);
+              PushNotifications.setNotificationsEnabled(granted);
+              setNotificationsEnabledState(granted);
+              return;
+            }
+          );
+          const newValue = !notificationsEnabled;
+          PushNotifications.setNotificationsEnabled(newValue);
+          setNotificationsEnabledState(newValue);
       }}
     />
 

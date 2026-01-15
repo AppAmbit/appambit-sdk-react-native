@@ -1,28 +1,19 @@
 import { useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as AppAmbit from "appambit";
-import * as AppAmbitPushNotifications from "appambit-push-notifications";
+import * as PushNotifications from "appambit-push-notifications";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
-
   //AppAmbit.enableManualSession();
-  AppAmbit.start("e1c87a4d-c5f9-4b68-9673-3441ca41abd4");
-
-  AppAmbitPushNotifications.setNotificationCustomizer((payload) => {
-    console.log("Customizer received data:", payload);
+  AppAmbit.start("de46b9b4-fa04-4066-a110-211597667501");
+  PushNotifications.setNotificationCustomizer((data: Record<string, string>) => {
+     console.log("Customizer received data:", data);
   });
-
-  AppAmbitPushNotifications.start();
-
-  AppAmbitPushNotifications.requestNotificationPermissionWithResult().then(
-    (granted: boolean) => {
-      console.log("Notification permission granted:", granted);
-    }
-  );
+  PushNotifications.start();
 
   return (
     <View style={{ flex: 1 }}>

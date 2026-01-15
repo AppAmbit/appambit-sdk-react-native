@@ -4,10 +4,8 @@ import AppambitPushNotifications from './NativeAppambitPushNotifications';
 const eventEmitter = new NativeEventEmitter(AppambitPushNotifications);
 
 export interface NotificationPayload {
-  title?: string;
-  body?: string;
-  color?: string;
-  icon?: string;
+  title: string;
+  body: string;
   data?: Record<string, string>;
 }
 
@@ -32,13 +30,9 @@ export const isNotificationsEnabled = async (): Promise<boolean> => {
 };
 
 export const setNotificationCustomizer = (
-  callback: (payload: NotificationPayload) => void
+  callback: (data: Record<string, string>) => void
 ): void => {
+  AppambitPushNotifications.setNotificationCustomizer();
   eventEmitter.removeAllListeners('onNotificationReceived');
-  eventEmitter.addListener(
-    'onNotificationReceived',
-    (payload: NotificationPayload) => {
-      callback(payload);
-    }
-  );
-};
+  eventEmitter.addListener('onNotificationReceived', callback as any);
+}; 
