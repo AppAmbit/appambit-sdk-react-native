@@ -37,30 +37,34 @@ This SDK is an extension of the core AppAmbit Android SDK, providing a simple an
 ---
 
 ## Install
+To install the library from NPM, run the following commands in your project directory:
 
-Add the following dependencies to your app's `build.gradle` file. Your app is still responsible for providing the Firebase Bill of Materials (BOM) to ensure version compatibility.
+```bash
+npm install appambit
+&
+npm install appambit-push-notifications
+```
+
+Add the following dependencies to your app's `build.gradle` file. Your app is still responsible for providing the Firebase Bill of Materials (BOM) and Firebase Messaging to ensure version compatibility.
 
 **Kotlin DSL**
 
+**`android/app/build.gradle`**
 ```kotlin
 dependencies {
-    implementation("com.appambit:appambit:0.2.2")
-    implementation("com.appambit:appambit-push-notifications:0.2.2")
-
-    // The Firebase BOM is required to align Firebase library versions.
+    // The Firebase BOM and Messaging are required to align Firebase library versions.
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation ("com.google.firebase:firebase-messaging:23.4.0")
 }
 ```
 
 **Groovy**
-
+**`android/app/build.gradle`**
 ```gradle
 dependencies {
-    implementation 'com.appambit:appambit:0.2.2'
-    implementation 'com.appambit:appambit-push-notifications:0.2.2'
-
-    // The Firebase BOM is required to align Firebase library versions.
+    // The Firebase BOM and Messaging are required to align Firebase library versions.
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-messaging:23.4.0'
 }
 ```
 
@@ -72,20 +76,20 @@ Also, ensure you have the Google Services plugin configured in your project.
 
 1.  **Initialize the Core SDK**: In your `App.tsx` class, initialize the core AppAmbit SDK with your App Key.
 
-    ```dart
+    ```javascript
     AppAmbit.start("<YOUR-APPKEY>");
     ```
 
 2.  **Initialize the Push SDK**: Immediately after, start the Push Notifications SDK.
 
-    ```dart
-    AppAmbitPushNotifications.start();
+    ```javascript
+    PushNotifications.start();
     ```
 
 3.  **Request Permissions**: In your main activity, request the required notification permission.
 
-    ```dart
-    AppAmbitPushNotifications.requestNotificationPermission();
+    ```javascript
+    PushNotifications.requestNotificationPermission();
     ```
 
 **That's it!** Your app is now ready to receive and display push notifications.
@@ -98,32 +102,34 @@ Also, ensure you have the Google Services plugin configured in your project.
 
 By default, notifications are enabled when you first call `start()`. To manage user preferences afterward, use `setNotificationsEnabled`.
 
-```kotlin
+```javascript
 // To disable all future notifications
-AppAmbitPushNotifications.setNotificationsEnabled(context, false)
+PushNotifications.setNotificationsEnabled(false)
 
 // To re-enable them
-AppAmbitPushNotifications.setNotificationsEnabled(context, true)
+PushNotifications.setNotificationsEnabled(true)
 ```
 
 This method updates the opt-out status on the AppAmbit dashboard and stops the device from receiving FCM messages. You can check the current setting at any time:
 
-```kotlin
-val isEnabled = AppAmbitPushNotifications.isNotificationsEnabled(context)
+```javascript
+const isEnabled = PushNotifications.isNotificationsEnabled()
 ```
 
 ### Permission Listener (Optional)
 
 To know if the user granted or denied the notification permission, you can provide an optional listener.
 
-```kotlin
-AppAmbitPushNotifications.requestNotificationPermission(this) { isGranted ->
-    if (isGranted) {
-        Log.d(TAG, "Permission granted!")
-    } else {
-        Log.w(TAG, "Permission denied. We can't show notifications.")
+```javascript
+PushNotifications.requestNotificationPermissionWithResult().then(
+    (granted: boolean) => {
+        if(granted) {
+            console.log("Notification permission granted");
+        } else {
+            console.log("Notification permission denied");
+        }
     }
-}
+);
 ```
 
 ---
@@ -142,21 +148,12 @@ The SDK uses the standard keys from the FCM `notification` object.
 
 - **`title`**: The notification's title.
 - **`body`**: The notification's main text.
-- **`icon`**: The name of a drawable resource for the small icon.
-- **`color`**: The notification's accent color (e.g., `#FF5722`).
-- **`click_action`**: An intent filter name to be triggered when the notification is tapped.
-- **`channel_id`**: The ID of the notification channel to use.
-- **`image`**: A URL to an image to be displayed in the notification.
-- **`notification_priority`**: The integer priority of the notification (e.g., `1` for `PRIORITY_HIGH`).
 
 **`data` object:**
 
 The `data` object is a free-form container for any custom key-value pairs you wish to send (e.g., `{"your_key": "your_value", "another_key": 123}`). Its sole purpose is to pass custom data to your application, which you can then access using the `NotificationCustomizer` to implement any advanced logic you require.
 
 ### Advanced Customization with `NotificationCustomizer`
-
-For scenarios that require custom logic or advanced UI modifications, you can register a `NotificationCustomizer`. This is a powerful hook that gives you **complete freedom** to modify the notification before it's displayed. You receive the `NotificationCompat.Builder` and an `AppAmbitNotification` object, which contains the entire `data` payload from your FCM message.
-
 
 The `data` payload is a **free-form key-value map**. You are not limited to any specific keys; you can send any data you need and use it to build your custom notification.
 
@@ -168,10 +165,8 @@ The following example shows how to read custom fields from the `data` payload to
 
     ```json
     {
-      "notification": {
-        "title": "New Message",
-        "body": "You have a new message from a friend."
-      },
+      "title": "New Message",
+      "body": "You have a new message from a friend.",
       "data": {
         "key1": "Mark as Read",
         "key2": "MARK_AS_READ_ACTION",
@@ -182,31 +177,12 @@ The following example shows how to read custom fields from the `data` payload to
 
 2.  **Register the `NotificationCustomizer`** and use your custom keys:
 
-    ```kotlin
-    AppAmbitPushNotifications.setNotificationCustomizer { context, builder, notification ->
-        val data = notification.data
-
-        // You have full access to the builder and the data map.
-        // You can add action buttons, apply a custom style, or change any aspect of the notification.
-
-        // Let's use the custom keys from our example payload to add an action button.
-        // Remember to replace these with your actual keys.
-        val actionTitle = data["key1"]
-        val actionIntentFilter = data["key2"]
-
-        if (!actionTitle.isNullOrEmpty() && !actionIntentFilter.isNullOrEmpty()) {
-            val intent = Intent(actionIntentFilter).apply {
-                putExtra("EXTRA_DATA", data["any_other_key"])
-            }
-
-            val pendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            // Add the action to the notification
-            builder.addAction(0, actionTitle, pendingIntent)
-        }
-    }
+    ```javascript
+    PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
+        console.log("Payload:", payload);
+        console.log("Data:", payload.data);
+        console.log("Title:", payload.title);
+        console.log("Body:", payload.body);
+    });
+    PushNotifications.start();
     ```
