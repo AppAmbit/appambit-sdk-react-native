@@ -10,8 +10,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
   //AppAmbit.enableManualSession();
   AppAmbit.start("de46b9b4-fa04-4066-a110-211597667501");
-  PushNotifications.setNotificationCustomizer((data: Record<string, string>) => {
-     console.log("Customizer received data:", data);
+
+  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
+    console.log("Customizer received payload:", payload);
+    console.log("Customizer received data:", payload.data);
+    console.log("Customizer received title:", payload.title);
+    console.log("Customizer received body:", payload.body);
   });
   PushNotifications.start();
 

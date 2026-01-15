@@ -30,7 +30,7 @@ export const isNotificationsEnabled = async (): Promise<boolean> => {
 };
 
 export const setNotificationCustomizer = (
-  callback: (data: Record<string, string>) => void
+  callback: (payload: NotificationPayload) => void
 ): void => {
   AppambitPushNotifications.setNotificationCustomizer();
   eventEmitter.removeAllListeners('onNotificationReceived');
