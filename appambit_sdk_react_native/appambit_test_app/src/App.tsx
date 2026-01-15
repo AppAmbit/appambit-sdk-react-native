@@ -2,14 +2,26 @@ import { useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as AppAmbit from "appambit";
 import * as PushNotifications from "appambit-push-notifications";
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+import { registerNavigationTracking, start } from "appambit";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
+import SecondScreen from "./screens/SecondScreen";
 
-export default function App() {
+type RootStackParamList = {
+  HomeScreen: undefined;
+  SecondScreen: undefined;
+};
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+function HomeScreen() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
   //AppAmbit.enableManualSession();
-  AppAmbit.start("<YOUR_APPKEY>");
+  AppAmbit.start("de46b9b4-fa04-4066-a110-211597667501");
 
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
     console.log("Customizer received payload:", payload);
@@ -39,6 +51,23 @@ export default function App() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+export default function App() {
+  const navigationRef = useNavigationContainerRef();
+
+  return (
+      <NavigationContainer 
+        ref={navigationRef}
+        onReady={() => {
+          registerNavigationTracking(navigationRef);
+        }}>
+        <Stack.Navigator screenOptions={{ headerShown: true }}>
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
+          <Stack.Screen name="SecondScreen" component={SecondScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
   );
 }
 

@@ -16,6 +16,10 @@ class AppambitModule(reactContext: ReactApplicationContext) :
     AppAmbit.start(reactApplicationContext, appkey)
   }
 
+  override fun addBreadcrumb(name: String) {
+    AppAmbit.addBreadcrumb(name)
+  }
+
   companion object {
     const val NAME = "AppAmbitCore"
   }
