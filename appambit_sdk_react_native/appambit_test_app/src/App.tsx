@@ -21,7 +21,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 function HomeScreen() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
   //AppAmbit.enableManualSession();
-  AppAmbit.start("de46b9b4-fa04-4066-a110-211597667501");
+  AppAmbit.start("<YOUR_APPKEY>");
 
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
     console.log("Customizer received payload:", payload);
