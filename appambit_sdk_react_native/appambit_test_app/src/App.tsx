@@ -5,7 +5,7 @@ import * as PushNotifications from "appambit-push-notifications";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { registerNavigationTracking, start } from "appambit";
+import { registerNavigationTracking } from "appambit";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
@@ -26,8 +26,8 @@ function HomeScreen() {
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
     console.log("Customizer received payload:", payload);
     console.log("Customizer received data:", payload.data);
-    console.log("Customizer received title:", payload.title);
-    console.log("Customizer received body:", payload.body);
+    console.log("Customizer received title:", payload.notification?.title);
+    console.log("Customizer received body:", payload.notification?.body);
   });
   PushNotifications.start();
 

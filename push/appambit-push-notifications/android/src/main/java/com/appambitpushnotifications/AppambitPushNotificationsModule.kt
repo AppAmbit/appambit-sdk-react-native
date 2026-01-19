@@ -59,8 +59,11 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
       PushNotifications.setNotificationCustomizer { _, _, notification ->
         val params = Arguments.createMap()
 
-        params.putString("title", notification.title)
-        params.putString("body", notification.body)
+        val notificationMap = Arguments.createMap()
+        notificationMap.putString("title", notification.title)
+        notificationMap.putString("body", notification.body)
+
+        params.putMap("notification", notificationMap)
 
         notification.data?.let { data ->
           val dataMap = Arguments.createMap()
