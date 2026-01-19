@@ -1,6 +1,8 @@
 import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
+import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
+import { Platform } from 'react-native';
 
 type LogErrorParams = {
   exception?: any;
@@ -12,10 +14,45 @@ type LogErrorParams = {
   properties?: Record<string, string>;
 };
 
+export function registerNavigationTracking(
+  navigationRef: NavigationContainerRefWithCurrent<any>
+) {
+  if (Platform.OS !== 'android') {
+    return () => {};
+  }
+
+  let lastTrackedKey: string | null = null;
+  let lastTrackedName: string | null = null;
+
+  const onStateChange = () => {
+    if (!navigationRef.isReady()) return;
+
+    const route = navigationRef.getCurrentRoute();
+    if (!route || route.key === lastTrackedKey) return;
+
+    if (lastTrackedName) {
+      addBreadcrumb(`On disappear: ${lastTrackedName}`);
+    }
+
+    addBreadcrumb(`On appear: ${route.name}`);
+
+    lastTrackedKey = route.key;
+    lastTrackedName = route.name;
+  };
+
+  return navigationRef.addListener("state", onStateChange);
+}
+
 // Start the Appambit SDK with the provided app key
 
 export function start(appkey: string): void {
   Appambit.start(appkey);
+}
+
+// Breadcrumbs
+
+export function addBreadcrumb(name: string): void {
+  Appambit.addBreadcrumb(name);
 }
 
 // Analytics methods
@@ -76,7 +113,7 @@ export async function logError({
   properties,
 }: LogErrorParams): Promise<void> {
   if (!AppambitCrashes) {
-    console.warn('AppambitCrashes not registered');
+    console.warn('AppAmbitCrashes not registered');
     return;
   }
 
