@@ -84,7 +84,7 @@ jobs:
             echo "${{ steps.changelog.outputs.changelog }}"
 
         - name: Create GitHub Release
-          # if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
+          if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
           uses: softprops/action-gh-release@v2
           with:
             tag_name: ${{ steps.version.outputs.new_tag }}
@@ -93,6 +93,6 @@ jobs:
             prerelease: ${{ steps.version.outputs.is_prerelease }}
 
         - name: Publish
-          # if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
           working-directory: ${{ env.DIRECTORY }}
           run: npm publish
