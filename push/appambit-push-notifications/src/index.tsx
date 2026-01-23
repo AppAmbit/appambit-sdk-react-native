@@ -4,8 +4,10 @@ import AppambitPushNotifications from './NativeAppambitPushNotifications';
 const eventEmitter = new NativeEventEmitter(AppambitPushNotifications);
 
 export interface NotificationPayload {
-  title: string;
-  body: string;
+  notification: {
+    title: string;
+    body: string;
+  }
   data?: Record<string, string>;
 }
 

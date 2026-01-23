@@ -1,6 +1,6 @@
 {
   "name": "appambit-push-notifications",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Push Notifications SDK for Android to send push notifications via AppAmbit platform.",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
