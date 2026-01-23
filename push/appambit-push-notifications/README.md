@@ -49,22 +49,39 @@ Add the following dependencies to your app's `build.gradle` file. Your app is st
 
 **Kotlin DSL**
 
-**`android/app/build.gradle`**
-```kotlin
+**`android/app/build.gradle.kts`**
+```groovy
+apply plugin: "com.google.gms.google-services"
+
 dependencies {
     // The Firebase BOM and Messaging are required to align Firebase library versions.
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation ("com.google.firebase:firebase-messaging:23.4.0")
 }
 ```
+**`android/build.gradle.kts`**
+```groovy
+dependencies {
+    classpath("com.google.gms:google-services:4.3.15")
+}
+```
 
 **Groovy**
 **`android/app/build.gradle`**
-```gradle
+```groovy
+apply plugin: "com.google.gms.google-services"
+
 dependencies {
     // The Firebase BOM and Messaging are required to align Firebase library versions.
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
     implementation 'com.google.firebase:firebase-messaging:23.4.0'
+}
+```
+
+**`android/build.gradle`**
+```groovy
+dependencies {
+    classpath("com.google.gms:google-services:4.3.15")
 }
 ```
 
@@ -73,6 +90,16 @@ Also, ensure you have the Google Services plugin configured in your project.
 ---
 
 ## Quickstart
+
+**Import the SDKs**: In your `App.tsx` file, import both the AppAmbit SDK and the Push Notifications SDK.
+
+```javascript
+    import * as AppAmbit from "appambit";
+```
+```javascript
+    import * as PushNotifications from "appambit-push-notifications";
+```
+
 
 1.  **Initialize the Core SDK**: In your `App.tsx` class, initialize the core AppAmbit SDK with your App Key.
 
