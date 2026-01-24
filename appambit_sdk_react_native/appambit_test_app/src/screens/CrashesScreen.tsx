@@ -17,6 +17,7 @@ import * as PushNotifications from "appambit-push-notifications";
 export default function CrashesScreen() {
   const [userId] = useState<string>(uuidv4());
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const [isFirstRun, setIsFirstRun] = useState(true);
 
   return (
     <ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 20 }}>
@@ -25,25 +26,26 @@ export default function CrashesScreen() {
       <View style={{ height: 30 }} />
 
       <CustomButton
-      title={
-        notificationsEnabled
-          ? 'Disable Notifications'
-          : 'Allow Notifications'
-      }
-      onPress={async () => {
-          PushNotifications.requestNotificationPermissionWithResult().then(
-            (granted: boolean) => {
-              console.log("Notification permission granted:", granted);
-              PushNotifications.setNotificationsEnabled(granted);
-              setNotificationsEnabledState(granted);
+        title={isFirstRun ? "Allow notifications" : notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+        onPress={async () => {
+          if (!notificationsEnabled) {
+            const granted =
+              await PushNotifications.requestNotificationPermissionWithResult();
+
+            if (!granted) {
               return;
             }
-          );
-          const newValue = !notificationsEnabled;
-          PushNotifications.setNotificationsEnabled(newValue);
-          setNotificationsEnabledState(newValue);
-      }}
-    />
+
+            await PushNotifications.setNotificationsEnabled(true);
+            setNotificationsEnabledState(true);
+            setIsFirstRun(false);
+            return;
+          }
+
+          await PushNotifications.setNotificationsEnabled(false);
+          setNotificationsEnabledState(false);
+        }}
+      />
 
       <CustomButton
         title="Did the app crash during your last session?"
