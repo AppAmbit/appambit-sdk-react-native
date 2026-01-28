@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
+import * as AppAmbit from "appambit";
+import * as PushNotifications from "appambit-push-notifications";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { registerNavigationTracking, start } from "appambit";
+import { registerNavigationTracking } from "appambit";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
@@ -18,6 +20,16 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
+  //AppAmbit.enableManualSession();
+  AppAmbit.start("<YOUR_APPKEY>");
+
+  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
+    console.log("Customizer received payload:", payload);
+    console.log("Customizer received data:", payload.data);
+    console.log("Customizer received title:", payload.notification?.title);
+    console.log("Customizer received body:", payload.notification?.body);
+  });
+  PushNotifications.start();
 
   return (
     <View style={{ flex: 1 }}>
@@ -43,10 +55,6 @@ function HomeScreen() {
 }
 
 export default function App() {
-  useEffect(() => {
-    start("<YOUR-APPKEY>");
-  }, []);
-
   const navigationRef = useNavigationContainerRef();
 
   return (
