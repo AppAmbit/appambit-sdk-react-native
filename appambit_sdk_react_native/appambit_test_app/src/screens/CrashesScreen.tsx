@@ -12,15 +12,41 @@ import {
 } from "appambit";
 import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
+import * as PushNotifications from "appambit-push-notifications";
 
 export default function CrashesScreen() {
   const [userId] = useState<string>(uuidv4());
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const [isFirstRun, setIsFirstRun] = useState(true);
 
   return (
     <ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 20 }}>
       <View style={{ height: 30 }} />
       <Text style={{ fontSize: 22, fontWeight: "bold" }}>Crashes</Text>
       <View style={{ height: 30 }} />
+
+      <CustomButton
+        title={isFirstRun ? "Allow notifications" : notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+        onPress={async () => {
+          if (!notificationsEnabled) {
+            const granted =
+              await PushNotifications.requestNotificationPermissionWithResult();
+
+            if (!granted) {
+              return;
+            }
+
+            await PushNotifications.setNotificationsEnabled(true);
+            setNotificationsEnabledState(true);
+            setIsFirstRun(false);
+            return;
+          }
+
+          await PushNotifications.setNotificationsEnabled(false);
+          setNotificationsEnabledState(false);
+        }}
+      />
+
       <CustomButton
         title="Did the app crash during your last session?"
         onPress={async () => {
