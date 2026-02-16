@@ -82,4 +82,30 @@ public class AppAmbitSDKWrapper: NSObject {
     Crashes.logError(exception: exception, properties: properties)
   }
 
+  // MARK: - RemoteConfig
+  @objc
+  public static func enableRemoteConfig() {
+    RemoteConfig.enable()
+  }
+
+  @objc
+  public static func getRemoteConfigString(key: String) -> String {
+    return RemoteConfig.getString(key)
+  }
+
+  @objc
+  public static func getRemoteConfigBoolean(key: String) -> Bool {
+    return RemoteConfig.getBoolean(key)
+  }
+
+  @objc
+  public static func getRemoteConfigInt(key: String) -> Int {
+    return RemoteConfig.getInt(key)
+  }
+
+  @objc
+  public static func getRemoteConfigDouble(key: String) -> Double {
+    return RemoteConfig.getDouble(key)
+  }
+
 }

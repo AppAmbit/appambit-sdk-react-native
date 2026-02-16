@@ -17,6 +17,7 @@ if linkage != nil
 end
 
 target 'AppambitExample' do
+  pod 'AppAmbitSdk', :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
   config = use_native_modules!
 
   use_react_native!(

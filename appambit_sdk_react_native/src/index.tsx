@@ -1,6 +1,7 @@
 import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
+import AppambitRemoteConfig from './NativeAppambitRemoteConfig';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { Platform } from 'react-native';
 
@@ -97,6 +98,28 @@ export function didCrashInLastSession(): Promise<boolean> {
 
 export function generateTestCrash(): void {
   AppambitCrashes.generateTestCrash();
+}
+
+// RemoteConfig methods
+
+export function enableRemoteConfig(): void {
+  AppambitRemoteConfig.enable();
+}
+
+export function getRemoteConfigString(key: string): string {
+  return AppambitRemoteConfig.getString(key);
+}
+
+export function getRemoteConfigBoolean(key: string): boolean {
+  return AppambitRemoteConfig.getBoolean(key);
+}
+
+export function getRemoteConfigInt(key: string): number {
+  return AppambitRemoteConfig.getInt(key);
+}
+
+export function getRemoteConfigDouble(key: string): number {
+  return AppambitRemoteConfig.getDouble(key);
 }
 
 export function logErrorMessage(message: string, properties?: Record<string, string>): void {
