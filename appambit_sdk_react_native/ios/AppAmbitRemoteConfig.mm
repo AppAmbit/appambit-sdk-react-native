@@ -18,16 +18,16 @@ RCT_EXPORT_MODULE(AppAmbitRemoteConfig);
   return [AppAmbitSdkWrapper getRemoteConfigStringWithKey:key];
 }
 
-- (BOOL)getBoolean:(nonnull NSString *)key {
-  return [AppAmbitSdkWrapper getRemoteConfigBooleanWithKey:key];
+- (NSNumber *)getBoolean:(NSString *)key {
+  return @([AppAmbitSdkWrapper getRemoteConfigBooleanWithKey:key]);
 }
 
-- (double)getInt:(nonnull NSString *)key {
-  return (double)[AppAmbitSdkWrapper getRemoteConfigIntWithKey:key];
+- (NSNumber *)getInt:(NSString *)key {
+  return @([AppAmbitSdkWrapper getRemoteConfigIntWithKey:key]);
 }
 
-- (double)getDouble:(nonnull NSString *)key {
-  return [AppAmbitSdkWrapper getRemoteConfigDoubleWithKey:key];
+- (NSNumber *)getDouble:(NSString *)key {
+  return @([AppAmbitSdkWrapper getRemoteConfigDoubleWithKey:key]);
 }
 
 @end
