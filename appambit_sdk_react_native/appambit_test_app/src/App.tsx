@@ -67,7 +67,7 @@ export default function App() {
 
   //AppAmbit.enableManualSession();
   AppAmbit.enableRemoteConfig();
-  AppAmbit.start("31c5d550-0ac9-46fe-b33b-144a5ab25215");
+  AppAmbit.start("<YOUR-APPKEY>");
 
   return (
       <NavigationContainer 
