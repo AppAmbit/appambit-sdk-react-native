@@ -102,7 +102,7 @@ export function generateTestCrash(): void {
 
 // RemoteConfig methods
 
-export function enable(): void {
+export function enableConfig(): void {
   AppambitRemoteConfig.enable();
 }
 

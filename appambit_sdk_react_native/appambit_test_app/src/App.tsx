@@ -66,7 +66,7 @@ export default function App() {
   const navigationRef = useNavigationContainerRef();
 
   //AppAmbit.enableManualSession();
-  AppAmbit.enable();
+  AppAmbit.enableConfig();
   AppAmbit.start("<YOUR-APPKEY>");
 
   return (
