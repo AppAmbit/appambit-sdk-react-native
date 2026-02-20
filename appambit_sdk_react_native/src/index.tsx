@@ -102,23 +102,23 @@ export function generateTestCrash(): void {
 
 // RemoteConfig methods
 
-export function enableRemoteConfig(): void {
+export function enable(): void {
   AppambitRemoteConfig.enable();
 }
 
-export function getRemoteConfigString(key: string): string {
+export function getString(key: string): string {
   return AppambitRemoteConfig.getString(key);
 }
 
-export function getRemoteConfigBoolean(key: string): boolean {
+export function getBoolean(key: string): boolean {
   return AppambitRemoteConfig.getBoolean(key);
 }
 
-export function getRemoteConfigInt(key: string): number {
+export function getInt(key: string): number {
   return AppambitRemoteConfig.getInt(key);
 }
 
-export function getRemoteConfigDouble(key: string): number {
+export function getDouble(key: string): number {
   return AppambitRemoteConfig.getDouble(key);
 }
 

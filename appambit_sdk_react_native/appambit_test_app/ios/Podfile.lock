@@ -28,7 +28,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AppAmbitSdk (0.2.0)
+  - AppAmbitSdk (0.3.0)
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
@@ -2464,7 +2464,6 @@ PODS:
 
 DEPENDENCIES:
   - Appambit (from `../..`)
-  - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2545,13 +2544,12 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AppAmbitSdk
     - SocketRocket
 
 EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
-  AppAmbitSdk:
-    :path: "../../../../appambit-sdk-ios/AppAmbitSdk"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2706,7 +2704,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Appambit: 3ad0816291a6ae96d65ddbb9095b36f12c54b5cb
-  AppAmbitSdk: 010f1b604e711b833b3d9c3cf5798eb7403b21e2
+  AppAmbitSdk: fead6acc1859654f50f831000ca527bf7d24533f
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -2784,6 +2782,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: f1d137c5b9c3fb6d2037c6d17642cff226c491ae
+PODFILE CHECKSUM: 25a0e4e0ebb5d0c2a24f99f6c8420737c9757238
 
 COCOAPODS: 1.15.2

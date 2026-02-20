@@ -1,5 +1,5 @@
 import Foundation
-import AppAmbitSdk
+import AppAmbit
 
 @objc(AppAmbitSdkWrapper)
 public class AppAmbitSDKWrapper: NSObject {

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { ScrollView, View, Text, StyleSheet } from "react-native";
 import {
-    getRemoteConfigString,
-    getRemoteConfigBoolean,
-    getRemoteConfigInt,
-    getRemoteConfigDouble,
+    getString,
+    getBoolean,
+    getInt,
+    getDouble,
 } from "appambit";
 
 export default function RemoteConfigScreen() {
@@ -18,10 +18,10 @@ export default function RemoteConfigScreen() {
     }, []);
 
     const loadRemoteConfig = () => {
-        const remoteData = getRemoteConfigString("data");
-        const remoteBanner = getRemoteConfigBoolean("banner");
-        const remoteDiscount = getRemoteConfigInt("discount");
-        const remoteMaxUpload = getRemoteConfigDouble("max_upload");
+        const remoteData = getString("data");
+        const remoteBanner = getBoolean("banner");
+        const remoteDiscount = getInt("discount");
+        const remoteMaxUpload = getDouble("max_upload");
 
         setData(remoteData);
         setShowBanner(remoteBanner);
