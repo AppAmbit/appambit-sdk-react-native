@@ -64,11 +64,11 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)addListener:(NSString *)eventName {
-  // Required by RCTEventEmitter - no-op
+  [super addListener:eventName];
 }
 
 - (void)removeListeners:(double)count {
-  // Required by RCTEventEmitter - no-op
+  [super removeListeners:count];
 }
 
 @end

@@ -39,7 +39,8 @@ public class AppAmbitPushWrapper: NSObject {
       var customData: [String: String] = [:]
       for (key, value) in userInfo {
         guard let keyStr = key as? String else { continue }
-        if keyStr == "aps" || keyStr == "appambit" { continue }
+        // Exclude only the standard Apple payload. We keep the rest to see exactly what comes.
+        if keyStr == "aps" { continue }
         customData[keyStr] = "\(value)"
       }
 

@@ -20,16 +20,6 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
   const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
-  //AppAmbit.enableManualSession();
-  AppAmbit.start("<YOUR_APPKEY>");
-
-  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
-    console.log("Customizer received payload:", payload);
-    console.log("Customizer received data:", payload.data);
-    console.log("Customizer received title:", payload.notification?.title);
-    console.log("Customizer received body:", payload.notification?.body);
-  });
-  PushNotifications.start();
 
   return (
     <View style={{ flex: 1 }}>
@@ -55,6 +45,18 @@ function HomeScreen() {
 }
 
 export default function App() {
+
+  //AppAmbit.enableManualSession();
+  AppAmbit.start("<YOUR-APPKEY>");
+
+  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
+    console.log("Customizer received payload:", payload);
+    console.log("Customizer received data:", payload.data);
+    console.log("Customizer received title:", payload.notification?.title);
+    console.log("Customizer received body:", payload.notification?.body);
+  });
+  PushNotifications.start();
+
   const navigationRef = useNavigationContainerRef();
 
   return (
