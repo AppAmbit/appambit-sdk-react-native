@@ -1804,19 +1804,19 @@ __metadata:
   linkType: hard
 
 "@eslint/eslintrc@npm:^3.3.1":
-  version: 3.3.3
-  resolution: "@eslint/eslintrc@npm:3.3.3"
+  version: 3.3.4
+  resolution: "@eslint/eslintrc@npm:3.3.4"
   dependencies:
-    ajv: ^6.12.4
+    ajv: ^6.14.0
     debug: ^4.3.2
     espree: ^10.0.1
     globals: ^14.0.0
     ignore: ^5.2.0
     import-fresh: ^3.2.1
     js-yaml: ^4.1.1
-    minimatch: ^3.1.2
+    minimatch: ^3.1.3
     strip-json-comments: ^3.1.1
-  checksum: d1e16e47f1bb29af32defa597eaf84ac0ff8c06760c0a5f4933c604cd9d931d48c89bed96252222f22abac231898a53bc41385a5e6129257f0060b5ec431bdb2
+  checksum: c16df92611b927af454d3ab9b1e003d75ae5a0e91009bdab8487bc37d4eb507adf071bd208857fd397a2c311cff1c28f617e01250078e532ab3ac7f1353cee13
   languageName: node
   linkType: hard
 
@@ -1851,6 +1851,15 @@ __metadata:
     lefthook: bin/index.js
   checksum: 6cceca3e874015678f50818ae14a74d959816cfaba6638f8852d007332404d6819b15c71538985a3650a1ef057aa6975c17fadfe43ece7a0da1aeb9faaf02946
   conditions: (os=darwin | os=linux | os=win32) & (cpu=x64 | cpu=arm64 | cpu=ia32)
+  languageName: node
+  linkType: hard
+
+"@gar/promise-retry@npm:^1.0.0":
+  version: 1.0.2
+  resolution: "@gar/promise-retry@npm:1.0.2"
+  dependencies:
+    retry: ^0.13.1
+  checksum: b91326999ce94677cbe91973079eabc689761a93a045f6a2d34d4070e9305b27f6c54e4021688c7080cb14caf89eafa0c0f300af741b94c20d18608bdb66ca46
   languageName: node
   linkType: hard
 
@@ -3618,20 +3627,20 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 25.3.0
-  resolution: "@types/node@npm:25.3.0"
+  version: 25.3.1
+  resolution: "@types/node@npm:25.3.1"
   dependencies:
     undici-types: ~7.18.0
-  checksum: 3c2a05f53043fc9d33e6e7b2e09399600e25818362c1e72f15ad542c30f1759cbf721b95ffa6db78a12785bd5431ed1ad57c1a98509832785511f8b648f87add
+  checksum: e073f3abb8be5e1c918e4787a6cc320b00bdb7d9c5dd0c58e32330819eb918d3b20f66060c8d42757e246e14829c3a2396cc305bb28e33b253d0d6b940548e2b
   languageName: node
   linkType: hard
 
 "@types/node@npm:^22.0.0":
-  version: 22.19.11
-  resolution: "@types/node@npm:22.19.11"
+  version: 22.19.12
+  resolution: "@types/node@npm:22.19.12"
   dependencies:
     undici-types: ~6.21.0
-  checksum: b64703389fa4648a8ac7bce44902dbef9a4c46b91cce1e951d01d6df23dbb0579c3d765f0d00e9053425e21ed9a30890668506ec0bae98c5c29cc978d45ced1f
+  checksum: aeeb8db42ee933068fb2f3fa4a4208eb813c65bb4435c07fe32359b696650b2b06eb300b813d493c01da3c5a4386469cb5921fcdfa63513ff285deb82e78161c
   languageName: node
   linkType: hard
 
@@ -3959,7 +3968,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^6.12.4":
+"ajv@npm:^6.12.4, ajv@npm:^6.14.0":
   version: 6.14.0
   resolution: "ajv@npm:6.14.0"
   dependencies:
@@ -4024,7 +4033,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-regex@npm:^6.0.1":
+"ansi-regex@npm:^6.2.2":
   version: 6.2.2
   resolution: "ansi-regex@npm:6.2.2"
   checksum: 9b17ce2c6daecc75bcd5966b9ad672c23b184dc3ed9bf3c98a0702f0d2f736c15c10d461913568f2cf527a5e64291c7473358885dd493305c84a1cfed66ba94f
@@ -4075,11 +4084,11 @@ __metadata:
 
 "appambit-push-notifications@file:../../push/appambit-push-notifications::locator=appambit-testapp%40workspace%3Aappambit_test_app":
   version: 0.1.1
-  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=9f7127&locator=appambit-testapp%40workspace%3Aappambit_test_app"
+  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=2ff774&locator=appambit-testapp%40workspace%3Aappambit_test_app"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: fdc5aa0e262cee5456dbb34823c64012d3f8677c0f463b2c863591aad7491b37bdc9d0172eef93b0876eb58ef26500167bb4f16a0c56f3fd82ace0e48cad12cf
+  checksum: 42573e7e6671c803d64af235e16eba8e045c0f956e5a0fd629a9698f01c48cb6dd07ca2aaf83b94c041c90161bf721290943912f95288f975feb4f54c79b02db
   languageName: node
   linkType: hard
 
@@ -5746,15 +5755,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"encoding@npm:^0.1.13":
-  version: 0.1.13
-  resolution: "encoding@npm:0.1.13"
-  dependencies:
-    iconv-lite: ^0.6.2
-  checksum: bb98632f8ffa823996e508ce6a58ffcf5856330fde839ae42c9e1f436cc3b5cc651d4aeae72222916545428e54fd0f6aa8862fd8d25bdbcc4589f1e3f3715e7f
-  languageName: node
-  linkType: hard
-
 "end-of-stream@npm:^1.1.0":
   version: 1.4.5
   resolution: "end-of-stream@npm:1.4.5"
@@ -5777,13 +5777,6 @@ __metadata:
   bin:
     envinfo: dist/cli.js
   checksum: c9526266810a328396c387c0580d6fc10f6ce8464074ae6eaef6798e2a05b5800b480b2eaf739cf523e3bfb407baba2ef23ff8edebb76c2b8fa7fbac995b3b9b
-  languageName: node
-  linkType: hard
-
-"err-code@npm:^2.0.2":
-  version: 2.0.3
-  resolution: "err-code@npm:2.0.3"
-  checksum: 8b7b1be20d2de12d2255c0bc2ca638b7af5171142693299416e6a9339bd7d88fc8d7707d913d78e0993176005405a236b066b45666b27b797252c771156ace54
   languageName: node
   linkType: hard
 
@@ -6468,13 +6461,13 @@ __metadata:
   linkType: hard
 
 "fast-xml-parser@npm:^4.4.1":
-  version: 4.5.3
-  resolution: "fast-xml-parser@npm:4.5.3"
+  version: 4.5.4
+  resolution: "fast-xml-parser@npm:4.5.4"
   dependencies:
-    strnum: ^1.1.1
+    strnum: ^1.0.5
   bin:
     fxparser: src/cli/cli.js
-  checksum: cd6a184941ec6c23f9e6b514421a3f396cfdff5f4a8c7c27bd0eff896edb4a2b55c27da16f09b789663613dfc4933602b9b71ac3e9d1d2ddcc0492fc46c8fa52
+  checksum: 29db513a5f0ad5ac33691c27d67315ee22e041b5e8fa5982f8bccf46af400e35c576c17f3087f1b8d4cd81fa91519f5fda4b2a31441ff1bf7596ecc5e934f44d
   languageName: node
   linkType: hard
 
@@ -7225,16 +7218,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.6.2":
-  version: 0.6.3
-  resolution: "iconv-lite@npm:0.6.3"
-  dependencies:
-    safer-buffer: ">= 2.1.2 < 3.0.0"
-  checksum: 3f60d47a5c8fc3313317edfd29a00a692cc87a19cac0159e2ce711d0ebc9019064108323b5e493625e25594f11c6236647d8e256fbe7a58f4a3b33b89e6d30bf
-  languageName: node
-  linkType: hard
-
-"iconv-lite@npm:^0.7.0":
+"iconv-lite@npm:^0.7.0, iconv-lite@npm:^0.7.2":
   version: 0.7.2
   resolution: "iconv-lite@npm:0.7.2"
   dependencies:
@@ -8622,12 +8606,12 @@ __metadata:
   linkType: hard
 
 "launch-editor@npm:^2.9.1":
-  version: 2.13.0
-  resolution: "launch-editor@npm:2.13.0"
+  version: 2.13.1
+  resolution: "launch-editor@npm:2.13.1"
   dependencies:
     picocolors: ^1.1.1
     shell-quote: ^1.8.3
-  checksum: 87260fe657978276d71b2ee3438fc490e7d1337ab2afcd0692000e7c70b5cc88d2b69b76044ef1c82347cdb955af8f7fb1f95aa150f869d4b44a9b3e2aae4a8b
+  checksum: cc2f89dd4b45ecb84b25d77d0702c472e6f9c2c2a530e2c577a104fd9c32433b6c82c7c98cc1d444054d0aa0ac371881b37fc7593a4ae38d7bde2e8f4a238180
   languageName: node
   linkType: hard
 
@@ -8895,9 +8879,10 @@ __metadata:
   linkType: hard
 
 "make-fetch-happen@npm:^15.0.0":
-  version: 15.0.3
-  resolution: "make-fetch-happen@npm:15.0.3"
+  version: 15.0.4
+  resolution: "make-fetch-happen@npm:15.0.4"
   dependencies:
+    "@gar/promise-retry": ^1.0.0
     "@npmcli/agent": ^4.0.0
     cacache: ^20.0.1
     http-cache-semantics: ^4.1.1
@@ -8907,9 +8892,8 @@ __metadata:
     minipass-pipeline: ^1.2.4
     negotiator: ^1.0.0
     proc-log: ^6.0.0
-    promise-retry: ^2.0.1
     ssri: ^13.0.0
-  checksum: 4fb9dbb739b33565c85dacdcff7eb9388d8f36f326a59dc13375f01af809c42c48aa5d1f4840ee36623b2461a15476e1e79e4548ca1af30b42e1e324705ac8b3
+  checksum: eb875e1fbdf58b4d6d7c6c2ee97a2521b407f85d1fb2c0e6bc2c2d9d13fa34c3198eff3512589dc26e8fb32684e4e52f3c9d844a704ac96b393559a88b5e57ca
   languageName: node
   linkType: hard
 
@@ -9284,29 +9268,29 @@ __metadata:
   linkType: hard
 
 "minimatch@npm:^10.2.2":
-  version: 10.2.2
-  resolution: "minimatch@npm:10.2.2"
+  version: 10.2.4
+  resolution: "minimatch@npm:10.2.4"
   dependencies:
     brace-expansion: ^5.0.2
-  checksum: b48f5cac833a83d0bdbc6b6fa656f35c86069b32cd692977c3e9d620f9b595081dbf3168bcb3027cc30b1fa0bfba83e70e09cba612adab4779aef4f8cdc7da39
+  checksum: 56dce6b04c6b30b500d81d7a29822c108b7d58c46696ec7332d04a2bd104a5cb69e5c7ce93e1783dc66d61400d831e6e226ca101ac23665aff32ca303619dc3d
   languageName: node
   linkType: hard
 
-"minimatch@npm:^3.0.4, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
-  version: 3.1.3
-  resolution: "minimatch@npm:3.1.3"
+"minimatch@npm:^3.0.4, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2, minimatch@npm:^3.1.3":
+  version: 3.1.5
+  resolution: "minimatch@npm:3.1.5"
   dependencies:
     brace-expansion: ^1.1.7
-  checksum: bd71cf6615b87fed4795d3650c6dcd22ababe29ac1e28065dca500b365ca9568fde6637782f8e80707640eee4a96c537eece99d491e2e8d10e72e376c37e77bb
+  checksum: 47ef6f412c08be045a7291d11b1c40777925accf7252dc6d3caa39b1bfbb3a7ea390ba7aba464d762d783265c644143d2c8a204e6b5763145024d52ee65a1941
   languageName: node
   linkType: hard
 
 "minimatch@npm:^9.0.4":
-  version: 9.0.6
-  resolution: "minimatch@npm:9.0.6"
+  version: 9.0.8
+  resolution: "minimatch@npm:9.0.8"
   dependencies:
     brace-expansion: ^5.0.2
-  checksum: ae919c3e6412e8636a4a5c996ee1eb33aa7e83e99590fb19102e309ddf5c648c7f24547165334266f2fed1ad6cbb3ea3b3767940089f8531a6cf1897433961aa
+  checksum: 44f9f6c7861cac76ec16813df841b517fa879c9dbefe61ddf8a4eb1d6f33788d79462b52c5f201307292510c1d9d69b1109868c1ce279b9351e101e279e97070
   languageName: node
   linkType: hard
 
@@ -9327,17 +9311,17 @@ __metadata:
   linkType: hard
 
 "minipass-fetch@npm:^5.0.0":
-  version: 5.0.1
-  resolution: "minipass-fetch@npm:5.0.1"
+  version: 5.0.2
+  resolution: "minipass-fetch@npm:5.0.2"
   dependencies:
-    encoding: ^0.1.13
+    iconv-lite: ^0.7.2
     minipass: ^7.0.3
     minipass-sized: ^2.0.0
     minizlib: ^3.0.1
   dependenciesMeta:
-    encoding:
+    iconv-lite:
       optional: true
-  checksum: afce548b0d2654b581b7a9eb6ae0dc70b556fa89aaa3e3cbc5c3df4cca837b041fd2393737b671148098dc7cb3a133b53aa826c2a00e631495d74987a3f03284
+  checksum: d4dfdd9700fc8aba445834f75f2abaf9e5d404c10eda06e2db4a8ba89fc66a26956d19703d0edf9be864cb30dec22356d343509ad0a105446516c0ead4330328
   languageName: node
   linkType: hard
 
@@ -10217,16 +10201,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"promise-retry@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "promise-retry@npm:2.0.1"
-  dependencies:
-    err-code: ^2.0.2
-    retry: ^0.12.0
-  checksum: f96a3f6d90b92b568a26f71e966cbbc0f63ab85ea6ff6c81284dc869b41510e6cdef99b6b65f9030f0db422bf7c96652a3fff9f2e8fb4a0f069d8f4430359429
-  languageName: node
-  linkType: hard
-
 "promise@npm:^8.3.0":
   version: 8.3.0
   resolution: "promise@npm:8.3.0"
@@ -10835,17 +10809,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"retry@npm:0.13.1":
+"retry@npm:0.13.1, retry@npm:^0.13.1":
   version: 0.13.1
   resolution: "retry@npm:0.13.1"
   checksum: 47c4d5be674f7c13eee4cfe927345023972197dbbdfba5d3af7e461d13b44de1bfd663bfc80d2f601f8ef3fc8164c16dd99655a221921954a65d044a2fc1233b
-  languageName: node
-  linkType: hard
-
-"retry@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "retry@npm:0.12.0"
-  checksum: 623bd7d2e5119467ba66202d733ec3c2e2e26568074923bc0585b6b99db14f357e79bdedb63cab56cec47491c4a0da7e6021a7465ca6dc4f481d3898fdd3158c
   languageName: node
   linkType: hard
 
@@ -11540,11 +11507,11 @@ __metadata:
   linkType: hard
 
 "strip-ansi@npm:^7.0.1, strip-ansi@npm:^7.1.2":
-  version: 7.1.2
-  resolution: "strip-ansi@npm:7.1.2"
+  version: 7.2.0
+  resolution: "strip-ansi@npm:7.2.0"
   dependencies:
-    ansi-regex: ^6.0.1
-  checksum: db0e3f9654e519c8a33c50fc9304d07df5649388e7da06d3aabf66d29e5ad65d5e6315d8519d409c15b32fa82c1df7e11ed6f8cd50b0e4404463f0c9d77c8d0b
+    ansi-regex: ^6.2.2
+  checksum: 96da3bc6d73cfba1218625a3d66cf7d37a69bf0920d8735b28f9eeaafcdb6c1fe8440e1ae9eb1ba0ca355dbe8702da872e105e2e939fa93e7851b3cb5dd7d316
   languageName: node
   linkType: hard
 
@@ -11576,7 +11543,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"strnum@npm:^1.1.1":
+"strnum@npm:^1.0.5":
   version: 1.1.2
   resolution: "strnum@npm:1.1.2"
   checksum: a85219eda13e97151c95e343a9e5960eacfb0a0ff98104b4c9cb7a212e3008bddf0c9714c9c37c2e508be78e741a04afc80027c2dc18509d1b5ffd4c37191fc2
@@ -11750,58 +11717,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-darwin-64@npm:2.8.10"
+"turbo-darwin-64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-darwin-64@npm:2.8.11"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-darwin-arm64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-darwin-arm64@npm:2.8.10"
+"turbo-darwin-arm64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-darwin-arm64@npm:2.8.11"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-linux-64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-linux-64@npm:2.8.10"
+"turbo-linux-64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-linux-64@npm:2.8.11"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-linux-arm64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-linux-arm64@npm:2.8.10"
+"turbo-linux-arm64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-linux-arm64@npm:2.8.11"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-windows-64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-windows-64@npm:2.8.10"
+"turbo-windows-64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-windows-64@npm:2.8.11"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-windows-arm64@npm:2.8.10":
-  version: 2.8.10
-  resolution: "turbo-windows-arm64@npm:2.8.10"
+"turbo-windows-arm64@npm:2.8.11":
+  version: 2.8.11
+  resolution: "turbo-windows-arm64@npm:2.8.11"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
 "turbo@npm:^2.5.6":
-  version: 2.8.10
-  resolution: "turbo@npm:2.8.10"
+  version: 2.8.11
+  resolution: "turbo@npm:2.8.11"
   dependencies:
-    turbo-darwin-64: 2.8.10
-    turbo-darwin-arm64: 2.8.10
-    turbo-linux-64: 2.8.10
-    turbo-linux-arm64: 2.8.10
-    turbo-windows-64: 2.8.10
-    turbo-windows-arm64: 2.8.10
+    turbo-darwin-64: 2.8.11
+    turbo-darwin-arm64: 2.8.11
+    turbo-linux-64: 2.8.11
+    turbo-linux-arm64: 2.8.11
+    turbo-windows-64: 2.8.11
+    turbo-windows-arm64: 2.8.11
   dependenciesMeta:
     turbo-darwin-64:
       optional: true
@@ -11817,7 +11784,7 @@ __metadata:
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 1f98e1f4120515ce0f8c24522ff02f02007a944da2388d6295c9c646d6fb26083ec358b17cd7a91f9406cdd976f5c18cbcc98812efb3b9254233ec369b5dc927
+  checksum: 80bdd759e733f457853c0c6e9c75131bd3e734e7a0fc23bf0b2ca7d5c676e529a90ef289a642ee3113f684233275d41150c642237904d48055b95bd171bad2b6
   languageName: node
   linkType: hard
 
