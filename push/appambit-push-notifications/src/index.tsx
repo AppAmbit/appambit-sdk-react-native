@@ -36,5 +36,7 @@ export const setNotificationCustomizer = (
 ): void => {
   AppambitPushNotifications.setNotificationCustomizer();
   eventEmitter.removeAllListeners('onNotificationReceived');
-  eventEmitter.addListener('onNotificationReceived', callback as any);
+  eventEmitter.addListener('onNotificationReceived', (payload) => {
+    callback(payload as any);
+  });
 }; 
