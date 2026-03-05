@@ -24,8 +24,8 @@ class AppambitRemoteConfigModule(reactContext: ReactApplicationContext) :
     return RemoteConfig.getBoolean(key)
   }
 
-  override fun getInt(key: String?): Double {
-    return RemoteConfig.getInt(key).toDouble()
+  override fun getLong(key: String?): Double {
+    return RemoteConfig.getLong(key).toDouble()
   }
 
   override fun getDouble(key: String?): Double {

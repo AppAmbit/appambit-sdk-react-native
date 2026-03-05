@@ -1,5 +1,5 @@
 PODS:
-  - Appambit (0.3.1):
+  - Appambit (0.1.1):
     - AppAmbitSdk (~> 0.3.1)
     - boost
     - DoubleConversion
@@ -31,7 +31,7 @@ PODS:
   - AppAmbitPushNotifications (0.3.1):
     - AppAmbitSdk
   - AppAmbitSdk (0.3.1)
-  - AppAmbitSdkPushNotifications (0.3.1):
+  - AppAmbitSdkPushNotifications (0.1.1):
     - AppAmbitPushNotifications (~> 0.3.0)
     - boost
     - DoubleConversion
@@ -2738,10 +2738,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: 570d87cb6c937b2afd924c857611e1bd7ebe55e7
+  Appambit: e89fdbe07663a517f708097a88635b71a4da0065
   AppAmbitPushNotifications: 24ad7abfa4f4a1d63c4cf730c39ffb5885292717
   AppAmbitSdk: 62980f349676acded38f450c0978cd8d641af89e
-  AppAmbitSdkPushNotifications: f85896943aa7849d4fc6c1ae0a6f6964b016e137
+  AppAmbitSdkPushNotifications: 2d2f9aec5e04da3d75152a29eefc518c5ba4d320
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -2821,4 +2821,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 25a0e4e0ebb5d0c2a24f99f6c8420737c9757238
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

@@ -63,8 +63,11 @@ function HomeScreen() {
 }
 
 export default function App() {
-
+  
+  const navigationRef = useNavigationContainerRef();
+  
   //AppAmbit.enableManualSession();
+  AppAmbit.enableConfig();
   AppAmbit.start("<YOUR-APPKEY>");
 
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
@@ -74,12 +77,6 @@ export default function App() {
     console.log("Customizer received body:", payload.notification?.body);
   });
   PushNotifications.start();
-
-  const navigationRef = useNavigationContainerRef();
-
-  //AppAmbit.enableManualSession();
-  AppAmbit.enableConfig();
-  AppAmbit.start("<YOUR-APPKEY>");
 
   return (
       <NavigationContainer 

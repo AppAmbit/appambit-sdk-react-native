@@ -3,7 +3,7 @@ import { ScrollView, View, Text, StyleSheet } from "react-native";
 import {
     getString,
     getBoolean,
-    getInt,
+    getLong,
     getDouble,
 } from "appambit";
 
@@ -20,7 +20,7 @@ export default function RemoteConfigScreen() {
     const loadRemoteConfig = () => {
         const remoteData = getString("data");
         const remoteBanner = getBoolean("banner");
-        const remoteDiscount = getInt("discount");
+        const remoteDiscount = getLong("discount");
         const remoteMaxUpload = getDouble("max_upload");
 
         setData(remoteData);
@@ -170,8 +170,9 @@ const styles = StyleSheet.create({
     },
     discountValue: {
         color: "#2E7D32",
-        fontSize: 32,
+        fontSize: 30,
         fontWeight: "bold",
+        maxWidth: 150,
     },
     // Upload Card
     uploadCard: {

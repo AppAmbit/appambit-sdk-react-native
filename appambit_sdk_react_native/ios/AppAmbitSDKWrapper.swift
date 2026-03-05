@@ -99,8 +99,8 @@ public class AppAmbitSDKWrapper: NSObject {
   }
 
   @objc
-  public static func getRemoteConfigInt(key: String) -> Int {
-    return RemoteConfig.getInt(key)
+  public static func getRemoteConfigLong(key: String) -> Int64 {
+    return RemoteConfig.getLong(key)
   }
 
   @objc

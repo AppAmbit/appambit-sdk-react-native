@@ -19,7 +19,7 @@ export function registerNavigationTracking(
   navigationRef: NavigationContainerRefWithCurrent<any>
 ) {
   if (Platform.OS !== 'android') {
-    return () => {};
+    return () => { };
   }
 
   let lastTrackedKey: string | null = null;
@@ -114,8 +114,8 @@ export function getBoolean(key: string): boolean {
   return AppambitRemoteConfig.getBoolean(key);
 }
 
-export function getInt(key: string): number {
-  return AppambitRemoteConfig.getInt(key);
+export function getLong(key: string): number {
+  return AppambitRemoteConfig.getLong(key);
 }
 
 export function getDouble(key: string): number {
@@ -144,15 +144,15 @@ export async function logError({
     message && message.length > 0
       ? message
       : exception
-      ? exception.message || JSON.stringify(exception)
-      : "UnknownError";
+        ? exception.message || JSON.stringify(exception)
+        : "UnknownError";
 
   const stackStr =
     stack && stack.length > 0
       ? stack
       : exception?.stack
-      ? exception.stack.toString()
-      : new Error().stack?.toString();
+        ? exception.stack.toString()
+        : new Error().stack?.toString();
 
   const payload: Record<string, any> = {};
 
@@ -162,7 +162,7 @@ export async function logError({
     payload.properties = properties;
   if (classFqn) payload.classFqn = classFqn;
   if (fileName) payload.fileName = fileName;
-  
+
   if (typeof lineNumber === 'number' && !isNaN(lineNumber) && isFinite(lineNumber)) {
     payload.lineNumber = lineNumber;
   }
