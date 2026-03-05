@@ -1,5 +1,6 @@
 #import <AppambitPushNotificationsSpec/AppambitPushNotificationsSpec.h>
+#import <React/RCTEventEmitter.h>
 
-@interface AppambitPushNotifications : NSObject <NativeAppambitPushNotificationsSpec>
+@interface AppambitPushNotifications : RCTEventEmitter <NativeAppambitPushNotificationsSpec>
 
 @end
