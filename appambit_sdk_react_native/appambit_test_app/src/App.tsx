@@ -9,6 +9,7 @@ import { registerNavigationTracking } from "appambit";
 
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
+import RemoteConfigScreen from "./screens/RemoteConfigScreen";
 import SecondScreen from "./screens/SecondScreen";
 
 type RootStackParamList = {
@@ -19,11 +20,21 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
-  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics">("Crashes");
+  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig">("Crashes");
+
+  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
+    console.log("Customizer received payload:", payload);
+    console.log("Customizer received data:", payload.data);
+    console.log("Customizer received title:", payload.notification?.title);
+    console.log("Customizer received body:", payload.notification?.body);
+  });
+  PushNotifications.start();
 
   return (
     <View style={{ flex: 1 }}>
-      {activeTab === "Crashes" ? <CrashesScreen /> : <AnalyticsScreen />}
+      {activeTab === "Crashes" && <CrashesScreen />}
+      {activeTab === "Analytics" && <AnalyticsScreen />}
+      {activeTab === "RemoteConfig" && <RemoteConfigScreen />}
 
       <View style={styles.bottomNav}>
         <Pressable
@@ -39,14 +50,24 @@ function HomeScreen() {
         >
           <Text style={styles.navText}>Analytics</Text>
         </Pressable>
+
+        <Pressable
+          style={[styles.navButton, activeTab === "RemoteConfig" && styles.activeTab]}
+          onPress={() => setActiveTab("RemoteConfig")}
+        >
+          <Text style={styles.navText}>Remote Config</Text>
+        </Pressable>
       </View>
     </View>
   );
 }
 
 export default function App() {
-
+  
+  const navigationRef = useNavigationContainerRef();
+  
   //AppAmbit.enableManualSession();
+  AppAmbit.enableConfig();
   AppAmbit.start("<YOUR-APPKEY>");
 
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
@@ -56,8 +77,6 @@ export default function App() {
     console.log("Customizer received body:", payload.notification?.body);
   });
   PushNotifications.start();
-
-  const navigationRef = useNavigationContainerRef();
 
   return (
       <NavigationContainer 
