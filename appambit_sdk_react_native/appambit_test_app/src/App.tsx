@@ -63,12 +63,12 @@ function HomeScreen() {
 }
 
 export default function App() {
-  
-  const navigationRef = useNavigationContainerRef();
-  
+
   //AppAmbit.enableManualSession();
   AppAmbit.enableConfig();
   AppAmbit.start("<YOUR-APPKEY>");
+
+  const navigationRef = useNavigationContainerRef();
 
   PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
     console.log("Customizer received payload:", payload);
