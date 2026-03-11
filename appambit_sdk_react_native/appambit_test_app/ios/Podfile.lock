@@ -1,6 +1,6 @@
 PODS:
   - Appambit (0.1.1):
-    - AppAmbitSdk (~> 0.3.1)
+    - AppAmbitSdk (~> 0.4.0)
     - boost
     - DoubleConversion
     - fast_float
@@ -28,11 +28,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AppAmbitPushNotifications (0.3.1):
+  - AppAmbitPushNotifications (0.4.0):
     - AppAmbitSdk
-  - AppAmbitSdk (0.3.1)
+  - AppAmbitSdk (0.4.0)
   - AppAmbitSdkPushNotifications (0.1.1):
-    - AppAmbitPushNotifications (~> 0.3.1)
+    - AppAmbitPushNotifications (~> 0.4.0)
     - boost
     - DoubleConversion
     - fast_float
@@ -2495,7 +2495,6 @@ PODS:
 
 DEPENDENCIES:
   - Appambit (from `../..`)
-  - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -2578,13 +2577,12 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AppAmbitPushNotifications
+    - AppAmbitSdk
     - SocketRocket
 
 EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
-  AppAmbitSdk:
-    :path: "../../../../appambit-sdk-ios/AppAmbitSdk"
   AppAmbitSdkPushNotifications:
     :path: "../node_modules/appambit-push-notifications"
   boost:
@@ -2740,10 +2738,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: e89fdbe07663a517f708097a88635b71a4da0065
-  AppAmbitPushNotifications: 24ad7abfa4f4a1d63c4cf730c39ffb5885292717
-  AppAmbitSdk: 62980f349676acded38f450c0978cd8d641af89e
-  AppAmbitSdkPushNotifications: 0a1a1694bc99d4dac7d58c1eae860e41fa8c24da
+  Appambit: 970f553343ee09b8e859c829ba489138eda71783
+  AppAmbitPushNotifications: 9efb16f314eb45a276669b5422987922afae9bcf
+  AppAmbitSdk: df1f4e5bf8018d18ee8a01ecf64005b5568840b5
+  AppAmbitSdkPushNotifications: 1e8de33a46aa0dc0df725c7859c94d53267999f7
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -2821,6 +2819,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: 6b5fb3fa96bd8462bf768fd68f0673aa0d4c888c
+PODFILE CHECKSUM: 25a0e4e0ebb5d0c2a24f99f6c8420737c9757238
 
 COCOAPODS: 1.15.2
