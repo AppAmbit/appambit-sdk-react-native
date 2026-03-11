@@ -19,11 +19,16 @@ export function registerNavigationTracking(
   navigationRef: NavigationContainerRefWithCurrent<any>
 ) {
   if (Platform.OS !== 'android') {
-    return () => { };
+    return () => {};
   }
 
   let lastTrackedKey: string | null = null;
   let lastTrackedName: string | null = null;
+  let isInitializing = true;
+
+  setTimeout(() => {
+    isInitializing = false;
+  }, 2500);
 
   const onStateChange = () => {
     if (!navigationRef.isReady()) return;
@@ -31,15 +36,27 @@ export function registerNavigationTracking(
     const route = navigationRef.getCurrentRoute();
     if (!route || route.key === lastTrackedKey) return;
 
-    if (lastTrackedName) {
-      addBreadcrumb(`On disappear: ${lastTrackedName}`);
-    }
-
-    addBreadcrumb(`On appear: ${route.name}`);
+    const currentName = route.name;
+    const prevName = lastTrackedName;
 
     lastTrackedKey = route.key;
-    lastTrackedName = route.name;
+    lastTrackedName = currentName;
+
+    const sendBreadcrumbs = () => {
+      if (prevName) {
+        addBreadcrumb(`On disappear: ${prevName}`);
+      }
+      addBreadcrumb(`On appear: ${currentName}`);
+    };
+
+    if (isInitializing) {
+      setTimeout(sendBreadcrumbs, 3000);
+    } else {
+      sendBreadcrumbs();
+    }
   };
+
+  onStateChange();
 
   return navigationRef.addListener("state", onStateChange);
 }
