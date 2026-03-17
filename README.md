@@ -63,7 +63,7 @@ Add the package to your React Native project:
 ```bash
 npm install appambit
 # or specify version
-npm install appambit@0.1.1
+npm install appambit@0.2.0
 ```
 ---
 
@@ -98,6 +98,7 @@ Add these permissions to your `AndroidManifest.xml`:
 
 * **Session activity** – automatically tracks user session starts, stops, and durations
 * **Track events** – send structured events with custom properties
+* **Remote Config** – dynamic configuration values fetched and applied at runtime
 
   ```javascript
     trackEvent("ButtonClicked", {"Count": "41"})
@@ -117,6 +118,28 @@ Add these permissions to your `AndroidManifest.xml`:
     }
   ```
 * **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
+
+```dart
+import * as AppAmbit from "appambit";
+
+export default function App() {
+    AppAmbit.enableConfig();
+    AppAmbit.start("<YOUR-APPKEY>");
+}
+```
+
+```dart
+// String
+const variable = await AppAmbit.getString("<key_name>");
+// Long
+const variable = await AppAmbit.getLong("<key_name>");
+// Double
+const variable = await AppAmbit.getDouble("<key_name>");
+// Boolean
+const variable = await AppAmbit.getBoolean("<key_name>");
+```
+
+* **Remote Config**: fetch and apply remote configuration values asynchronously using type-safe methods (`getString`, `getBoolean`, `getLong`, `getDouble`).
 
 ---
 
