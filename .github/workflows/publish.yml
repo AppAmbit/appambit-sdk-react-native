@@ -13,6 +13,7 @@ jobs:
       timeout-minutes: 10
       env:
         DIRECTORY: appambit_sdk_react_native
+        PUSH_DIRECTORY: push/appambit-push-notifications
       steps:
         - uses: actions/checkout@v2
           with:
@@ -26,6 +27,9 @@ jobs:
         
         - name: Install npm
           run: npm install -g npm@latest
+
+        - name: Setup Yarn
+          run: corepack enable
 
         - name: Install dependencies
           working-directory: ${{ env.DIRECTORY }}
@@ -92,7 +96,22 @@ jobs:
             body: ${{ steps.changelog.outputs.changelog }}
             prerelease: ${{ steps.version.outputs.is_prerelease }}
 
-        - name: Publish
+        - name: Publish Core
           if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
           working-directory: ${{ env.DIRECTORY }}
-          run: npm publish
+          run: npm publish --provenance --access public
+
+        - name: Install Push dependencies
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          working-directory: ${{ env.PUSH_DIRECTORY }}
+          run: yarn install
+
+        - name: Build Push Package
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          working-directory: ${{ env.PUSH_DIRECTORY }}
+          run: yarn prepare
+
+        - name: Publish Push
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          working-directory: ${{ env.PUSH_DIRECTORY }}
+          run: npm publish --provenance --access public
