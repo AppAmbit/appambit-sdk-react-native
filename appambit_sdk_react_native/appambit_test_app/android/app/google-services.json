@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "761319447119",
+    "project_id": "rnpush-e5bd7",
+    "storage_bucket": "rnpush-e5bd7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:761319447119:android:afe5684f0c68c7232be83a",
+        "android_client_info": {
+          "package_name": "com.AppAmbit.TestApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2_tQCfQ8EntHF-Llhym9--gYKVwEi-Pc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

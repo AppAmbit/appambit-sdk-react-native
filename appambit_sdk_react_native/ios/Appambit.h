@@ -11,3 +11,7 @@
 @interface AppAmbitAnalytics : NSObject <NativeAppambitAnalyticsSpec>
 
 @end
+
+@interface AppAmbitRemoteConfig : NSObject <NativeAppambitRemoteConfigSpec>
+
+@end

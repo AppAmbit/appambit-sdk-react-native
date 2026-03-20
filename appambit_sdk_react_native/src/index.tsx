@@ -1,6 +1,7 @@
 import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
+import AppambitRemoteConfig from './NativeAppambitRemoteConfig';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { Platform } from 'react-native';
 
@@ -23,6 +24,11 @@ export function registerNavigationTracking(
 
   let lastTrackedKey: string | null = null;
   let lastTrackedName: string | null = null;
+  let isInitializing = true;
+
+  setTimeout(() => {
+    isInitializing = false;
+  }, 2500);
 
   const onStateChange = () => {
     if (!navigationRef.isReady()) return;
@@ -30,15 +36,27 @@ export function registerNavigationTracking(
     const route = navigationRef.getCurrentRoute();
     if (!route || route.key === lastTrackedKey) return;
 
-    if (lastTrackedName) {
-      addBreadcrumb(`On disappear: ${lastTrackedName}`);
-    }
-
-    addBreadcrumb(`On appear: ${route.name}`);
+    const currentName = route.name;
+    const prevName = lastTrackedName;
 
     lastTrackedKey = route.key;
-    lastTrackedName = route.name;
+    lastTrackedName = currentName;
+
+    const sendBreadcrumbs = () => {
+      if (prevName) {
+        addBreadcrumb(`On disappear: ${prevName}`);
+      }
+      addBreadcrumb(`On appear: ${currentName}`);
+    };
+
+    if (isInitializing) {
+      setTimeout(sendBreadcrumbs, 3000);
+    } else {
+      sendBreadcrumbs();
+    }
   };
+
+  onStateChange();
 
   return navigationRef.addListener("state", onStateChange);
 }
@@ -99,6 +117,28 @@ export function generateTestCrash(): void {
   AppambitCrashes.generateTestCrash();
 }
 
+// RemoteConfig methods
+
+export function enableConfig(): void {
+  AppambitRemoteConfig.enable();
+}
+
+export function getString(key: string): string {
+  return AppambitRemoteConfig.getString(key);
+}
+
+export function getBoolean(key: string): boolean {
+  return AppambitRemoteConfig.getBoolean(key);
+}
+
+export function getLong(key: string): number {
+  return AppambitRemoteConfig.getLong(key);
+}
+
+export function getDouble(key: string): number {
+  return AppambitRemoteConfig.getDouble(key);
+}
+
 export function logErrorMessage(message: string, properties?: Record<string, string>): void {
   AppambitCrashes.logErrorMessage(message, properties);
 }
@@ -121,15 +161,15 @@ export async function logError({
     message && message.length > 0
       ? message
       : exception
-      ? exception.message || JSON.stringify(exception)
-      : "UnknownError";
+        ? exception.message || JSON.stringify(exception)
+        : "UnknownError";
 
   const stackStr =
     stack && stack.length > 0
       ? stack
       : exception?.stack
-      ? exception.stack.toString()
-      : new Error().stack?.toString();
+        ? exception.stack.toString()
+        : new Error().stack?.toString();
 
   const payload: Record<string, any> = {};
 
@@ -139,7 +179,7 @@ export async function logError({
     payload.properties = properties;
   if (classFqn) payload.classFqn = classFqn;
   if (fileName) payload.fileName = fileName;
-  
+
   if (typeof lineNumber === 'number' && !isNaN(lineNumber) && isFinite(lineNumber)) {
     payload.lineNumber = lineNumber;
   }

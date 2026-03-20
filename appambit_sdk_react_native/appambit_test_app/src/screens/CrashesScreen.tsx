@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ScrollView, Text, Alert, View } from "react-native";
+import { useState, useEffect } from "react";
+import { ScrollView, Text, Alert, View, Settings } from "react-native";
 import { uuidv4 } from "../utils/uuid";
 
 import {
@@ -12,15 +12,65 @@ import {
 } from "appambit";
 import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
+import * as PushNotifications from "appambit-push-notifications";
+
+const NOTIFICATIONS_PROMPTED_KEY = "appambit_notifications_prompted";
 
 export default function CrashesScreen() {
   const [userId] = useState<string>(uuidv4());
+  const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
+  const [isFirstRun, setIsFirstRun] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const checkNotificationState = async () => {
+      const hasBeenPrompted = Settings.get(NOTIFICATIONS_PROMPTED_KEY);
+      if (hasBeenPrompted) {
+        setIsFirstRun(false);
+        const enabled = await PushNotifications.isNotificationsEnabled();
+        setNotificationsEnabledState(enabled);
+      }
+      setIsLoading(false);
+    };
+    checkNotificationState();
+  }, []);
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <ScrollView contentContainerStyle={{ alignItems: "center", paddingVertical: 20 }}>
       <View style={{ height: 30 }} />
       <Text style={{ fontSize: 22, fontWeight: "bold" }}>Crashes</Text>
       <View style={{ height: 30 }} />
+
+      <CustomButton
+        title={isFirstRun ? "Allow notifications" : notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+        onPress={async () => {
+          if (!notificationsEnabled) {
+            const granted =
+              await PushNotifications.requestNotificationPermissionWithResult();
+
+            if (!granted) {
+              return;
+            }
+
+            await PushNotifications.setNotificationsEnabled(true);
+            setNotificationsEnabledState(true);
+
+            if (isFirstRun) {
+              Settings.set({ [NOTIFICATIONS_PROMPTED_KEY]: true });
+              setIsFirstRun(false);
+            }
+            return;
+          }
+
+          await PushNotifications.setNotificationsEnabled(false);
+          setNotificationsEnabledState(false);
+        }}
+      />
+
       <CustomButton
         title="Did the app crash during your last session?"
         onPress={async () => {

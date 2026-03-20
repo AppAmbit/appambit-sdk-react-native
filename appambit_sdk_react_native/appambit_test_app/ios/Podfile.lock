@@ -1,6 +1,6 @@
 PODS:
-  - Appambit (0.1.0):
-    - AppAmbitSdk (~> 0.1.2)
+  - Appambit (0.2.0):
+    - AppAmbitSdk (~> 0.4.0)
     - boost
     - DoubleConversion
     - fast_float
@@ -28,7 +28,38 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AppAmbitSdk (0.1.2)
+  - AppAmbitPushNotifications (0.4.0):
+    - AppAmbitSdk
+  - AppAmbitSdk (0.4.0)
+  - AppAmbitSdkPushNotifications (0.2.0):
+    - AppAmbitPushNotifications (~> 0.4.0)
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
@@ -2464,6 +2495,7 @@ PODS:
 
 DEPENDENCIES:
   - Appambit (from `../..`)
+  - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2544,12 +2576,15 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - AppAmbitPushNotifications
     - AppAmbitSdk
     - SocketRocket
 
 EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
+  AppAmbitSdkPushNotifications:
+    :path: "../node_modules/appambit-push-notifications"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2703,8 +2738,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: 9cf5cecb7bcb886cbaa37f905bee5580a7aa9615
-  AppAmbitSdk: e4e3c1344b28da6e896d8ec32af26160df007ce7
+  Appambit: e8e9b728a35cc851739904dae5251198180d55c4
+  AppAmbitPushNotifications: 9efb16f314eb45a276669b5422987922afae9bcf
+  AppAmbitSdk: df1f4e5bf8018d18ee8a01ecf64005b5568840b5
+  AppAmbitSdkPushNotifications: c1a315c4254f87f0b7713f9a137f51e6960c06f4
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
