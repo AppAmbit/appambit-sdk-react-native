@@ -111,4 +111,4 @@ export class Cms {
     }
 }
 
-export const AppambitCms = new Cms();
+export const AppAmbitCms = new Cms();

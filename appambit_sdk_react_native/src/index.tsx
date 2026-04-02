@@ -2,7 +2,7 @@ import Appambit from './NativeAppambitCore';
 import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
 import AppambitRemoteConfig from './NativeAppambitRemoteConfig';
-import { AppambitCms } from './CmsQuery';
+import { AppAmbitCms } from './CmsQuery';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { Platform } from 'react-native';
 
@@ -140,8 +140,10 @@ export function getDouble(key: string): number {
   return AppambitRemoteConfig.getDouble(key);
 }
 
+export { AppAmbitCms };
+
 export function cms() {
-  return AppambitCms;
+  return AppAmbitCms;
 }
 
 export function logErrorMessage(message: string, properties?: Record<string, string>): void {
