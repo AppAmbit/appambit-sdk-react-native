@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { cms } from 'appambit';
+import { AppAmbitCms } from 'appambit';
 import type { CmsPost } from '../CmsPost';
 
 function formatViews(count?: number | string): string {
@@ -85,7 +85,7 @@ function PostCard({ post }: { post: CmsPost }) {
 
 function FilterButtons({ onFilter }: { onFilter: (query: any) => void }) {
   const [activeFilter, setActiveFilter] = useState("All Posts");
-  const baseQuery = () => cms().content('blog_extended');
+  const baseQuery = () => AppAmbitCms.content('blog_extended');
 
   const filters = [
     { label: "All Posts", apply: () => baseQuery() },
@@ -138,7 +138,7 @@ export default function CmsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    load(cms().content('blog_extended'));
+    load(AppAmbitCms.content('blog_extended'));
   }, []);
 
   const load = async (query: any) => {
@@ -174,7 +174,7 @@ export default function CmsScreen() {
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={() => load(cms().content('blog_extended'))} style={styles.retryBtn}>
+          <TouchableOpacity onPress={() => load(AppAmbitCms.content('blog_extended'))} style={styles.retryBtn}>
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
