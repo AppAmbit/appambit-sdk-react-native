@@ -2495,6 +2495,7 @@ PODS:
 
 DEPENDENCIES:
   - Appambit (from `../..`)
+  - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -2577,12 +2578,13 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - AppAmbitPushNotifications
-    - AppAmbitSdk
     - SocketRocket
 
 EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
+  AppAmbitSdk:
+    :path: "../../../../appambit-sdk-ios/AppAmbitSdk"
   AppAmbitSdkPushNotifications:
     :path: "../node_modules/appambit-push-notifications"
   boost:
@@ -2819,6 +2821,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: 25a0e4e0ebb5d0c2a24f99f6c8420737c9757238
+PODFILE CHECKSUM: 3f358108efa93df5db4cade8629a196a2cb14404
 
 COCOAPODS: 1.16.2
