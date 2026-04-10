@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { AppAmbitCms } from 'appambit';
 import type { CmsPost } from '../CmsPost';
@@ -54,7 +56,13 @@ function PostCard({ post }: { post: CmsPost }) {
       <View style={styles.cardBody}>
         <View style={styles.cardRow}>
           {post.category ? (
-            <Text style={styles.category}>{post.category.toUpperCase()}</Text>
+            <Text style={styles.category}>
+              {Array.isArray(post.category)
+                ? post.category.join(", ").toUpperCase()
+                : typeof post.category === 'string'
+                  ? post.category.toUpperCase()
+                  : String(post.category).toUpperCase()}
+            </Text>
           ) : null}
           <Text style={[styles.status, { color: post.is_published ? '#16a34a' : '#9ca3af' }]}>
             {post.is_published ? '● Published' : '○ Draft'}
@@ -72,10 +80,9 @@ function PostCard({ post }: { post: CmsPost }) {
             <Text style={styles.meta} numberOfLines={1}>{authorName}</Text>
           ) : null}
           <View style={styles.cardRowRight}>
-            <Text style={styles.metaSmall}>Views {formatViews(post.views_count)}</Text>
-            {post.event_date ? (
-              <Text style={styles.metaSmall}>Date {post.event_date}</Text>
-            ) : null}
+            {post.likes !== undefined && <Text style={styles.metaSmall}>❤️ {post.likes}</Text>}
+            {post.rating !== undefined && <Text style={styles.metaSmall}>⭐ {post.rating}/5</Text>}
+            {post.reading_time !== undefined && <Text style={styles.metaSmall}>📖 {post.reading_time} min</Text>}
           </View>
         </View>
       </View>
@@ -84,50 +91,124 @@ function PostCard({ post }: { post: CmsPost }) {
 }
 
 function FilterButtons({ onFilter }: { onFilter: (query: any) => void }) {
-  const [activeFilter, setActiveFilter] = useState("All Posts");
-  const baseQuery = () => AppAmbitCms.content('blog_extended');
+  const [expanded, setExpanded] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [searchText, setSearchText] = useState("");
 
-  const filters = [
-    { label: "All Posts", apply: () => baseQuery() },
-    { label: "Category = tech", apply: () => baseQuery().equals("category", "tech") },
-    { label: "Category ≠ tech", apply: () => baseQuery().notEquals("category", "tech") },
-    { label: "Search 'swift'", apply: () => baseQuery().search("swift") },
-    { label: "Title contains 't1'", apply: () => baseQuery().contains("title", "t1") },
-    { label: "Category starts with 'n'", apply: () => baseQuery().startsWith("category", "n") },
-    { label: "Category IN [science, tech]", apply: () => baseQuery().inList("category", ["science", "tech"]) },
-    { label: "Category NOT IN [tech, news]", apply: () => baseQuery().notInList("category", ["tech", "news"]) },
-    { label: "Views > 1000", apply: () => baseQuery().greaterThan("views_count", 1000) },
-    { label: "Views ≥ 555", apply: () => baseQuery().greaterThanOrEqual("views_count", 555) },
-    { label: "Views < 15000", apply: () => baseQuery().lessThan("views_count", 15000) },
-    { label: "Views ≤ 15000", apply: () => baseQuery().lessThanOrEqual("views_count", 15000) },
-    { label: "Sort Title ↑", apply: () => baseQuery().orderByAscending("title") },
-    { label: "Sort Title ↓", apply: () => baseQuery().orderByDescending("title") },
-    { label: "Page 1 (2 per page)", apply: () => baseQuery().getPage(1).getPerPage(2) },
+  const options = [
+    "All Posts",
+    "Title = first",
+    "Title ≠ first",
+    "Is Published = true",
+    "Is Published = false",
+    "Title contains 'st'",
+    "Title starts with 'f'",
+    "Category IN [science]",
+    "Category NOT IN [tech, news]",
+    "Likes > 500",
+    "Rating ≥ 2.1",
+    "Reading Time < 15m",
+    "Reading Time ≤ 15m",
+    "Sort Title ↑",
+    "Sort Title ↓",
+    "Sort Likes ↑",
+    "Sort Likes ↓",
+    "Page 1 (2 per page)",
+    "Page 2 (2 per page)"
   ];
 
+  const handleRun = () => {
+    let query = AppAmbitCms.content("blog_posts");
+
+    if (searchText.trim().length > 0) {
+      query = query.search(searchText.trim());
+    }
+
+    switch (selectedIndex) {
+      case 1: query = query.equals("title", "first"); break;
+      case 2: query = query.notEquals("title", "first"); break;
+      case 3: query = query.equals("is_published", "true"); break;
+      case 4: query = query.equals("is_published", "false"); break;
+      case 5: query = query.contains("title", "st"); break;
+      case 6: query = query.startsWith("title", "f"); break;
+      case 7: query = query.inList("category", ["science"]); break;
+      case 8: query = query.notInList("category", ["technology", "news"]); break;
+      case 9: query = query.greaterThan("likes", 500); break;
+      case 10: query = query.greaterThanOrEqual("rating", 2.1); break;
+      case 11: query = query.lessThan("reading_time", 15); break;
+      case 12: query = query.lessThanOrEqual("reading_time", 15); break;
+      case 13: query = query.orderByAscending("title"); break;
+      case 14: query = query.orderByDescending("title"); break;
+      case 15: query = query.orderByAscending("likes"); break;
+      case 16: query = query.orderByDescending("likes"); break;
+      case 17: query = query.getPage(1).getPerPage(2); break;
+      case 18: query = query.getPage(2).getPerPage(2); break;
+    }
+    
+    onFilter(query);
+  };
+
   return (
-    <View style={styles.filtersWrapper}>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersContainer}
+    <View style={styles.filterContainer}>
+      <View style={styles.filterRow}>
+        <View style={styles.dropdownWrapper}>
+          <TouchableOpacity 
+            style={styles.dropdownBtn} 
+            onPress={() => setExpanded(true)}
+          >
+            <Text style={styles.dropdownBtnText} numberOfLines={1}>
+              {options[selectedIndex]}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search..."
+          value={searchText}
+          onChangeText={(val) => {
+            setSearchText(val);
+            if (val.length > 0 && selectedIndex !== 0) {
+              setSelectedIndex(0);
+            }
+          }}
+        />
+
+        <TouchableOpacity style={styles.runBtn} onPress={handleRun}>
+          <Text style={styles.runBtnText}>Run</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Modal
+        visible={expanded}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setExpanded(false)}
       >
-        {filters.map((f, i) => {
-          const isActive = activeFilter === f.label;
-          return (
-            <TouchableOpacity 
-              key={i} 
-              style={[styles.filterBtn, isActive && styles.filterBtnActive]} 
-              onPress={() => {
-                setActiveFilter(f.label);
-                onFilter(f.apply());
-              }}
-            >
-              <Text style={[styles.filterText, isActive && styles.filterTextActive]}>{f.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setExpanded(false)}
+        >
+          <View style={styles.modalContent}>
+            <ScrollView>
+              {options.map((opt, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setSelectedIndex(i);
+                    setSearchText("");
+                    setExpanded(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{opt}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -138,7 +219,7 @@ export default function CmsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    load(AppAmbitCms.content('blog_extended'));
+    load(AppAmbitCms.content('blog_posts'));
   }, []);
 
   const load = async (query: any) => {
@@ -174,7 +255,7 @@ export default function CmsScreen() {
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={() => load(AppAmbitCms.content('blog_extended'))} style={styles.retryBtn}>
+          <TouchableOpacity onPress={() => load(AppAmbitCms.content('blog_posts'))} style={styles.retryBtn}>
             <Text style={styles.retryText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -202,38 +283,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  filtersWrapper: {
-    height: 44,
+  filterContainer: {
+    padding: 8,
     backgroundColor: '#fff',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e5e7eb',
-    justifyContent: 'center',
   },
-  filtersContainer: {
-    paddingHorizontal: 12,
-    gap: 6,
+  filterRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  filterBtn: {
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 12,
-    height: 28,
-    justifyContent: 'center',
-    borderRadius: 14,
+  dropdownWrapper: {
+    flex: 1,
+  },
+  dropdownBtn: {
+    height: 40,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
   },
-  filterBtnActive: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: '500',
+  dropdownBtnText: {
+    fontSize: 14,
     color: '#374151',
   },
-  filterTextActive: {
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
+  },
+  runBtn: {
+    height: 40,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  runBtnText: {
     color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    maxHeight: '80%',
+    overflow: 'hidden',
+  },
+  modalOption: {
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#111',
   },
   header: {
     flexDirection: 'row',
