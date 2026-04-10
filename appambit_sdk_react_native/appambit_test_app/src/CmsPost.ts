@@ -12,6 +12,9 @@ export interface CmsPost {
     body: string;
     category?: string;
     author?: CmsAuthor | null;
+    likes?: number;
+    rating?: number;
+    reading_time?: number;
     meta_data?: Record<string, any> | any[];
     event_date?: string;
     views_count?: number | string;
