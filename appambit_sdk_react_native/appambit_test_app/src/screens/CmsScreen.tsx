@@ -14,14 +14,6 @@ import {
 import { AppAmbitCms } from 'appambit';
 import type { CmsPost } from '../CmsPost';
 
-function formatViews(count?: number | string): string {
-  const n = Number(count);
-  if (isNaN(n)) return '–';
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return n.toString();
-}
-
 function stripHtml(html?: string): string {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').trim();
