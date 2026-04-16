@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
   s.private_header_files = "ios/**/*.h"
 
-  s.dependency 'AppAmbitPushNotifications', '~> 0.4.0'
+  s.dependency 'AppAmbitPushNotifications', '~> 0.5.0'
 
   install_modules_dependencies(s)
 end
