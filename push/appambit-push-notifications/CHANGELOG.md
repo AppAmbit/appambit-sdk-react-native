@@ -1,5 +1,11 @@
 ___
 
+## Version 0.3.0
+
+### AppAmbit SDK
+
+* **[Feature]** Added support for CMS (Content Management System) integration, allowing dynamic content updates and management within the app without requiring app updates. Using fluent API design for easy integration and configuration of CMS features.
+
 ## Version 0.2.0
 
 ### AppAmbit Push Notifications SDK
