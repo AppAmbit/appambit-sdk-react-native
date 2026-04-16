@@ -25,6 +25,18 @@
 @implementation AppAmbitCms
 RCT_EXPORT_MODULE(AppAmbitCms);
 
+static NSMutableDictionary<NSString *, NSMutableArray<RCTPromiseResolveBlock> *> *pendingResolves = nil;
+static NSLock *pendingLock = nil;
+static NSMutableDictionary<NSString *, NSArray<id> *> *cmsCache = nil;
+
++ (void)initialize {
+    if (self == [AppAmbitCms class]) {
+        pendingResolves = [NSMutableDictionary new];
+        pendingLock = [[NSLock alloc] init];
+        cmsCache = [NSMutableDictionary new];
+    }
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
@@ -35,6 +47,32 @@ RCT_EXPORT_MODULE(AppAmbitCms);
         filters:(NSArray *)filters
         resolve:(RCTPromiseResolveBlock)resolve
         reject:(RCTPromiseRejectBlock)reject {
+
+    NSString *cacheKey = contentType;
+    if (filters && [filters isKindOfClass:[NSArray class]] && filters.count > 0) {
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:filters options:0 error:nil];
+        if (jsonData) {
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            cacheKey = [NSString stringWithFormat:@"%@_%@", contentType, jsonString];
+        }
+    }
+    
+    [pendingLock lock];
+    
+    if (cmsCache[cacheKey] != nil) {
+        [pendingLock unlock];
+        resolve(cmsCache[cacheKey]);
+        return;
+    }
+    
+    if (pendingResolves[cacheKey] != nil) {
+        [pendingResolves[cacheKey] addObject:resolve];
+        [pendingLock unlock];
+        return;
+    }
+    
+    pendingResolves[cacheKey] = [NSMutableArray arrayWithObject:resolve];
+    [pendingLock unlock];
 
     CmsQueryObjC *query = [AppAmbitSdkWrapper getCmsQueryWithContentType:contentType];
     
@@ -106,15 +144,41 @@ RCT_EXPORT_MODULE(AppAmbitCms);
     }
     
     [query getListWithCompletion:^(NSArray<id> * _Nonnull items) {
-        resolve(items);
+        [pendingLock lock];
+        
+        if (items) {
+            cmsCache[cacheKey] = items;
+        }
+        
+        NSArray<RCTPromiseResolveBlock> *resolves = pendingResolves[cacheKey];
+        [pendingResolves removeObjectForKey:cacheKey];
+        [pendingLock unlock];
+        
+        for (RCTPromiseResolveBlock res in resolves) {
+            res(items);
+        }
     }];
 }
 
 - (void)clearCache:(NSString *)contentType {
+    [pendingLock lock];
+    NSMutableArray *keysToRemove = [NSMutableArray new];
+    for (NSString *key in cmsCache.allKeys) {
+        if ([key isEqualToString:contentType] || [key hasPrefix:[NSString stringWithFormat:@"%@_", contentType]]) {
+            [keysToRemove addObject:key];
+        }
+    }
+    [cmsCache removeObjectsForKeys:keysToRemove];
+    [pendingLock unlock];
+
     [AppAmbitSdkWrapper clearCmsCacheWithContentType:contentType];
 }
 
 - (void)clearAllCache {
+    [pendingLock lock];
+    [cmsCache removeAllObjects];
+    [pendingLock unlock];
+
     [AppAmbitSdkWrapper clearAllCmsCache];
 }
 
