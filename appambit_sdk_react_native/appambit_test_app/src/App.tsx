@@ -10,6 +10,7 @@ import { registerNavigationTracking } from "appambit";
 import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
 import RemoteConfigScreen from "./screens/RemoteConfigScreen";
+import CmsScreen from "./screens/CmsScreen";
 import SecondScreen from "./screens/SecondScreen";
 
 type RootStackParamList = {
@@ -20,13 +21,14 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
-  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig">("Crashes");
+  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig" | "CMS">("Crashes");
 
   return (
     <View style={{ flex: 1 }}>
       {activeTab === "Crashes" && <CrashesScreen />}
       {activeTab === "Analytics" && <AnalyticsScreen />}
       {activeTab === "RemoteConfig" && <RemoteConfigScreen />}
+      {activeTab === "CMS" && <CmsScreen />}
 
       <View style={styles.bottomNav}>
         <Pressable
@@ -47,7 +49,14 @@ function HomeScreen() {
           style={[styles.navButton, activeTab === "RemoteConfig" && styles.activeTab]}
           onPress={() => setActiveTab("RemoteConfig")}
         >
-          <Text style={styles.navText}>Remote Config</Text>
+          <Text style={styles.navText}>Config</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.navButton, activeTab === "CMS" && styles.activeTab]}
+          onPress={() => setActiveTab("CMS")}
+        >
+          <Text style={styles.navText}>CMS</Text>
         </Pressable>
       </View>
     </View>
