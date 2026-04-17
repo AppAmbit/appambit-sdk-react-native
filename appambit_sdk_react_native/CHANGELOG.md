@@ -1,5 +1,11 @@
 ___
 
+## Version 0.3.1
+
+### AppAmbit SDK
+
+* **[Bugfix]** Fixed problem with lib folder and `js` files
+
 ## Version 0.3.0
 
 ### AppAmbit SDK
