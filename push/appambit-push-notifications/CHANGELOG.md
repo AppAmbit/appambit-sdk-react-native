@@ -4,7 +4,7 @@ ___
 
 ### AppAmbit SDK
 
-* **[Bugfix]** Fixed problem with lib folder and `js` files
+* **[Bugfix]** Fixed problem with `lib` folder and `js` files
 
 ## Version 0.3.0
 
