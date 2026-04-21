@@ -88,7 +88,7 @@ jobs:
             echo "${{ steps.changelog.outputs.changelog }}"
 
         - name: Create GitHub Release
-          if: github.ref_name == 'main' && steps.check.outputs.version_changed == 'true'
+          if: steps.check.outputs.version_changed == 'true'
           uses: softprops/action-gh-release@v2
           with:
             tag_name: ${{ steps.version.outputs.new_tag }}
@@ -97,21 +97,21 @@ jobs:
             prerelease: ${{ steps.version.outputs.is_prerelease }}
 
         - name: Publish Core
-          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false'
           working-directory: ${{ env.DIRECTORY }}
           run: npm publish --provenance --access public
 
         - name: Install Push dependencies
-          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false'
           working-directory: ${{ env.PUSH_DIRECTORY }}
           run: yarn install --no-immutable
 
         - name: Build Push Package
-          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false'
           working-directory: ${{ env.PUSH_DIRECTORY }}
           run: yarn prepare
 
         - name: Publish Push
-          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false' && github.ref_name == 'main'
+          if: steps.check.outputs.version_changed == 'true' && steps.version.outputs.is_prerelease == 'false'
           working-directory: ${{ env.PUSH_DIRECTORY }}
           run: npm publish --provenance --access public
