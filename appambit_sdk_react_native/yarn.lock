@@ -4135,12 +4135,12 @@ __metadata:
   linkType: hard
 
 "appambit-push-notifications@file:../../push/appambit-push-notifications::locator=appambit-testapp%40workspace%3Aappambit_test_app":
-  version: 0.3.1
-  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=8efe0e&locator=appambit-testapp%40workspace%3Aappambit_test_app"
+  version: 0.2.0
+  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=99fd10&locator=appambit-testapp%40workspace%3Aappambit_test_app"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 759455140f052d7b24d8189f9dc18c21501b70e0ea4e2603d8630fc8045db7665eb6aedc0cacd46803e87adfeca90d7fea46b360a82e0a9c988fe0c553e9520d
+  checksum: b20513c464e579d15fdf234175f220f030f01fbae2e445e3326e064c606d4e344e0e49cde0edcf8039ccbb5eaf7cf3be2cd5306785c17b618f854a69ef5bd684
   languageName: node
   linkType: hard
 
@@ -5777,9 +5777,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.328":
-  version: 1.5.340
-  resolution: "electron-to-chromium@npm:1.5.340"
-  checksum: 1c60694fd10c64258606fbe2aa5de1c78c91a8c6005ebdc711d0675c51e97f7259cfa0758b172012b1b3e8fedcf2a69f50ee5c8103551737ed0fd156302f7756
+  version: 1.5.338
+  resolution: "electron-to-chromium@npm:1.5.338"
+  checksum: 1b7db7eb9e5d40e53700f4eaaecf994dea3da0b88e9e83a3ea1d97f8ecf05d93c5ded14cf1a37aecc0189b42e4af04f6e326100d279a0e7a0a879fd99d1f18b2
   languageName: node
   linkType: hard
 

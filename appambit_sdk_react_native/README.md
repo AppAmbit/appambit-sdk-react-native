@@ -63,7 +63,7 @@ Add the package to your React Native project:
 ```bash
 npm install appambit
 # or specify version
-npm install appambit@0.3.1
+npm install appambit@0.3.0
 ```
 ---
 
