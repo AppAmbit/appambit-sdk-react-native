@@ -33,7 +33,7 @@ jobs:
 
         - name: Install dependencies
           working-directory: ${{ env.DIRECTORY }}
-          run: npm install
+          run: yarn install
 
         - name: Read version from package.json
           working-directory: ${{ env.DIRECTORY }}
