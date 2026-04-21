@@ -15,7 +15,7 @@ jobs:
         DIRECTORY: appambit_sdk_react_native
         PUSH_DIRECTORY: push/appambit-push-notifications
       steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v4
           with:
             fetch-depth: 0
         
