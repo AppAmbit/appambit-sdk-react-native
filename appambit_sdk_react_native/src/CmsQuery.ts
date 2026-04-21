@@ -1,6 +1,7 @@
 import NativeAppambitCms from './NativeAppambitCms';
 
 export class CmsQuery {
+
     private contentType: string;
     private filters: any[] = [];
 
