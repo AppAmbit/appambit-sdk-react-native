@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as AppAmbit from "appambit";
 import * as PushNotifications from "appambit-push-notifications";
@@ -64,32 +64,67 @@ function HomeScreen() {
 }
 
 export default function App() {
-
-  //AppAmbit.enableManualSession();
-  AppAmbit.enableConfig();
-  AppAmbit.start("<YOUR-APPKEY>");
-
   const navigationRef = useNavigationContainerRef();
 
-  PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
-    console.log("Customizer received payload:", payload);
-    console.log("Customizer received data:", payload.data);
-    console.log("Customizer received title:", payload.notification?.title);
-    console.log("Customizer received body:", payload.notification?.body);
-  });
+  // ── SDK initialisation (run once, outside useEffect — same as before) ───────
+  AppAmbit.enableConfig();
+  AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
   PushNotifications.start();
 
+  // ── Push notification listeners ───────────────────────────────────────────
+  // Registered inside useEffect so they are cleaned up when the component
+  // unmounts (hot reload, dev mode restarts, etc.).
+  useEffect(() => {
+    // Foreground: notification received while app is open
+    const removeForeground = PushNotifications.setForegroundNotificationListener(
+      (payload: PushNotifications.NotificationPayload) => {
+        console.log("[AppAmbit] Foreground notification received");
+        console.log("  title:", payload.notification?.title);
+        console.log("  body:", payload.notification?.body);
+        console.log("  data:", payload.data);
+      }
+    );
+
+    // Background: notification received while app is backgrounded
+    // (killed-state is handled by the Headless task in index.js)
+    const removeBackground = PushNotifications.setBackgroundNotificationListener(
+      async (payload: PushNotifications.NotificationPayload) => {
+        console.log("[AppAmbit] Background notification received");
+        console.log("  title:", payload.notification?.title);
+        console.log("  body:", payload.notification?.body);
+        console.log("  data:", payload.data);
+      }
+    );
+
+    // Opened: user tapped the notification — works in all app states
+    const removeOpened = PushNotifications.setOpenedNotificationListener(
+      (payload: PushNotifications.NotificationPayload) => {
+        console.log("[AppAmbit] Notification opened by user");
+        console.log("  title:", payload.notification?.title);
+        console.log("  body:", payload.notification?.body);
+        console.log("  data:", payload.data);
+      }
+    );
+
+    return () => {
+      removeForeground();
+      removeBackground();
+      removeOpened();
+    };
+  }, []);
+
   return (
-      <NavigationContainer 
-        ref={navigationRef}
-        onReady={() => {
-          registerNavigationTracking(navigationRef);
-        }}>
-        <Stack.Navigator screenOptions={{ headerShown: true }}>
-          <Stack.Screen name="HomeScreen" component={HomeScreen} />
-          <Stack.Screen name="SecondScreen" component={SecondScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        registerNavigationTracking(navigationRef);
+      }}
+    >
+      <Stack.Navigator screenOptions={{ headerShown: true }}>
+        <Stack.Screen name="HomeScreen" component={HomeScreen} />
+        <Stack.Screen name="SecondScreen" component={SecondScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 

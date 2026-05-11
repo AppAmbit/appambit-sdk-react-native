@@ -1,2 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        AppAmbit Push Notifications — React Native Bridge Manifest
+
+        This manifest is MERGED into the consuming application's manifest.
+        It registers:
+          1. AppAmbitHeadlessService — starts Headless JS for background/killed notifications
+          2. AppAmbitRNServiceExtension — meta-data key pointing to the service extension class
+
+        The consuming app must also declare:
+          - INTERNET permission
+          - POST_NOTIFICATIONS permission (Android 13+)
+          - google-services plugin and google-services.json
+    -->
+
+    <!-- ── Permissions (merged into host app) ───────────────────────────── -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+
+        <!--
+            AppAmbitHeadlessService
+            Runs the registered Headless JS task ("AppAmbitBackgroundNotification")
+            when a push notification arrives in background / killed state.
+
+            exported="false" — only started internally, not from other apps.
+            foregroundServiceType — required on Android 12+ for services started
+            from the background.
+        -->
+        <service
+            android:name="com.appambitpushnotifications.AppAmbitHeadlessService"
+            android:exported="false" />
+
+        <!--
+            NotificationServiceExtension meta-data
+            Tells MessagingService which class to reflectively load as the
+            IAppAmbitNotificationServiceExtension implementation.
+
+            ⚠️  If the consuming app provides its OWN extension, they must
+            override this meta-data entry in their app's AndroidManifest.xml
+            with tools:replace="android:value".
+        -->
+        <meta-data
+            android:name="com.appambit.sdk.NotificationServiceExtension"
+            android:value="com.appambitpushnotifications.AppAmbitRNServiceExtension" />
+
+    </application>
+
 </manifest>

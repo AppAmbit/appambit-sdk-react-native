@@ -15,10 +15,8 @@ buildscript {
   }
 }
 
-
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
-
 apply plugin: "com.facebook.react"
 
 def getExtOrIntegerDefault(name) {
@@ -72,7 +70,21 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  implementation "com.appambit:appambit.push.notifications:0.5.0"
+  // ─── Local AAR (push SDK only — core SDK is embedded transitively) ──────────
+  // 'api' (not 'implementation') is required so that classes like PushNotifications
+  // are visible at compile time to the consuming app (e.g. MainActivity.kt).
+  // 'implementation' would hide them and cause "Unresolved reference" errors.
+  api files('libs/appambit-sdk-push-notifications-release.aar')
+
+  // ─── Firebase (required transitively by the push AAR) ──────────────────────
+  implementation platform('com.google.firebase:firebase-bom:33.6.0')
+  implementation 'com.google.firebase:firebase-messaging'
+
+  // ─── AndroidX transitive deps ───────────────────────────────────────────────
+  implementation 'androidx.appcompat:appcompat:1.7.0'
+  implementation 'androidx.activity:activity:1.9.0'
+
+  // ─── React Native ─────────────────────────────────────────────────────────────
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }

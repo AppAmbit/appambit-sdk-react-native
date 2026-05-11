@@ -72,7 +72,14 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
+  // ─── Local AAR (built from appambit-sdk-android/appambit-sdk) ────────────────
+  // 'api' exposes AppAmbit classes to the consuming app at compile time.
+  api files('libs/appambit-sdk-release.aar')
+
+  // ─── AndroidX transitive deps required by the core AAR ───────────────────────
+  implementation 'androidx.appcompat:appcompat:1.7.0'
+
+  // ─── React Native ─────────────────────────────────────────────────────────────
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation("com.appambit:appambit:0.5.0")
 }
