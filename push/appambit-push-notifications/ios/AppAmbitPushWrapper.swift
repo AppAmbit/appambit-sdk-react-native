@@ -21,38 +21,63 @@ public class AppAmbitPushWrapper: NSObject {
     PushNotifications.requestNotificationPermission(listener: listener)
   }
 
-  @objc(setNotificationCustomizer:)
-  public static func setNotificationCustomizer(listener: ((NSDictionary) -> Void)?) {
-    PushNotifications.setNotificationCustomizer { notification in
-      let content = notification.request.content
-      let userInfo = content.userInfo
-
-      var notificationData: [String: String] = [
-        "title": content.title,
-        "body": content.body
-      ]
-
-      if !content.subtitle.isEmpty {
-        notificationData["subtitle"] = content.subtitle
-      }
-
-      var customData: [String: String] = [:]
-      for (key, value) in userInfo {
-        guard let keyStr = key as? String else { continue }
-        // Exclude only the standard Apple payload. We keep the rest to see exactly what comes.
-        if keyStr == "aps" { continue }
-        customData[keyStr] = "\(value)"
-      }
-
-      var payload: [String: Any] = [
-        "notification": notificationData
-      ]
-
-      if !customData.isEmpty {
-        payload["data"] = customData
-      }
-
-      listener?(payload as NSDictionary)
+  @objc(setNotificationListener:)
+  public static func setNotificationListener(listener: @escaping ((NSDictionary, Int) -> Void)) {
+    PushNotifications.setNotificationListener { userInfo, state in
+      let payload = formatNotificationPayload(userInfo)
+      listener(payload as NSDictionary, state.rawValue)
     }
+  }
+
+  public static var pendingBackgroundPayloads: [[String: Any]] = []
+
+  @objc(didReceiveBackgroundNotification:)
+  public static func didReceiveBackgroundNotification(_ userInfo: [AnyHashable: Any]) {
+    let payload = formatNotificationPayload(userInfo)
+    pendingBackgroundPayloads.append(payload)
+    
+    NotificationCenter.default.post(
+      name: NSNotification.Name("AppAmbit_onBackgroundNotification"),
+      object: nil,
+      userInfo: payload
+    )
+  }
+  
+  @objc public static func getAndClearPendingBackgroundPayloads() -> [[String: Any]] {
+    let payloads = pendingBackgroundPayloads
+    pendingBackgroundPayloads.removeAll()
+    return payloads
+  }
+
+  @objc(formatNotificationPayload:)
+  public static func formatNotificationPayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
+    var notificationData: [String: String] = [:]
+    var customData: [String: String] = [:]
+
+    if let aps = userInfo["aps"] as? [String: Any] {
+      if let alert = aps["alert"] as? [String: Any] {
+        notificationData["title"] = alert["title"] as? String
+        notificationData["body"] = alert["body"] as? String
+        notificationData["subtitle"] = alert["subtitle"] as? String
+      } else if let alertStr = aps["alert"] as? String {
+        notificationData["body"] = alertStr
+      }
+    }
+
+    for (key, value) in userInfo {
+      guard let keyStr = key as? String else { continue }
+      if keyStr == "aps" { continue }
+      customData[keyStr] = "\(value)"
+    }
+
+    var payload: [String: Any] = [
+      "notification": notificationData
+    ]
+
+    if !customData.isEmpty {
+      payload["data"] = customData
+    }
+
+    return payload
   }
 }

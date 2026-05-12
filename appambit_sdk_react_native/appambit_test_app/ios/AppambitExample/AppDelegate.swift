@@ -2,6 +2,7 @@ import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
+import AppAmbitSdkPushNotifications
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -30,6 +31,32 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     )
 
     return true
+  }
+
+  func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    // Forward the payload to trigger the background listener in React Native.
+    AppAmbitPushWrapper.didReceiveBackgroundNotification(userInfo)
+    
+    // Request extra time from the OS to ensure React Native and AsyncStorage finish
+    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    backgroundTask = application.beginBackgroundTask {
+      // If time runs out, end the task
+      application.endBackgroundTask(backgroundTask)
+      backgroundTask = .invalid
+    }
+    
+    // Give JS 5 seconds to process, then tell OS we are done
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      completionHandler(.newData)
+      if backgroundTask != .invalid {
+        application.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
+      }
+    }
   }
 }
 

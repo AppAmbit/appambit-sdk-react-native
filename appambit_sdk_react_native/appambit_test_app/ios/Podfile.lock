@@ -32,7 +32,37 @@ PODS:
     - AppAmbitSdk
   - AppAmbitSdk (0.5.0)
   - AppAmbitSdkPushNotifications (0.3.1):
+    - AppAmbitSdkPushNotifications/Core (= 0.3.1)
+  - AppAmbitSdkPushNotifications/Core (0.3.1):
     - AppAmbitPushNotifications (~> 0.5.0)
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
+  - AsyncStorage (3.0.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2495,7 +2525,10 @@ PODS:
 
 DEPENDENCIES:
   - Appambit (from `../..`)
+  - AppAmbitPushNotifications (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
+  - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
+  - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2576,15 +2609,19 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - AppAmbitPushNotifications
-    - AppAmbitSdk
     - SocketRocket
 
 EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
+  AppAmbitPushNotifications:
+    :path: "../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications"
+  AppAmbitSdk:
+    :path: "../../../../appambit-sdk-ios/AppAmbitSdk"
   AppAmbitSdkPushNotifications:
     :path: "../node_modules/appambit-push-notifications"
+  AsyncStorage:
+    :path: "../node_modules/@react-native-async-storage/async-storage"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2739,9 +2776,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Appambit: 58462ee4757d7868b93f2f9190da61d7b2234ba3
-  AppAmbitPushNotifications: 02194d04392e216901a954303e0ba6e40519513b
+  AppAmbitPushNotifications: c6490e5c0c729ccf5e0b084766e568fbdb28c6ce
   AppAmbitSdk: 8bc12b7ecdca6c1f99e259abc1bc988e6f393b07
-  AppAmbitSdkPushNotifications: 1268650b81d8628c8362c35b09be47d30d78cefa
+  AppAmbitSdkPushNotifications: 419447cf4202ff2531b90255f45731a529e53e68
+  AsyncStorage: bb9dc624a5f86c3a1eacf4ec9f61e1be04b75e98
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -2819,6 +2857,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: 3c6f1c3bd9ae458954accfdf8448c40a5f58c9ef
+PODFILE CHECKSUM: 8b1559e4be3a10c4818c50bf6c557c229631ad0f
 
 COCOAPODS: 1.16.2

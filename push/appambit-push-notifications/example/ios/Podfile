@@ -19,6 +19,8 @@ end
 target 'AppambitPushNotificationsExample' do
   config = use_native_modules!
 
+  pod 'AppAmbitPushNotifications', :path => '../../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

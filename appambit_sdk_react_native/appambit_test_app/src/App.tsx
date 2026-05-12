@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppAmbit from "appambit";
 import * as PushNotifications from "appambit-push-notifications";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
@@ -11,6 +12,7 @@ import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
 import RemoteConfigScreen from "./screens/RemoteConfigScreen";
 import CmsScreen from "./screens/CmsScreen";
+import PushNotificationScreen from "./screens/PushNotificationScreen";
 import SecondScreen from "./screens/SecondScreen";
 
 type RootStackParamList = {
@@ -21,7 +23,7 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
-  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig" | "CMS">("Crashes");
+  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig" | "CMS" | "Push">("Crashes");
 
   return (
     <View style={{ flex: 1 }}>
@@ -29,6 +31,7 @@ function HomeScreen() {
       {activeTab === "Analytics" && <AnalyticsScreen />}
       {activeTab === "RemoteConfig" && <RemoteConfigScreen />}
       {activeTab === "CMS" && <CmsScreen />}
+      {activeTab === "Push" && <PushNotificationScreen />}
 
       <View style={styles.bottomNav}>
         <Pressable
@@ -58,6 +61,13 @@ function HomeScreen() {
         >
           <Text style={styles.navText}>CMS</Text>
         </Pressable>
+
+        <Pressable
+          style={[styles.navButton, activeTab === "Push" && styles.activeTab]}
+          onPress={() => setActiveTab("Push")}
+        >
+          <Text style={styles.navText}>Push</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -68,7 +78,7 @@ export default function App() {
 
   // ── SDK initialisation (run once, outside useEffect — same as before) ───────
   AppAmbit.enableConfig();
-  AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
+  AppAmbit.start("9c3b0e8f-8a6b-460d-9b5e-dc2e94700376");
   PushNotifications.start();
 
   // ── Push notification listeners ───────────────────────────────────────────
@@ -77,7 +87,7 @@ export default function App() {
   useEffect(() => {
     // Foreground: notification received while app is open
     const removeForeground = PushNotifications.setForegroundNotificationListener(
-      (payload: PushNotifications.NotificationPayload) => {
+      async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Foreground notification received");
         console.log("  title:", payload.notification?.title);
         console.log("  body:", payload.notification?.body);
@@ -86,13 +96,15 @@ export default function App() {
     );
 
     // Background: notification received while app is backgrounded
-    // (killed-state is handled by the Headless task in index.js)
     const removeBackground = PushNotifications.setBackgroundNotificationListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
-        console.log("  title:", payload.notification?.title);
-        console.log("  body:", payload.notification?.body);
-        console.log("  data:", payload.data);
+        try {
+          await AsyncStorage.setItem("last_background_push", JSON.stringify(payload));
+          console.log("[AppAmbit] Background payload saved to storage");
+        } catch (e) {
+          console.error("[AppAmbit] Failed to save background payload", e);
+        }
       }
     );
 
