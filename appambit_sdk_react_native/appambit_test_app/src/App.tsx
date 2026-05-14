@@ -81,9 +81,6 @@ export default function App() {
   AppAmbit.start("9c3b0e8f-8a6b-460d-9b5e-dc2e94700376");
   PushNotifications.start();
 
-  // ── Push notification listeners ───────────────────────────────────────────
-  // Registered inside useEffect so they are cleaned up when the component
-  // unmounts (hot reload, dev mode restarts, etc.).
   useEffect(() => {
     // Foreground: notification received while app is open
     const removeForeground = PushNotifications.setForegroundNotificationListener(
@@ -99,18 +96,12 @@ export default function App() {
     const removeBackground = PushNotifications.setBackgroundNotificationListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
-        try {
-          await AsyncStorage.setItem("last_background_push", JSON.stringify(payload));
-          console.log("[AppAmbit] Background payload saved to storage");
-        } catch (e) {
-          console.error("[AppAmbit] Failed to save background payload", e);
-        }
       }
     );
 
     // Opened: user tapped the notification — works in all app states
     const removeOpened = PushNotifications.setOpenedNotificationListener(
-      (payload: PushNotifications.NotificationPayload) => {
+      async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Notification opened by user");
         console.log("  title:", payload.notification?.title);
         console.log("  body:", payload.notification?.body);

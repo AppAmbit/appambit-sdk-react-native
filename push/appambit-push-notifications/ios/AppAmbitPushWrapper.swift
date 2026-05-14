@@ -31,6 +31,8 @@ public class AppAmbitPushWrapper: NSObject {
 
   public static var pendingBackgroundPayloads: [[String: Any]] = []
 
+  public static var pendingOpenedPayloads: [[String: Any]] = []
+
   @objc(didReceiveBackgroundNotification:)
   public static func didReceiveBackgroundNotification(_ userInfo: [AnyHashable: Any]) {
     let payload = formatNotificationPayload(userInfo)
@@ -46,6 +48,12 @@ public class AppAmbitPushWrapper: NSObject {
   @objc public static func getAndClearPendingBackgroundPayloads() -> [[String: Any]] {
     let payloads = pendingBackgroundPayloads
     pendingBackgroundPayloads.removeAll()
+    return payloads
+  }
+
+  @objc public static func getAndClearPendingOpenedPayloads() -> [[String: Any]] {
+    let payloads = pendingOpenedPayloads
+    pendingOpenedPayloads.removeAll()
     return payloads
   }
 

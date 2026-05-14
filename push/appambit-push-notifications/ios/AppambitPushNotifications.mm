@@ -18,12 +18,21 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
     _pendingForegroundEvents = [NSMutableArray new];
     
     // Grab any payloads that arrived before this class was even initialized
-    NSArray<NSDictionary *> *earlyPayloads = [AppAmbitPushWrapper getAndClearPendingBackgroundPayloads];
-    if (earlyPayloads) {
-      [_pendingBackgroundEvents addObjectsFromArray:earlyPayloads];
+    NSArray<NSDictionary *> *earlyBackgroundPayloads = [AppAmbitPushWrapper getAndClearPendingBackgroundPayloads];
+    if (earlyBackgroundPayloads) {
+      [_pendingBackgroundEvents addObjectsFromArray:earlyBackgroundPayloads];
+    }
+
+    // Same for opened payloads (cold-start tap)
+    NSArray<NSDictionary *> *earlyOpenedPayloads = [AppAmbitPushWrapper getAndClearPendingOpenedPayloads];
+    if (earlyOpenedPayloads) {
+      [_pendingOpenedEvents addObjectsFromArray:earlyOpenedPayloads];
     }
     
-    // Register for NSNotificationCenter immediately in init, not startObserving
+    // Register the native notification listener early so cold-start opened events
+    // are captured into _pendingOpenedEvents before startObserving is called.
+    [self setupListeners];
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleBackgroundNotification:)
                                                  name:@"AppAmbit_onBackgroundNotification"
@@ -50,7 +59,7 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 
 - (void)startObserving {
   _hasListeners = YES;
-  [self setupListeners];
+  // setupListeners already called in init; no need to re-register.
 }
 
 - (void)setupListeners {
