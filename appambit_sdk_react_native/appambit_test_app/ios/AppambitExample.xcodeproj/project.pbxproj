@@ -9,19 +9,20 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-AppambitExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-AppambitExample.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		38B4343F729767AC104562F2 /* libPods-AppambitNotificationService.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DABB7A48CBABB6990F533EF /* libPods-AppambitNotificationService.a */; };
+		51C79751E51076E871B41253 /* libPods-NotificationService.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D75D1471C869294DE7A40919 /* libPods-NotificationService.a */; };
 		72511A4E89B98AAB175D8EFA /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A5D520FB2FB7C3DD0084019A /* NotificationService.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A5D520F42FB7C3DC0084019A /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		A5DE6BCF2FB58F6D00E82092 /* PBXContainerItemProxy */ = {
+		A5D520F92FB7C3DD0084019A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = A5DE6BC92FB58F6D00E82092;
-			remoteInfo = AppambitNotificationService;
+			remoteGlobalIDString = A5D520F32FB7C3DC0084019A;
+			remoteInfo = NotificationService;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -32,6 +33,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				A5D520FB2FB7C3DD0084019A /* NotificationService.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -44,43 +46,38 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = AppambitExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = AppambitExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-AppambitExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppambitExample.debug.xcconfig"; path = "Target Support Files/Pods-AppambitExample/Pods-AppambitExample.debug.xcconfig"; sourceTree = "<group>"; };
+		4A1B86290CA2BA07C2467282 /* Pods-NotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.debug.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-AppambitExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppambitExample.release.xcconfig"; path = "Target Support Files/Pods-AppambitExample/Pods-AppambitExample.release.xcconfig"; sourceTree = "<group>"; };
 		5DABB7A48CBABB6990F533EF /* libPods-AppambitNotificationService.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AppambitNotificationService.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-AppambitExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-AppambitExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		70DE70C7452E09FD701CF108 /* Pods-AppambitNotificationService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppambitNotificationService.release.xcconfig"; path = "Target Support Files/Pods-AppambitNotificationService/Pods-AppambitNotificationService.release.xcconfig"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = AppambitExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = AppambitExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8F074D1698D947EA837972CE /* Pods-NotificationService.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NotificationService.release.xcconfig"; path = "Target Support Files/Pods-NotificationService/Pods-NotificationService.release.xcconfig"; sourceTree = "<group>"; };
 		A502607B2F4CD170003005BA /* AppambitExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = AppambitExample.entitlements; path = AppambitExample/AppambitExample.entitlements; sourceTree = "<group>"; };
-		A5DE6BCA2FB58F6D00E82092 /* AppambitNotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AppambitNotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5D520F42FB7C3DC0084019A /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		D75D1471C869294DE7A40919 /* libPods-NotificationService.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NotificationService.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD4EC53B5A23D9D2DAF38065 /* Pods-AppambitNotificationService.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AppambitNotificationService.debug.xcconfig"; path = "Target Support Files/Pods-AppambitNotificationService/Pods-AppambitNotificationService.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		A537784A2FB62A78005E5291 /* Exceptions for "AppambitNotificationService" folder in "AppambitExample" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				NotificationService.swift,
-			);
-			target = 13B07F861A680F5B00A75B9A /* AppambitExample */;
-		};
-		A5DE6BD52FB58F6D00E82092 /* Exceptions for "AppambitNotificationService" folder in "AppambitNotificationService" target */ = {
+		A5D520FC2FB7C3DD0084019A /* Exceptions for "NotificationService" folder in "NotificationService" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = A5DE6BC92FB58F6D00E82092 /* AppambitNotificationService */;
+			target = A5D520F32FB7C3DC0084019A /* NotificationService */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		A5DE6BCB2FB58F6D00E82092 /* AppambitNotificationService */ = {
+		A5D520F52FB7C3DC0084019A /* NotificationService */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				A537784A2FB62A78005E5291 /* Exceptions for "AppambitNotificationService" folder in "AppambitExample" target */,
-				A5DE6BD52FB58F6D00E82092 /* Exceptions for "AppambitNotificationService" folder in "AppambitNotificationService" target */,
+				A5D520FC2FB7C3DD0084019A /* Exceptions for "NotificationService" folder in "NotificationService" target */,
 			);
-			path = AppambitNotificationService;
+			path = NotificationService;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -94,11 +91,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A5DE6BC72FB58F6D00E82092 /* Frameworks */ = {
+		A5D520F12FB7C3DC0084019A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				38B4343F729767AC104562F2 /* libPods-AppambitNotificationService.a in Frameworks */,
+				51C79751E51076E871B41253 /* libPods-NotificationService.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,6 +121,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-AppambitExample.a */,
 				5DABB7A48CBABB6990F533EF /* libPods-AppambitNotificationService.a */,
+				D75D1471C869294DE7A40919 /* libPods-NotificationService.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -140,7 +138,7 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* AppambitExample */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				A5DE6BCB2FB58F6D00E82092 /* AppambitNotificationService */,
+				A5D520F52FB7C3DC0084019A /* NotificationService */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -154,7 +152,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* AppambitExample.app */,
-				A5DE6BCA2FB58F6D00E82092 /* AppambitNotificationService.appex */,
+				A5D520F42FB7C3DC0084019A /* NotificationService.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -166,6 +164,8 @@
 				5709B34CF0A7D63546082F79 /* Pods-AppambitExample.release.xcconfig */,
 				DD4EC53B5A23D9D2DAF38065 /* Pods-AppambitNotificationService.debug.xcconfig */,
 				70DE70C7452E09FD701CF108 /* Pods-AppambitNotificationService.release.xcconfig */,
+				4A1B86290CA2BA07C2467282 /* Pods-NotificationService.debug.xcconfig */,
+				8F074D1698D947EA837972CE /* Pods-NotificationService.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -189,32 +189,32 @@
 			buildRules = (
 			);
 			dependencies = (
-				A5DE6BD02FB58F6D00E82092 /* PBXTargetDependency */,
+				A5D520FA2FB7C3DD0084019A /* PBXTargetDependency */,
 			);
 			name = AppambitExample;
 			productName = AppambitExample;
 			productReference = 13B07F961A680F5B00A75B9A /* AppambitExample.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A5DE6BC92FB58F6D00E82092 /* AppambitNotificationService */ = {
+		A5D520F32FB7C3DC0084019A /* NotificationService */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A5DE6BD62FB58F6D00E82092 /* Build configuration list for PBXNativeTarget "AppambitNotificationService" */;
+			buildConfigurationList = A5D520FD2FB7C3DD0084019A /* Build configuration list for PBXNativeTarget "NotificationService" */;
 			buildPhases = (
-				1A7ADCCB39C7985EF899DFC3 /* [CP] Check Pods Manifest.lock */,
-				A5DE6BC62FB58F6D00E82092 /* Sources */,
-				A5DE6BC72FB58F6D00E82092 /* Frameworks */,
-				A5DE6BC82FB58F6D00E82092 /* Resources */,
+				B655B99730621CA7420DC9E7 /* [CP] Check Pods Manifest.lock */,
+				A5D520F02FB7C3DC0084019A /* Sources */,
+				A5D520F12FB7C3DC0084019A /* Frameworks */,
+				A5D520F22FB7C3DC0084019A /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				A5DE6BCB2FB58F6D00E82092 /* AppambitNotificationService */,
+				A5D520F52FB7C3DC0084019A /* NotificationService */,
 			);
-			name = AppambitNotificationService;
-			productName = AppambitNotificationService;
-			productReference = A5DE6BCA2FB58F6D00E82092 /* AppambitNotificationService.appex */;
+			name = NotificationService;
+			productName = NotificationService;
+			productReference = A5D520F42FB7C3DC0084019A /* NotificationService.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -223,14 +223,14 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 2620;
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
 					};
-					A5DE6BC92FB58F6D00E82092 = {
-						CreatedOnToolsVersion = 26.2;
+					A5D520F32FB7C3DC0084019A = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -248,7 +248,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* AppambitExample */,
-				A5DE6BC92FB58F6D00E82092 /* AppambitNotificationService */,
+				A5D520F32FB7C3DC0084019A /* NotificationService */,
 			);
 		};
 /* End PBXProject section */
@@ -264,7 +264,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A5DE6BC82FB58F6D00E82092 /* Resources */ = {
+		A5D520F22FB7C3DC0084019A /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -298,16 +298,20 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AppambitExample/Pods-AppambitExample-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AppambitExample/Pods-AppambitExample-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-AppambitExample/Pods-AppambitExample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		1A7ADCCB39C7985EF899DFC3 /* [CP] Check Pods Manifest.lock */ = {
+		B655B99730621CA7420DC9E7 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -322,7 +326,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-AppambitNotificationService-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-NotificationService-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -359,9 +363,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AppambitExample/Pods-AppambitExample-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AppambitExample/Pods-AppambitExample-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -379,7 +387,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A5DE6BC62FB58F6D00E82092 /* Sources */ = {
+		A5D520F02FB7C3DC0084019A /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -389,10 +397,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		A5DE6BD02FB58F6D00E82092 /* PBXTargetDependency */ = {
+		A5D520FA2FB7C3DD0084019A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = A5DE6BC92FB58F6D00E82092 /* AppambitNotificationService */;
-			targetProxy = A5DE6BCF2FB58F6D00E82092 /* PBXContainerItemProxy */;
+			target = A5D520F32FB7C3DC0084019A /* NotificationService */;
+			targetProxy = A5D520F92FB7C3DD0084019A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -605,9 +613,9 @@
 			};
 			name = Release;
 		};
-		A5DE6BD32FB58F6D00E82092 /* Debug */ = {
+		A5D520FE2FB7C3DD0084019A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DD4EC53B5A23D9D2DAF38065 /* Pods-AppambitNotificationService.debug.xcconfig */;
+			baseConfigurationReference = 4A1B86290CA2BA07C2467282 /* Pods-NotificationService.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -623,10 +631,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AppambitNotificationService/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AppambitNotificationService;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -636,7 +644,7 @@
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.AppAmbit.TestAppSwift.AppambitNotificationService;
+				PRODUCT_BUNDLE_IDENTIFIER = com.AppAmbit.TestAppSwift.NotificationService;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -650,9 +658,9 @@
 			};
 			name = Debug;
 		};
-		A5DE6BD42FB58F6D00E82092 /* Release */ = {
+		A5D520FF2FB7C3DD0084019A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 70DE70C7452E09FD701CF108 /* Pods-AppambitNotificationService.release.xcconfig */;
+			baseConfigurationReference = 8F074D1698D947EA837972CE /* Pods-NotificationService.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -669,10 +677,10 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AppambitNotificationService/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AppambitNotificationService;
+				INFOPLIST_FILE = NotificationService/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -681,7 +689,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MARKETING_VERSION = 1.0;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.AppAmbit.TestAppSwift.AppambitNotificationService;
+				PRODUCT_BUNDLE_IDENTIFIER = com.AppAmbit.TestAppSwift.NotificationService;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -715,11 +723,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A5DE6BD62FB58F6D00E82092 /* Build configuration list for PBXNativeTarget "AppambitNotificationService" */ = {
+		A5D520FD2FB7C3DD0084019A /* Build configuration list for PBXNativeTarget "NotificationService" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A5DE6BD32FB58F6D00E82092 /* Debug */,
-				A5DE6BD42FB58F6D00E82092 /* Release */,
+				A5D520FE2FB7C3DD0084019A /* Debug */,
+				A5D520FF2FB7C3DD0084019A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

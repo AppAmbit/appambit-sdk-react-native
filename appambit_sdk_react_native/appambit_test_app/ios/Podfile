@@ -57,7 +57,7 @@ target 'AppambitExample' do
 end
 
 # NSE target (separate binary — only needs the push SDK)
-target 'AppambitNotificationService' do
+target 'NotificationService' do
   pod 'AppAmbitSdk', :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
   pod 'AppAmbitPushNotifications', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
 end
