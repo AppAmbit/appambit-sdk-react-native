@@ -59,23 +59,38 @@ public class AppAmbitPushWrapper: NSObject {
 
   @objc(formatNotificationPayload:)
   public static func formatNotificationPayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
-    var notificationData: [String: String] = [:]
-    var customData: [String: String] = [:]
+    var notificationData: [String: Any] = [:]
+    var customData: [String: Any] = [:]
 
     if let aps = userInfo["aps"] as? [String: Any] {
       if let alert = aps["alert"] as? [String: Any] {
-        notificationData["title"] = alert["title"] as? String
-        notificationData["body"] = alert["body"] as? String
-        notificationData["subtitle"] = alert["subtitle"] as? String
+        notificationData["title"] = alert["title"]
+        notificationData["body"] = alert["body"]
+        notificationData["subtitle"] = alert["subtitle"]
       } else if let alertStr = aps["alert"] as? String {
         notificationData["body"] = alertStr
+      }
+      
+      if let sound = aps["sound"] {
+        notificationData["sound"] = sound
+      }
+      if let badge = aps["badge"] {
+        notificationData["badge"] = badge
       }
     }
 
     for (key, value) in userInfo {
-      guard let keyStr = key as? String else { continue }
+      let keyStr = (key as? String) ?? "\(key)"
       if keyStr == "aps" { continue }
-      customData[keyStr] = "\(value)"
+
+      // If the payload has a nested "data" dictionary, we flatten it into customData
+      if keyStr == "data", let nestedData = value as? [String: Any] {
+        for (nestedKey, nestedValue) in nestedData {
+          customData[nestedKey] = nestedValue
+        }
+      } else {
+        customData[keyStr] = value
+      }
     }
 
     var payload: [String: Any] = [
