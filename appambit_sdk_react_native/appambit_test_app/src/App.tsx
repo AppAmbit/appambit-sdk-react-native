@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { View, Pressable, Text, StyleSheet } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AppAmbit from "appambit";
 import * as PushNotifications from "appambit-push-notifications";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
@@ -76,9 +75,8 @@ function HomeScreen() {
 export default function App() {
   const navigationRef = useNavigationContainerRef();
 
-  // ── SDK initialisation (run once, outside useEffect — same as before) ───────
   AppAmbit.enableConfig();
-  AppAmbit.start("9c3b0e8f-8a6b-460d-9b5e-dc2e94700376");
+  AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
   PushNotifications.start();
 
   useEffect(() => {
@@ -96,6 +94,9 @@ export default function App() {
     const removeBackground = PushNotifications.setBackgroundNotificationListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
+        console.log("  title:", payload.notification?.title);
+        console.log("  body:", payload.notification?.body);
+        console.log("  data:", payload.data);
       }
     );
 

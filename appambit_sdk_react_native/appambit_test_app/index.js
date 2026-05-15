@@ -10,6 +10,11 @@ if (Platform.OS === 'android') {
     PushNotifications.BACKGROUND_NOTIFICATION_TASK,
     () => async (payload) => {
       console.log('[AppAmbit] Headless task received background notification');
+      console.log("PAYLOAD.data", payload.data)
+      console.log("data.notification", payload.data.notification)|
+      console.log("data.notification.title", payload.data.notification?.title)
+      console.log("data.notification.body", payload.data.notification?.body)
+      
       try {
         await AsyncStorage.setItem('last_background_push', JSON.stringify(payload));
         console.log('[AppAmbit] Headless payload saved to storage');

@@ -43,5 +43,21 @@ target 'AppambitExample' do
         end
       end
     end
+    # Clear explicit CLANG_CXX_LANGUAGE_STANDARD from user targets that Xcode
+    # sets by default, so they inherit from the CocoaPods-generated xcconfig.
+    installer.aggregate_targets.each do |aggregate_target|
+      aggregate_target.user_project.targets.each do |user_target|
+        user_target.build_configurations.each do |config|
+          config.build_settings.delete('CLANG_CXX_LANGUAGE_STANDARD')
+        end
+      end
+      aggregate_target.user_project.save
+    end
   end
+end
+
+# NSE target (separate binary — only needs the push SDK)
+target 'AppambitNotificationService' do
+  pod 'AppAmbitSdk', :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
+  pod 'AppAmbitPushNotifications', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
 end
