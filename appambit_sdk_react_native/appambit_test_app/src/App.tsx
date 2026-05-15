@@ -81,7 +81,7 @@ export default function App() {
 
   useEffect(() => {
     // Foreground: notification received while app is open
-    const removeForeground = PushNotifications.setForegroundNotificationListener(
+    const removeForeground = PushNotifications.setForegroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Foreground notification received");
         console.log("  title:", payload.notification?.title);
@@ -91,7 +91,7 @@ export default function App() {
     );
 
     // Background: notification received while app is backgrounded
-    const removeBackground = PushNotifications.setBackgroundNotificationListener(
+    const removeBackground = PushNotifications.setAndroidBackgroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
         console.log("  title:", payload.notification?.title);
@@ -101,7 +101,7 @@ export default function App() {
     );
 
     // Opened: user tapped the notification — works in all app states
-    const removeOpened = PushNotifications.setOpenedNotificationListener(
+    const removeOpened = PushNotifications.setOpenedListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Notification opened by user");
         console.log("  title:", payload.notification?.title);

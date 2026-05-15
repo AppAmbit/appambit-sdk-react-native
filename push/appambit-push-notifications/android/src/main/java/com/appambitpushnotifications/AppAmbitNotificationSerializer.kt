@@ -19,21 +19,38 @@ internal object AppAmbitNotificationSerializer {
      *
      * Shape delivered to JavaScript:
      * {
-     *   id:           string | null,
      *   title:        string | null,
      *   body:         string | null,
      *   color:        string | null,
      *   smallIcon:    string | null,
+     *   imageUrl:     string | null,
+     *   ticker:       string | null,
+     *   sticky:       boolean | null,
+     *   visibility:   string | null,
+     *   channelId:    string | null,
+     *   priority:     string | null,
+     *   tag:          string | null,
+     *   sound:        string | null,
+     *   clickAction:  string | null,
      *   data:         { [key: string]: string }
      * }
      */
     fun toWritableMap(notification: AppAmbitNotification): WritableMap {
         val map = Arguments.createMap()
 
-        map.putString("title",     notification.title)
-        map.putString("body",      notification.body)
-        map.putString("color",     notification.color)
-        map.putString("smallIcon", notification.smallIconName)
+        map.putString("title",       notification.title)
+        map.putString("body",        notification.body)
+        map.putString("color",       notification.color)
+        map.putString("smallIcon",   notification.smallIconName)
+        map.putString("imageUrl",    notification.imageUrl)
+        map.putString("ticker",      notification.ticker)
+        map.putBoolean("sticky",     notification.sticky ?: false)
+        map.putString("visibility",  notification.visibility)
+        map.putString("channelId",   notification.channelId)
+        map.putString("priority",    notification.priority)
+        map.putString("tag",         notification.tag)
+        map.putString("sound",       notification.sound)
+        map.putString("clickAction", notification.clickAction)
 
         val dataMap = Arguments.createMap()
         notification.data.forEach { (key, value) ->

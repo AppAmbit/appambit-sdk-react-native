@@ -151,7 +151,7 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
      *  - Cold start: event queued in AppAmbitPushEventEmitter until bridge attaches
      */
     private fun registerOpenedListener() {
-        PushKernel.setOpenedNotificationListener { notification ->
+        PushNotifications.setOpenedListener { notification ->
             Log.d(TAG, "Notification opened: ${notification.title}")
             val payload = AppAmbitNotificationSerializer.toEventPayload(notification)
             AppAmbitPushEventEmitter.emit(AppAmbitPushEventEmitter.EVENT_OPENED, payload)

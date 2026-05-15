@@ -11,6 +11,15 @@ export interface NotificationPayload {
     body: string | null;
     color: string | null;
     smallIcon: string | null;
+    imageUrl: string | null;
+    ticker: string | null;
+    sticky: boolean | null;
+    visibility: string | null;
+    channelId: string | null;
+    priority: string | null;
+    tag: string | null;
+    sound: string | null;
+    clickAction: string | null;
     data: Record<string, string>;
   };
   /** Shorthand access to the raw data payload (same reference as notification.data) */
@@ -87,12 +96,13 @@ export const isNotificationsEnabled = async (): Promise<boolean> => {
 
 // ── Notification Listeners ────────────────────────────────────────────────────
 
-export const setForegroundNotificationListener = (
+/**
+ * Register a listener to handle notifications received while the app is in the foreground.
+ */
+export const setForegroundListener = (
   callback: NotificationListener
 ): (() => void) => {
   foregroundSub?.remove();
-  // Cast to 'any': NativeEventEmitter types callbacks as '(...args: readonly Object[]) => unknown'
-  // but our NotificationPayload is more specific. The cast is safe — runtime shape is correct.
   foregroundSub = eventEmitter.addListener(EVENT_FOREGROUND, callback as any);
   return () => {
     foregroundSub?.remove();
@@ -100,7 +110,11 @@ export const setForegroundNotificationListener = (
   };
 };
 
-export const setBackgroundNotificationListener = (
+/**
+ * Register a listener to handle notifications received while the app is in the background or killed state.
+ * (Android only — iOS uses different background handling patterns).
+ */
+export const setAndroidBackgroundListener = (
   callback: BackgroundNotificationListener
 ): (() => void) => {
   backgroundSub?.remove();
@@ -116,7 +130,10 @@ export const setBackgroundNotificationListener = (
   };
 };
 
-export const setOpenedNotificationListener = (
+/**
+ * Register a listener to handle the scenario where a notification is clicked/opened.
+ */
+export const setOpenedListener = (
   callback: NotificationListener
 ): (() => void) => {
   openedSub?.remove();
@@ -127,11 +144,15 @@ export const setOpenedNotificationListener = (
   };
 };
 
+/**
+ * LEGACY: Kept for backward compatibility.
+ * Use setForegroundListener directly.
+ */
 export const setNotificationCustomizer = (
   callback: (payload: NotificationPayload) => void
 ): void => {
   if (Platform.OS === 'android') {
     AppambitPushNotifications.setNotificationCustomizer();
   }
-  setForegroundNotificationListener(callback);
+  setForegroundListener(callback);
 };
