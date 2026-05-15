@@ -1,6 +1,7 @@
 package com.appambitpushnotifications
 
 import android.content.Context
+import com.facebook.react.bridge.ReactApplicationContext
 
 /**
  * Holds a reference to the Application context so that the

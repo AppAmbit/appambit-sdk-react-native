@@ -1,13 +1,11 @@
 package com.appambitpushnotifications
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.appambit.sdk.models.AppAmbitNotification
 import com.facebook.react.HeadlessJsTaskService
+import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 
@@ -15,33 +13,24 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig
  * AppAmbitHeadlessService
  *
  * Launches a Headless JS task when a push notification arrives in
- * background / killed state.  Modelled after Invertase's
- * ReactNativeFirebaseMessagingHeadlessTask pattern.
+ * background / killed state. Mirrors the pattern used by react-native-firebase's
+ * ReactNativeFirebaseMessagingHeadlessTask.
  *
  * How it works:
- * 1. [AppAmbitRNServiceExtension.onNotificationBackground] calls [enqueueNotification].
- * 2. [enqueueNotification] packs the notification into an Intent and starts this Service.
- * 3. Android OS starts this Service even if the app process is dead.
- * 4. [getTaskConfig] is called by the React Native Headless machinery; we return a
- *    [HeadlessJsTaskConfig] pointing to the JS task name registered in the app.
- * 5. React Native runs the registered JS task with the notification payload.
- * 6. JS can then execute any async logic (local DB update, badge count, etc.).
+ * 1. [AppAmbitRNServiceExtension.onNotificationBackground] calls [enqueueNotification],
+ *    passing the FirebaseMessagingService instance as context (always valid).
+ * 2. [enqueueNotification] acquires a wakelock, packs the payload, and starts this Service.
+ * 3. Android OS creates/reuses the app process and starts this Service.
+ * 4. [onStartCommand] validates ReactApplication, then delegates to parent.
+ * 5. [getTaskConfig] is called by the RN Headless machinery → HeadlessJsTaskConfig returned.
+ * 6. React Native runs the registered JS task with the notification payload.
  *
- * JS-side registration (the consuming app must do this in index.js / App.tsx):
- *
- *   import { AppRegistry } from 'react-native';
- *   import { BACKGROUND_NOTIFICATION_TASK } from 'appambit-push-notifications';
+ * JS-side registration (the consuming app must do this in index.js):
  *
  *   AppRegistry.registerHeadlessTask(
  *     BACKGROUND_NOTIFICATION_TASK,
- *     () => async (notification) => {
- *       console.log('Background notification received:', notification);
- *     }
+ *     () => async (notification) => { ... }
  *   );
- *
- * Threading:
- *   [onHandleWork] is executed on a background thread by HeadlessJsTaskService.
- *   All React Native HeadlessJsTaskService interactions are handled by the parent class.
  */
 class AppAmbitHeadlessService : HeadlessJsTaskService() {
 
@@ -63,34 +52,33 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         private const val TASK_TIMEOUT_MS = 30_000L
 
         /**
-         * Starts this service and enqueues the notification payload.
-         * Safe to call from any thread.
+         * Starts this service with the notification payload.
+         *
+         * CRITICAL: [context] is the FirebaseMessagingService instance passed from
+         * [AppAmbitRNServiceExtension]. It is ALWAYS valid — even in killed state,
+         * even before the React Native bridge exists.
+         *
+         * We do NOT use [AppAmbitContextHolder] here. That holder is populated when the
+         * TurboModule initialises (i.e. when the RN bridge is ready), which happens AFTER
+         * the FCM callback fires in killed state — so it would always be null.
+         *
+         * Pattern mirrors react-native-firebase:
+         *   1. acquireWakeLockNow — prevents the process from dying before the JS runtime starts.
+         *   2. startService (NOT startForegroundService) — HeadlessJsTaskService manages its own
+         *      lifecycle; a visible foreground notification is not required here.
          */
-        fun enqueueNotification(notification: AppAmbitNotification) {
-            // We hold a static application context set at module initialisation time.
-            val context = AppAmbitContextHolder.applicationContext ?: run {
-                Log.e(TAG, "Application context not available — cannot start HeadlessService")
-                return
-            }
-
-            if (!isAppInBackground(context)) {
-                // App is in foreground: the event emitter handles it; no headless needed.
-                Log.d(TAG, "App is in foreground — skipping headless task")
-                return
-            }
-
+        fun enqueueNotification(context: Context, notification: AppAmbitNotification) {
             Log.d(TAG, "Enqueueing headless task for: ${notification.title}")
+
+            // Acquire wakelock BEFORE startService so Android cannot kill the process
+            // in the narrow window between the call and HeadlessJsTaskService taking control.
+            HeadlessJsTaskService.acquireWakeLockNow(context)
+
             val intent = buildIntent(context, notification)
             try {
-                ContextCompat.startForegroundService(context, intent)
+                context.startService(intent)
             } catch (e: Exception) {
-                // On some vendors startForegroundService can throw when the process is killed.
-                // Fall back to regular startService.
-                try {
-                    context.startService(intent)
-                } catch (ex: Exception) {
-                    Log.e(TAG, "Could not start HeadlessService", ex)
-                }
+                Log.e(TAG, "Could not start HeadlessService", e)
             }
         }
 
@@ -110,15 +98,26 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
             }
             return intent
         }
-
-        private fun isAppInBackground(context: Context): Boolean {
-            val info = ActivityManager.RunningAppProcessInfo()
-            ActivityManager.getMyMemoryState(info)
-            return info.importance != ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-        }
     }
 
     // ── HeadlessJsTaskService ─────────────────────────────────────────────────
+
+    /**
+     * Validates the ReactApplication contract before delegating to the parent.
+     * HeadlessJsTaskService crashes silently if the Application class does not
+     * implement ReactApplication, so we provide an explicit, actionable error.
+     */
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (application !is ReactApplication) {
+            Log.e(TAG,
+                "Application does not implement ReactApplication. " +
+                "Headless JS cannot start. Ensure your Application class extends ReactApplication."
+            )
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
 
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
         val extras = intent?.extras ?: return null
@@ -144,7 +143,7 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
             HEADLESS_TASK_NAME,
             data,
             TASK_TIMEOUT_MS,
-            /* allowedInForeground = */ true  // safe; we guard with isAppInBackground above
+            /* allowedInForeground = */ true
         )
     }
 }

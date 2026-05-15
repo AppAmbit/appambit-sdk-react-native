@@ -51,10 +51,14 @@ internal object AppAmbitPushEventEmitter {
 
     /**
      * Called when the module is invalidated (e.g. hot reload or app restart).
+     *
+     * NOTE: we intentionally do NOT clear [eventQueue] here. Events that arrived
+     * during a React Native reload should be delivered to the next bridge instance
+     * once [attach] is called again.
      */
     fun detach() {
         reactContext = null
-        eventQueue.clear()
+        // eventQueue is preserved so events survive a bridge restart / hot reload.
     }
 
     // ── Emission ─────────────────────────────────────────────────────────────

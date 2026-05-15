@@ -6,8 +6,12 @@
 
         This manifest is MERGED into the consuming application's manifest.
         It registers:
-          1. AppAmbitHeadlessService — starts Headless JS for background/killed notifications
-          2. AppAmbitRNServiceExtension — meta-data key pointing to the service extension class
+          1. AppAmbitInitProvider    — ContentProvider that seeds AppAmbitContextHolder
+                                       before Application.onCreate() runs, enabling the SDK
+                                       to function even when the process is started solely
+                                       to handle an FCM message (killed state).
+          2. AppAmbitHeadlessService — Starts Headless JS for background/killed notifications.
+          3. NotificationServiceExtension meta-data — tells MessagingService which extension class to load.
 
         The consuming app must also declare:
           - INTERNET permission
@@ -17,19 +21,37 @@
 
     <!-- ── Permissions (merged into host app) ───────────────────────────── -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application>
+
+        <!--
+            AppAmbitInitProvider
+            Initialises AppAmbitContextHolder at the very first moment of process startup,
+            before Application.onCreate(). This is required so that the Headless JS service
+            can obtain a valid Context even in killed state (when the React Native bridge
+            has not started yet).
+
+            authorities uses ${applicationId} to avoid clashes between apps.
+            initOrder="100" makes it run before other providers with lower values.
+        -->
+        <provider
+            android:name="com.appambitpushnotifications.AppAmbitInitProvider"
+            android:authorities="${applicationId}.appambit-init-provider"
+            android:exported="false"
+            android:initOrder="100" />
 
         <!--
             AppAmbitHeadlessService
             Runs the registered Headless JS task ("AppAmbitBackgroundNotification")
             when a push notification arrives in background / killed state.
 
-            exported="false" — only started internally, not from other apps.
-            foregroundServiceType — required on Android 12+ for services started
-            from the background.
+            exported="false"  — only started internally, not from other apps.
+
+            Note: we do NOT declare android:foregroundServiceType because
+            HeadlessJsTaskService does not require foreground-service privileges.
+            Starting it with startService() is sufficient and avoids the strict
+            ForegroundServiceStartNotAllowedException on Android 12+ (API 31+).
         -->
         <service
             android:name="com.appambitpushnotifications.AppAmbitHeadlessService"
@@ -40,7 +62,7 @@
             Tells MessagingService which class to reflectively load as the
             IAppAmbitNotificationServiceExtension implementation.
 
-            ⚠️  If the consuming app provides its OWN extension, they must
+            If the consuming app provides its OWN extension, they must
             override this meta-data entry in their app's AndroidManifest.xml
             with tools:replace="android:value".
         -->

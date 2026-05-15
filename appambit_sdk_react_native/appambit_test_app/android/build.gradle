@@ -20,3 +20,14 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            // All of React Native (JS, Obj-C, Swift, Java libs) is installed from npm
+            url("$rootDir/../../node_modules/@react-native-async-storage/async-storage/android/local_repo")
+        }
+    }
+}
