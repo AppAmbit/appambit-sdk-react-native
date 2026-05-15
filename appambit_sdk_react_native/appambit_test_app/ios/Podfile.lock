@@ -32,6 +32,7 @@ PODS:
     - AppAmbitPushNotifications/Core (= 0.5.0)
   - AppAmbitPushNotifications/Core (0.5.0):
     - AppAmbitSdk
+  - AppAmbitPushNotifications/Extension (0.5.0)
   - AppAmbitSdk (0.5.0)
   - AppAmbitSdkPushNotifications (0.3.1):
     - AppAmbitSdkPushNotifications/Core (= 0.3.1)
@@ -2528,6 +2529,7 @@ PODS:
 DEPENDENCIES:
   - Appambit (from `../..`)
   - AppAmbitPushNotifications (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
+  - AppAmbitPushNotifications/Extension (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
   - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
@@ -2859,6 +2861,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: f9d0bd33e6460643e1ca44578f267c1dd5528871
+PODFILE CHECKSUM: 0179c664920bb105af61bc55d25056ae3b56afca
 
 COCOAPODS: 1.16.2
