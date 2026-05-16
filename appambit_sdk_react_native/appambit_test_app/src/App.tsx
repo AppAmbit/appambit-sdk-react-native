@@ -73,7 +73,7 @@ function HomeScreen() {
 }
 
 export default function App() {
-  const navigationRef = useNavigationContainerRef();
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
   AppAmbit.enableConfig();
   AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
@@ -84,19 +84,19 @@ export default function App() {
     const removeForeground = PushNotifications.setForegroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Foreground notification received");
-        console.log("  title:", payload.notification?.title);
-        console.log("  body:", payload.notification?.body);
-        console.log("  data:", payload.data);
+        console.log("  title:", payload.notification.title);
+        console.log("  body:", payload.notification.body);
+        console.log("  data:", payload.notification.data);
       }
     );
 
     // Background: notification received while app is backgrounded
-    const removeBackground = PushNotifications.setAndroidBackgroundListener(
+    const removeBackground = PushNotifications.Android.setBackgroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
-        console.log("  title:", payload.notification?.title);
-        console.log("  body:", payload.notification?.body);
-        console.log("  data:", payload.data);
+        console.log("  title:", payload.notification.title);
+        console.log("  body:", payload.notification.body);
+        console.log("  data:", payload.notification.data);
       }
     );
 
@@ -104,9 +104,15 @@ export default function App() {
     const removeOpened = PushNotifications.setOpenedListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Notification opened by user");
-        console.log("  title:", payload.notification?.title);
-        console.log("  body:", payload.notification?.body);
-        console.log("  data:", payload.data);
+        console.log("  title:", payload.notification.title);
+        console.log("  body:", payload.notification.body);
+        console.log("  data:", payload.notification.data);
+        
+        setTimeout(() => {
+          if (navigationRef.isReady()) {
+            navigationRef.navigate("SecondScreen");
+          }
+        }, 300);
       }
     );
 
