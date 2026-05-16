@@ -68,22 +68,6 @@ export const setForegroundListener = (
   };
 };
 
-export const setAndroidBackgroundListener = (
-  callback: BackgroundNotificationListener
-): (() => void) => {
-  backgroundSub?.remove();
-  backgroundSub = eventEmitter.addListener(
-    EVENT_BACKGROUND,
-    ((payload: NotificationPayload) => {
-      void callback(payload);
-    }) as any
-  );
-  return () => {
-    backgroundSub?.remove();
-    backgroundSub = null;
-  };
-};
-
 export const setOpenedListener = (
   callback: NotificationListener
 ): (() => void) => {
@@ -93,4 +77,22 @@ export const setOpenedListener = (
     openedSub?.remove();
     openedSub = null;
   };
+};
+
+export const Android = {
+  setBackgroundListener: (
+    callback: BackgroundNotificationListener
+  ): (() => void) => {
+    backgroundSub?.remove();
+    backgroundSub = eventEmitter.addListener(
+      EVENT_BACKGROUND,
+      ((payload: NotificationPayload) => {
+        void callback(payload);
+      }) as any
+    );
+    return () => {
+      backgroundSub?.remove();
+      backgroundSub = null;
+    };
+  }
 };

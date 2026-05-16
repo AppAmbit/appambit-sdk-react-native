@@ -118,15 +118,6 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
         promise.resolve(enabled)
     }
 
-    /**
-     * setNotificationCustomizer — legacy method kept for backward compat.
-     * The new API uses setForegroundNotificationListener instead.
-     */
-    override fun setNotificationCustomizer() {
-        // Intentionally left as a no-op: the new listener-based API supersedes this.
-        // Foreground notifications are routed via AppAmbitRNServiceExtension → EVENT_FOREGROUND.
-        Log.d(TAG, "setNotificationCustomizer called (no-op — use setForegroundNotificationListener)")
-    }
 
     // ── Required by NativeEventEmitter ───────────────────────────────────────
 

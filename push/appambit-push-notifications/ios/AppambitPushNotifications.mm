@@ -125,10 +125,6 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
   resolve(@([AppAmbitPushWrapper isNotificationsEnabled]));
 }
 
-- (void)setNotificationCustomizer {
-  // Legacy, no-op on iOS. Handled via setupListeners when startObserving is called.
-}
-
 - (void)addListener:(NSString *)eventName {
   [super addListener:eventName];
   
