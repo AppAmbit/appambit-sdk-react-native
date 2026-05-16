@@ -8,8 +8,6 @@ export interface Spec extends TurboModule {
   setNotificationsEnabled(enabled: boolean): void;
   isNotificationsEnabled(): Promise<boolean>;
 
-  setNotificationCustomizer(): void;
-
   addListener(eventName: string): void;
   removeListeners(count: number): void;
 }

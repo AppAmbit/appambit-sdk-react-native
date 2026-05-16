@@ -1,4 +1,4 @@
-import { NativeEventEmitter, Platform } from 'react-native';
+import { NativeEventEmitter } from 'react-native';
 import AppambitPushNotifications from './NativeAppambitPushNotifications';
 
 export interface NotificationPayload {
@@ -93,17 +93,4 @@ export const setOpenedListener = (
     openedSub?.remove();
     openedSub = null;
   };
-};
-
-/**
- * LEGACY: Kept for backward compatibility.
- * Use setForegroundListener directly.
- */
-export const setNotificationCustomizer = (
-  callback: (payload: NotificationPayload) => void
-): void => {
-  if (Platform.OS === 'android') {
-    AppambitPushNotifications.setNotificationCustomizer();
-  }
-  setForegroundListener(callback);
 };
