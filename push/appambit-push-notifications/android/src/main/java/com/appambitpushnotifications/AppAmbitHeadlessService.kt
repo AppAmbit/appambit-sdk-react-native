@@ -41,12 +41,13 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         const val HEADLESS_TASK_NAME = "AppAmbitBackgroundNotification"
 
         // Intent extras
-        private const val EXTRA_TITLE      = "aa_title"
-        private const val EXTRA_BODY       = "aa_body"
-        private const val EXTRA_COLOR      = "aa_color"
-        private const val EXTRA_SMALL_ICON = "aa_small_icon"
-        private const val EXTRA_DATA_KEYS  = "aa_data_keys"
-        private const val EXTRA_DATA_VALS  = "aa_data_vals"
+        private const val EXTRA_TITLE            = "aa_title"
+        private const val EXTRA_BODY             = "aa_body"
+        private const val EXTRA_IMAGE_URL        = "aa_image_url"
+        private const val EXTRA_ANDROID_COLOR    = "aa_android_color"
+        private const val EXTRA_ANDROID_ICON     = "aa_android_small_icon"
+        private const val EXTRA_DATA_KEYS        = "aa_data_keys"
+        private const val EXTRA_DATA_VALS        = "aa_data_vals"
 
         // Maximum time (ms) to allow the JS task to run.
         private const val TASK_TIMEOUT_MS = 30_000L
@@ -84,10 +85,11 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
 
         private fun buildIntent(context: Context, notification: AppAmbitNotification): Intent {
             val intent = Intent(context, AppAmbitHeadlessService::class.java)
-            intent.putExtra(EXTRA_TITLE,      notification.title)
-            intent.putExtra(EXTRA_BODY,       notification.body)
-            intent.putExtra(EXTRA_COLOR,      notification.color)
-            intent.putExtra(EXTRA_SMALL_ICON, notification.smallIconName)
+            intent.putExtra(EXTRA_TITLE,         notification.title)
+            intent.putExtra(EXTRA_BODY,          notification.body)
+            intent.putExtra(EXTRA_IMAGE_URL,     notification.imageUrl)
+            intent.putExtra(EXTRA_ANDROID_COLOR, notification.color)
+            intent.putExtra(EXTRA_ANDROID_ICON,  notification.smallIconName)
 
             val data = notification.data
             if (data.isNotEmpty()) {
@@ -122,12 +124,13 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
         val extras = intent?.extras ?: return null
 
-        val data = Arguments.createMap()
-        data.putString("title",     extras.getString(EXTRA_TITLE))
-        data.putString("body",      extras.getString(EXTRA_BODY))
-        data.putString("color",     extras.getString(EXTRA_COLOR))
-        data.putString("smallIcon", extras.getString(EXTRA_SMALL_ICON))
+        // ── Build the payload matching PushNotificationData ──────────────────
+        val payload = Arguments.createMap()
+        payload.putString("title",    extras.getString(EXTRA_TITLE))
+        payload.putString("body",     extras.getString(EXTRA_BODY))
+        payload.putString("imageUrl", extras.getString(EXTRA_IMAGE_URL))
 
+        // Custom data map
         val keys   = extras.getStringArray(EXTRA_DATA_KEYS)
         val values = extras.getStringArray(EXTRA_DATA_VALS)
         val dataMap = Arguments.createMap()
@@ -136,12 +139,21 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
                 if (i < values.size) dataMap.putString(key, values[i])
             }
         }
-        data.putMap("data", dataMap)
+        payload.putMap("data", dataMap)
+
+        // Android sub-object
+        val androidMap = Arguments.createMap()
+        androidMap.putString("color",        extras.getString(EXTRA_ANDROID_COLOR))
+        androidMap.putString("smallIconName", extras.getString(EXTRA_ANDROID_ICON))
+        payload.putMap("android", androidMap)
+
+        // iOS is always null on Android
+        payload.putNull("ios")
 
         Log.d(TAG, "HeadlessJsTask config built for: ${extras.getString(EXTRA_TITLE)}")
         return HeadlessJsTaskConfig(
             HEADLESS_TASK_NAME,
-            data,
+            payload,
             TASK_TIMEOUT_MS,
             /* allowedInForeground = */ true
         )

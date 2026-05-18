@@ -76,7 +76,7 @@ export default function App() {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
   AppAmbit.enableConfig();
-  AppAmbit.start("9c3b0e8f-8a6b-460d-9b5e-dc2e94700376");
+  AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
   PushNotifications.start();
 
   useEffect(() => {
@@ -84,19 +84,23 @@ export default function App() {
     const removeForeground = PushNotifications.setForegroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Foreground notification received");
-        console.log("  title:", payload.notification.title);
-        console.log("  body:", payload.notification.body);
-        console.log("  data:", payload.notification.data);
+        console.log("  title:", payload.title);
+        console.log("  body:", payload.body);
+        console.log("  imageUrl:", payload.imageUrl);
+        console.log("  data:", payload.data);
+        console.log("  android:", payload.android);
+        console.log("  ios:", payload.ios);
       }
     );
 
-    // Background: notification received while app is backgrounded
+    // Background: notification received while app is backgrounded (Android only)
     const removeBackground = PushNotifications.Android.setBackgroundListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Background notification received");
-        console.log("  title:", payload.notification.title);
-        console.log("  body:", payload.notification.body);
-        console.log("  data:", payload.notification.data);
+        console.log("  title:", payload.title);
+        console.log("  body:", payload.body);
+        console.log("  data:", payload.data);
+        console.log("  android:", payload.android);
       }
     );
 
@@ -104,9 +108,9 @@ export default function App() {
     const removeOpened = PushNotifications.setOpenedListener(
       async (payload: PushNotifications.NotificationPayload) => {
         console.log("[AppAmbit] Notification opened by user");
-        console.log("  title:", payload.notification.title);
-        console.log("  body:", payload.notification.body);
-        console.log("  data:", payload.notification.data);
+        console.log("  title:", payload.title);
+        console.log("  body:", payload.body);
+        console.log("  data:", payload.data);
         
         setTimeout(() => {
           if (navigationRef.isReady()) {

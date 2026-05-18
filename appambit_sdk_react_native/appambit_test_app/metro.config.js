@@ -15,8 +15,8 @@ module.exports = withMetroConfig(getDefaultConfig(__dirname), {
   dirname: __dirname,
   resolver: {
     extraNodeModules: {
-      'react-native': path.resolve(__dirname, 'node_modules/react-native'),
-      'react': path.resolve(__dirname, 'node_modules/react'),
+      'react-native': path.resolve(root, 'node_modules/react-native'),
+      'react': path.resolve(root, 'node_modules/react'),
     },
   },
 });

@@ -55,22 +55,49 @@ const PushNotificationScreen = () => {
             
             <View style={styles.section}>
               <Text style={styles.label}>Title</Text>
-              <Text style={styles.value}>{lastNotification.notification?.title || 'N/A'}</Text>
+              <Text style={styles.value}>{lastNotification.title ?? 'N/A'}</Text>
             </View>
 
             <View style={styles.section}>
               <Text style={styles.label}>Body</Text>
-              <Text style={styles.value}>{lastNotification.notification?.body || 'N/A'}</Text>
+              <Text style={styles.value}>{lastNotification.body ?? 'N/A'}</Text>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.label}>Raw Data</Text>
+              <Text style={styles.label}>Image URL</Text>
+              <Text style={styles.value}>{lastNotification.imageUrl ?? 'N/A'}</Text>
+            </View>
+
+            <View style={styles.section}>
+              <Text style={styles.label}>Custom Data</Text>
               <View style={styles.jsonContainer}>
                 <Text style={styles.jsonText}>
-                  {JSON.stringify(lastNotification.data || {}, null, 2)}
+                  {JSON.stringify(lastNotification.data ?? {}, null, 2)}
                 </Text>
               </View>
             </View>
+
+            {lastNotification.android && (
+              <View style={styles.section}>
+                <Text style={styles.label}>Android</Text>
+                <View style={styles.jsonContainer}>
+                  <Text style={styles.jsonText}>
+                    {JSON.stringify(lastNotification.android, null, 2)}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {lastNotification.ios && (
+              <View style={styles.section}>
+                <Text style={styles.label}>iOS</Text>
+                <View style={styles.jsonContainer}>
+                  <Text style={styles.jsonText}>
+                    {JSON.stringify(lastNotification.ios, null, 2)}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
         ) : (
           <View style={styles.emptyState}>

@@ -59,32 +59,32 @@ public class AppAmbitPushWrapper: NSObject {
 
   @objc(formatNotificationPayload:)
   public static func formatNotificationPayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
-    var notificationData: [String: Any] = [:]
+    var title: String? = nil
+    var body: String? = nil
+    var subtitle: String? = nil
+    var imageUrl: String? = nil
     var customData: [String: Any] = [:]
 
+    // ── Parse APNs envelope ────────────────────────────────────────────────
     if let aps = userInfo["aps"] as? [String: Any] {
       if let alert = aps["alert"] as? [String: Any] {
-        notificationData["title"] = alert["title"]
-        notificationData["body"] = alert["body"]
-        notificationData["subtitle"] = alert["subtitle"]
+        title    = alert["title"] as? String
+        body     = alert["body"] as? String
+        subtitle = alert["subtitle"] as? String
       } else if let alertStr = aps["alert"] as? String {
-        notificationData["body"] = alertStr
-      }
-      
-      if let sound = aps["sound"] {
-        notificationData["sound"] = sound
-      }
-      if let badge = aps["badge"] {
-        notificationData["badge"] = badge
+        body = alertStr
       }
     }
 
+    // ── Parse custom keys (skip "aps") ─────────────────────────────────────
     for (key, value) in userInfo {
       let keyStr = (key as? String) ?? "\(key)"
       if keyStr == "aps" { continue }
 
-      // If the payload has a nested "data" dictionary, we flatten it into customData
-      if keyStr == "data", let nestedData = value as? [String: Any] {
+      if keyStr == "image_url" || keyStr == "imageUrl" {
+        imageUrl = value as? String
+      } else if keyStr == "data", let nestedData = value as? [String: Any] {
+        // Flatten a nested "data" dictionary into customData
         for (nestedKey, nestedValue) in nestedData {
           customData[nestedKey] = nestedValue
         }
@@ -93,13 +93,23 @@ public class AppAmbitPushWrapper: NSObject {
       }
     }
 
+    // ── Build payload matching PushNotificationData ────────────────────────
+    // {
+    //   title:    string | null,
+    //   body:     string | null,
+    //   imageUrl: string | null,
+    //   data:     { [key: string]: string },
+    //   android:  null,
+    //   ios: { subtitle: string | null }
+    // }
     var payload: [String: Any] = [
-      "notification": notificationData
+      "title":    title as Any,
+      "body":     body as Any,
+      "imageUrl": imageUrl as Any,
+      "data":     customData,
+      "android":  NSNull(),
+      "ios":      ["subtitle": subtitle as Any],
     ]
-
-    if !customData.isEmpty {
-      payload["data"] = customData
-    }
 
     return payload
   }

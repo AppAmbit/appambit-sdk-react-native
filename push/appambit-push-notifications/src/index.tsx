@@ -1,24 +1,22 @@
 import { NativeEventEmitter } from 'react-native';
 import AppambitPushNotifications from './NativeAppambitPushNotifications';
 
+export interface AndroidNotificationData {
+  color: string | null;
+  smallIconName: string | null;
+}
+
+export interface IosNotificationData {
+  subtitle: string | null;
+}
+
 export interface NotificationPayload {
-  notification: {
-    title: string | null;
-    body: string | null;
-    color: string | null;
-    smallIcon: string | null;
-    imageUrl: string | null;
-    ticker: string | null;
-    sticky: boolean | null;
-    visibility: string | null;
-    channelId: string | null;
-    priority: string | null;
-    tag: string | null;
-    sound: string | null;
-    clickAction: string | null;
-    data: Record<string, string>;
-  };
+  title: string | null;
+  body: string | null;
+  imageUrl: string | null;
   data: Record<string, string>;
+  android: AndroidNotificationData | null;
+  ios: IosNotificationData | null;
 }
 
 export type NotificationListener = (notification: NotificationPayload) => void;
