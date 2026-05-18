@@ -76,7 +76,7 @@ export default function App() {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
 
   AppAmbit.enableConfig();
-  AppAmbit.start("e39f05cf-1dc3-4f1b-b12a-7118867a8a5e");
+  AppAmbit.start("<YOUR-APPKEY>");
   PushNotifications.start();
 
   useEffect(() => {
