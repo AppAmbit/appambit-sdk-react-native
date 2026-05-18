@@ -1,5 +1,5 @@
 import UserNotifications
-import AppAmbitPushNotifications
+import AppAmbitPushNotificationsExtension
 
 class NotificationService: AppAmbitNotificationService {
 

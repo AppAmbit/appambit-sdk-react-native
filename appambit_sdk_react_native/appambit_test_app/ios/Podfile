@@ -58,5 +58,5 @@ end
 
 # NSE target (separate binary — only needs the extension-safe push SDK)
 target 'NotificationService' do
-  pod 'AppAmbitPushNotifications/Extension', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
+  pod 'AppAmbitPushNotificationsExtension', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
 end

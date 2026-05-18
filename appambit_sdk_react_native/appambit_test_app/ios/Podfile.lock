@@ -29,10 +29,8 @@ PODS:
     - SocketRocket
     - Yoga
   - AppAmbitPushNotifications (0.5.0):
-    - AppAmbitPushNotifications/Core (= 0.5.0)
-  - AppAmbitPushNotifications/Core (0.5.0):
     - AppAmbitSdk
-  - AppAmbitPushNotifications/Extension (0.5.0)
+  - AppAmbitPushNotificationsExtension (0.5.0)
   - AppAmbitSdk (0.5.0)
   - AppAmbitSdkPushNotifications (0.3.1):
     - AppAmbitSdkPushNotifications/Core (= 0.3.1)
@@ -2529,7 +2527,7 @@ PODS:
 DEPENDENCIES:
   - Appambit (from `../..`)
   - AppAmbitPushNotifications (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
-  - AppAmbitPushNotifications/Extension (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
+  - AppAmbitPushNotificationsExtension (from `../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications`)
   - AppAmbitSdk (from `../../../../appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
@@ -2619,6 +2617,8 @@ EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
   AppAmbitPushNotifications:
+    :path: "../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications"
+  AppAmbitPushNotificationsExtension:
     :path: "../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications"
   AppAmbitSdk:
     :path: "../../../../appambit-sdk-ios/AppAmbitSdk"
@@ -2780,7 +2780,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Appambit: 58462ee4757d7868b93f2f9190da61d7b2234ba3
-  AppAmbitPushNotifications: fada445b20fe0a0beb7b1950dbb9e77675dacc9f
+  AppAmbitPushNotifications: 581f025382640783f673f06eba753f14259b6707
+  AppAmbitPushNotificationsExtension: 4621b010eff3b186aa7246b5a94419fe84605eca
   AppAmbitSdk: 8bc12b7ecdca6c1f99e259abc1bc988e6f393b07
   AppAmbitSdkPushNotifications: 419447cf4202ff2531b90255f45731a529e53e68
   AsyncStorage: bb9dc624a5f86c3a1eacf4ec9f61e1be04b75e98
@@ -2861,6 +2862,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 11c9686a21e2cd82a094a723649d9f4507200fb0
 
-PODFILE CHECKSUM: 0179c664920bb105af61bc55d25056ae3b56afca
+PODFILE CHECKSUM: fa237bb633b221138063736a12b64d376faba0e1
 
 COCOAPODS: 1.16.2

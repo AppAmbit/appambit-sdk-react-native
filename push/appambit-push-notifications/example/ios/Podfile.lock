@@ -2736,7 +2736,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AppAmbitPushNotifications: c6490e5c0c729ccf5e0b084766e568fbdb28c6ce
+  AppAmbitPushNotifications: 581f025382640783f673f06eba753f14259b6707
   AppAmbitSdk: 8bc12b7ecdca6c1f99e259abc1bc988e6f393b07
   AppAmbitSdkPushNotifications: 419447cf4202ff2531b90255f45731a529e53e68
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
