@@ -70,11 +70,10 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  // ─── Local AAR (push SDK only — core SDK is embedded transitively) ──────────
+  // ─── Remote Push SDK Dependency ─────────────────────────────────────────────
   // 'api' (not 'implementation') is required so that classes like PushNotifications
   // are visible at compile time to the consuming app (e.g. MainActivity.kt).
-  // 'implementation' would hide them and cause "Unresolved reference" errors.
-  api files('libs/appambit-sdk-push-notifications-release.aar')
+  api 'com.appambit:appambit.push.notifications:1.0.0'
 
   // ─── Firebase (required transitively by the push AAR) ──────────────────────
   implementation platform('com.google.firebase:firebase-bom:33.6.0')
