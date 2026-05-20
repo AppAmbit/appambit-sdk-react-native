@@ -19,9 +19,6 @@ end
 target 'AppambitExample' do
   config = use_native_modules!
 
-  pod 'AppAmbitSdk', :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
-  pod 'AppAmbitPushNotifications', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
-
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -58,5 +55,5 @@ end
 
 # NSE target (separate binary — only needs the extension-safe push SDK)
 target 'NotificationService' do
-  pod 'AppAmbitPushNotificationsExtension', :path => '../../../../appambit-sdk-ios/Push/AppAmbitPushNotifications'
+  pod 'AppAmbitPushNotificationsExtension', '~> 1.0.0'
 end

@@ -19,12 +19,12 @@ Pod::Spec.new do |s|
     core.source_files = "ios/**/*.{h,m,mm,swift,cpp}"
     core.exclude_files = "ios/AppAmbitRNNotificationService.swift"
     core.private_header_files = "ios/**/*.h"
-    core.dependency 'AppAmbitPushNotifications', '~> 0.5.0'
+    core.dependency 'AppAmbitPushNotifications', '~> 1.0.0'
     install_modules_dependencies(core)
   end
 
   s.subspec 'Extension' do |ext|
     ext.source_files = "ios/AppAmbitRNNotificationService.swift"
-    ext.dependency 'AppAmbitPushNotifications', '~> 0.5.0'
+    ext.dependency 'AppAmbitPushNotifications', '~> 1.0.0'
   end
 end
