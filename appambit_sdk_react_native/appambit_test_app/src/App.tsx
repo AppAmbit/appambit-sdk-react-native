@@ -11,7 +11,6 @@ import CrashesScreen from "./screens/CrashesScreen";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
 import RemoteConfigScreen from "./screens/RemoteConfigScreen";
 import CmsScreen from "./screens/CmsScreen";
-import PushNotificationScreen from "./screens/PushNotificationScreen";
 import SecondScreen from "./screens/SecondScreen";
 
 type RootStackParamList = {
@@ -22,7 +21,7 @@ type RootStackParamList = {
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function HomeScreen() {
-  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig" | "CMS" | "Push">("Crashes");
+  const [activeTab, setActiveTab] = useState<"Crashes" | "Analytics" | "RemoteConfig" | "CMS">("Crashes");
 
   return (
     <View style={{ flex: 1 }}>
@@ -30,7 +29,6 @@ function HomeScreen() {
       {activeTab === "Analytics" && <AnalyticsScreen />}
       {activeTab === "RemoteConfig" && <RemoteConfigScreen />}
       {activeTab === "CMS" && <CmsScreen />}
-      {activeTab === "Push" && <PushNotificationScreen />}
 
       <View style={styles.bottomNav}>
         <Pressable
@@ -59,13 +57,6 @@ function HomeScreen() {
           onPress={() => setActiveTab("CMS")}
         >
           <Text style={styles.navText}>CMS</Text>
-        </Pressable>
-
-        <Pressable
-          style={[styles.navButton, activeTab === "Push" && styles.activeTab]}
-          onPress={() => setActiveTab("Push")}
-        >
-          <Text style={styles.navText}>Push</Text>
         </Pressable>
       </View>
     </View>

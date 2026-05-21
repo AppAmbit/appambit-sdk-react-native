@@ -63,34 +63,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AsyncStorage (3.0.2):
-    - boost
-    - DoubleConversion
-    - fast_float
-    - fmt
-    - glog
-    - hermes-engine
-    - RCT-Folly
-    - RCT-Folly/Fabric
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - SocketRocket
-    - Yoga
   - boost (1.84.0)
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
@@ -2528,7 +2500,6 @@ DEPENDENCIES:
   - Appambit (from `../..`)
   - AppAmbitPushNotificationsExtension (~> 1.0.0)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
-  - "AsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2619,8 +2590,6 @@ EXTERNAL SOURCES:
     :path: "../.."
   AppAmbitSdkPushNotifications:
     :path: "../node_modules/appambit-push-notifications"
-  AsyncStorage:
-    :path: "../node_modules/@react-native-async-storage/async-storage"
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
@@ -2779,7 +2748,6 @@ SPEC CHECKSUMS:
   AppAmbitPushNotificationsExtension: 73ee92dd7a0f5fde53e24096a45bd49d6e88a50e
   AppAmbitSdk: ac397240eccc94a28d66a262e063652ca2bbd5c3
   AppAmbitSdkPushNotifications: c466b4f88f7027b829620348af297369f57da624
-  AsyncStorage: bb9dc624a5f86c3a1eacf4ec9f61e1be04b75e98
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
