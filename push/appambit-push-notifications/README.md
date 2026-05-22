@@ -2,7 +2,7 @@
 
 **Seamlessly integrate push notifications with your AppAmbit analytics.**
 
-This SDK is an extension of the core AppAmbit Android SDK, providing a simple and powerful way to handle Firebase Cloud Messaging (FCM) notifications.
+This SDK is an extension of the core AppAmbit SDK, providing a simple and powerful way to handle Firebase Cloud Messaging (FCM) notifications on both Android and iOS.
 
 ---
 
@@ -13,7 +13,10 @@ This SDK is an extension of the core AppAmbit Android SDK, providing a simple an
 * [Install](#install)
 * [Quickstart](#quickstart)
 * [Usage](#usage)
-* [Customization](#customization)
+* [Native Implementation Setup](#native-implementation-setup)
+  * [Android Setup](#android-setup)
+  * [iOS Setup](#ios-setup)
+  * [iOS Notification Service Extension (Rich Notifications)](#ios-notification-service-extension-rich-notifications)
 
 ---
 
@@ -21,29 +24,32 @@ This SDK is an extension of the core AppAmbit Android SDK, providing a simple an
 
 * **Simple Setup**: Integrates in minutes.
 * **Enable/Disable Notifications**: Easily manage user preferences at both the business and FCM level.
-* **Automatic Field Handling**: Automatically uses standard fields from the FCM payload like `color`, `icon`, `channel_id`, and `click_action`.
-* **Smart Icon Selection**: Automatically uses your app's icon, with a safe fallback.
-* **Advanced Customization**: Provides a powerful hook to modify notifications for advanced use cases.
-* **Permission Helper**: Includes a simple utility to request the `POST_NOTIFICATIONS` permission.
+* **Robust Event Listeners**: Separate callbacks for Foreground, Background (Android), and Opened (tapped) notifications.
+* **Android Headless JS Support**: Handle background notifications using React Native Headless JS tasks even when the app is completely closed/killed.
+* **Automatic Field Handling**: Automatically uses standard fields from the FCM payload like `color`, `icon`, `channel_id`, `click_action`, and rich images.
+* **Rich Media & Extensions Support**: Full integration support for iOS Notification Service Extensions to handle rich payloads, badges, and media attachments.
+* **Permission Helper**: Includes simple utilities to request the `POST_NOTIFICATIONS` permission with ease.
 
 ---
 
 ## Requirements
 
-* **AppAmbit Core SDK**: This SDK is an extension and requires the core `appambit-sdk` to be installed and configured.
-* **Firebase Project**: A configured Firebase project and a `google-services.json` file in your application module.
-* Android API level 21 (Lollipop) or newer.
+* **AppAmbit Core SDK**: This SDK is an extension and requires the core `appambit` SDK to be installed and configured.
+* **Firebase Project**: A configured Firebase project with `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) in your application.
+* **OS Versions**: Android API level 21 (Lollipop) or newer / iOS 13.0 or newer.
 
 ---
 
 ## Install
-To install the library from NPM, run the following commands in your project directory:
+
+To install the library, run the following commands in your project directory:
 
 ```bash
 npm install appambit
-&
 npm install appambit-push-notifications
 ```
+
+### Android Dependencies
 
 Add the following dependencies to your app's `build.gradle` file. Your app is still responsible for providing the Firebase Bill of Materials (BOM) and Firebase Messaging to ensure version compatibility.
 
@@ -56,9 +62,10 @@ apply plugin: "com.google.gms.google-services"
 dependencies {
     // The Firebase BOM and Messaging are required to align Firebase library versions.
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
-    implementation ("com.google.firebase:firebase-messaging:23.4.0")
+    implementation("com.google.firebase:firebase-messaging:23.4.0")
 }
 ```
+
 **`android/build.gradle.kts`**
 ```groovy
 dependencies {
@@ -67,6 +74,7 @@ dependencies {
 ```
 
 **Groovy**
+
 **`android/app/build.gradle`**
 ```groovy
 apply plugin: "com.google.gms.google-services"
@@ -85,131 +93,321 @@ dependencies {
 }
 ```
 
-Also, ensure you have the Google Services plugin configured in your project.
+Ensure you have the Google Services plugin configured in your project.
+
+### iOS Dependencies
+
+After installing the npm package, run the pod installer:
+
+```bash
+cd ios && pod install
+```
 
 ---
 
 ## Quickstart
 
-**Import the SDKs**: In your `App.tsx` file, import both the AppAmbit SDK and the Push Notifications SDK.
+1. **Import and Initialize the SDKs**: In your `App.tsx` (or application entry point), import and initialize both the core SDK and the Push Notifications SDK:
 
-```javascript
+    ```javascript
     import * as AppAmbit from "appambit";
-```
-```javascript
     import * as PushNotifications from "appambit-push-notifications";
-```
 
-
-1.  **Initialize the Core SDK**: In your `App.tsx` class, initialize the core AppAmbit SDK with your App Key.
-
-    ```javascript
+    // Initialize core and push notifications
     AppAmbit.start("<YOUR-APPKEY>");
-    ```
-
-2.  **Initialize the Push SDK**: Immediately after, start the Push Notifications SDK.
-
-    ```javascript
     PushNotifications.start();
     ```
 
-3.  **Request Permissions**: In your main activity, request the required notification permission.
+2. **Request Permissions**: Request permissions to show push notifications:
 
     ```javascript
     PushNotifications.requestNotificationPermission();
     ```
 
-**That's it!** Your app is now ready to receive and display push notifications.
-
 ---
 
 ## Usage
 
+### Event Listeners
+
+Register callbacks to handle push notifications depending on the app's state. All listeners return an unsubscribe function that you should call on cleanup (e.g. in `useEffect`'s return statement).
+
+#### 1. Foreground Listener (All Platforms)
+Fires when a notification is received while the app is active and open in the foreground.
+
+```javascript
+const unsubscribeForeground = PushNotifications.setForegroundListener((payload) => {
+  console.log("Foreground notification received:", payload);
+});
+```
+
+#### 2. Background Listener (Android Only)
+Fires when a notification is received while the app is backgrounded.
+
+```javascript
+const unsubscribeBackground = PushNotifications.Android.setBackgroundListener((payload) => {
+  console.log("Background notification received (Android):", payload);
+});
+```
+*Note: To handle background and killed state notifications fully on Android, refer to the Android Headless JS registration section under Native Setup.*
+
+#### 3. Opened Listener (All Platforms)
+Fires when the user taps on the notification. This is supported regardless of the app's initial state (foreground, background, or killed).
+
+```javascript
+const unsubscribeOpened = PushNotifications.setOpenedListener((payload) => {
+  console.log("Notification opened by user:", payload);
+});
+```
+
+### Notification Payload Format
+
+The notification payload has a standard, cross-platform format:
+
+```typescript
+export interface NotificationPayload {
+  title: string | null;
+  body: string | null;
+  imageUrl: string | null;
+  data: Record<string, string>;
+  android: {
+    color: string | null;
+    smallIconName: string | null;
+  } | null;
+  ios: {
+    subtitle: string | null;
+  } | null;
+}
+```
+
 ### Enabling and Disabling Notifications
 
-By default, notifications are enabled when you first call `start()`. To manage user preferences afterward, use `setNotificationsEnabled`.
+Notifications are enabled by default. To opt users in or out (for example, in a settings screen), use `setNotificationsEnabled`:
 
 ```javascript
-// To disable all future notifications
-PushNotifications.setNotificationsEnabled(false)
+// Disable notifications
+PushNotifications.setNotificationsEnabled(false);
 
-// To re-enable them
-PushNotifications.setNotificationsEnabled(true)
+// Enable notifications
+PushNotifications.setNotificationsEnabled(true);
 ```
 
-This method updates the opt-out status on the AppAmbit dashboard and stops the device from receiving FCM messages. You can check the current setting at any time:
+You can check if notifications are enabled asynchronously:
 
 ```javascript
-const isEnabled = PushNotifications.isNotificationsEnabled()
+const isEnabled = await PushNotifications.isNotificationsEnabled();
 ```
 
-### Permission Listener (Optional)
+### Permission Helper with Result
 
-To know if the user granted or denied the notification permission, you can provide an optional listener.
+To check if the user granted or denied the notification permission, use the helper with result:
 
 ```javascript
-PushNotifications.requestNotificationPermissionWithResult().then(
-    (granted: boolean) => {
-        if(granted) {
-            console.log("Notification permission granted");
-        } else {
-            console.log("Notification permission denied");
-        }
-    }
-);
+PushNotifications.requestNotificationPermissionWithResult().then((granted) => {
+  if (granted) {
+    console.log("Notification permission granted");
+  } else {
+    console.log("Notification permission denied");
+  }
+});
 ```
 
 ---
 
-## Customization
+## Native Implementation Setup
 
-The SDK is designed to be highly customizable, automatically adapting to the data you send in your FCM payload, while also offering a powerful hook for advanced modifications.
+To ensure events and background states are properly handled, the following native steps are required in your application codebases.
 
-### Automatic Customization
+### Android Setup
 
-The SDK automatically configures the notification by reading standard fields from your FCM message. **For most use cases, you won't need to write any custom code.**
+The library includes pre-configured declarations in its `AndroidManifest.xml` which automatically merge into your app. These include permissions (`POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`), the `AppAmbitInitProvider` (to initialize context Holder on boot/killed start), and `AppAmbitHeadlessService` (to handle background notifications via Headless JS).
 
-**`notification` object:**
+To receive background notifications when the app is in a killed state, you **must** register a Headless JS task in your `index.js` file:
 
-The SDK uses the standard keys from the FCM `notification` object.
+```javascript
+import { AppRegistry, Platform } from 'react-native';
+import * as PushNotifications from 'appambit-push-notifications';
+import App from './src/App';
+import { name as appName } from './app.json';
 
-- **`title`**: The notification's title.
-- **`body`**: The notification's main text.
+// Register Headless Task for Android background notifications
+if (Platform.OS === 'android') {
+  AppRegistry.registerHeadlessTask(
+    PushNotifications.BACKGROUND_NOTIFICATION_TASK,
+    () => async (payload) => {
+      console.log('[AppAmbit] Headless task received background notification:', payload);
+    }
+  );
+}
 
-**`data` object:**
+AppRegistry.registerComponent(appName, () => App);
+```
 
-The `data` object is a free-form container for any custom key-value pairs you wish to send (e.g., `{"your_key": "your_value", "another_key": 123}`). Its sole purpose is to pass custom data to your application, which you can then access using the `NotificationCustomizer` to implement any advanced logic you require.
+---
 
-### Advanced Customization with `NotificationCustomizer`
+### iOS Setup
 
-The `data` payload is a **free-form key-value map**. You are not limited to any specific keys; you can send any data you need and use it to build your custom notification.
+To handle background and tap events on iOS, you need to update your native `AppDelegate`.
 
-**Example: Building a Custom Notification**
+#### For Swift (`AppDelegate.swift`)
 
-The following example shows how to read custom fields from the `data` payload to add a custom action button. This is just one of many possibilities.
+1. Adopt the `UNUserNotificationCenterDelegate` protocol.
+2. In `application(_:didFinishLaunchingWithOptions:)`, set the delegate:
+   ```swift
+   UNUserNotificationCenter.current().delegate = self
+   ```
+3. Implement the delegate method `userNotificationCenter(_:didReceive:withCompletionHandler:)` to forward opened notifications.
+4. Implement `application(_:didReceiveRemoteNotification:fetchCompletionHandler:)` to handle background payloads.
 
-1.  **Send any custom data** you need. The keys and values are completely up to you. For example:
+Here is the complete configuration:
 
-    ```json
-    {
-      "title": "New Message",
-      "body": "You have a new message from a friend.",
-      "data": {
-        "key1": "Mark as Read",
-        "key2": "MARK_AS_READ_ACTION",
-        "any_other_key": "any_value"
+```swift
+import UIKit
+import React
+import React_RCTAppDelegate
+import AppAmbitSdkPushNotifications
+import UserNotifications
+
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+  var window: UIWindow?
+
+  func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
+  ) -> Bool {
+    // Set notification center delegate
+    UNUserNotificationCenter.current().delegate = self
+    
+    // ... Rest of your React Native initialization code ...
+    return true
+  }
+
+  // Handle opened notifications (tapped by user)
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    let userInfo = response.notification.request.content.userInfo
+    AppAmbitPushWrapper.didReceiveOpenedNotification(userInfo)
+    completionHandler()
+  }
+
+  // Handle background remote notifications
+  func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    // Forward the payload to trigger the background listener in React Native.
+    AppAmbitPushWrapper.didReceiveBackgroundNotification(userInfo)
+    
+    // Request extra time from the OS to ensure React Native/AsyncStorage tasks complete
+    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    backgroundTask = application.beginBackgroundTask {
+      application.endBackgroundTask(backgroundTask)
+      backgroundTask = .invalid
+    }
+    
+    // Give JS 5 seconds to process, then signal finish to OS
+    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+      completionHandler(.newData)
+      if backgroundTask != .invalid {
+        application.endBackgroundTask(backgroundTask)
+        backgroundTask = .invalid
       }
     }
-    ```
+  }
+}
+```
 
-2.  **Register the `NotificationCustomizer`** and use your custom keys:
+#### For Objective-C++ (`AppDelegate.mm` / `AppDelegate.m`)
 
-    ```javascript
-    PushNotifications.setNotificationCustomizer((payload: PushNotifications.NotificationPayload) => {
-        console.log("Payload:", payload);
-        console.log("Data:", payload.data);
-        console.log("Title:", payload.title);
-        console.log("Body:", payload.body);
-    });
-    PushNotifications.start();
-    ```
+If your project uses Objective-C/Objective-C++ in `AppDelegate.mm`, apply the equivalent changes:
+
+```objc
+#import <UserNotifications/UserNotifications.h>
+#import <AppAmbitSdkPushNotifications/AppAmbitSdkPushNotifications-Swift.h>
+
+@interface AppDelegate () <UNUserNotificationCenterDelegate>
+@end
+
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+  // Set notification center delegate
+  [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+
+  // ... Rest of didFinishLaunchingWithOptions ...
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+}
+
+// Handle opened notifications
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler {
+  NSDictionary *userInfo = response.notification.request.content.userInfo;
+  [AppAmbitPushWrapper didReceiveOpenedNotification:userInfo];
+  completionHandler();
+}
+
+// Handle background remote notifications
+- (void)application:(UIApplication *)application
+didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler {
+  [AppAmbitPushWrapper didReceiveBackgroundNotification:userInfo];
+  
+  __block UIBackgroundTaskIdentifier backgroundTask = [application beginBackgroundTaskWithExpirationHandler:^{
+    [application endBackgroundTask:backgroundTask];
+    backgroundTask = UIBackgroundTaskInvalid;
+  }];
+  
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    completionHandler(UIBackgroundFetchResultNewData);
+    if (backgroundTask != UIBackgroundTaskInvalid) {
+      [application endBackgroundTask:backgroundTask];
+      backgroundTask = UIBackgroundTaskInvalid;
+    }
+  });
+}
+@end
+```
+
+---
+
+### iOS Notification Service Extension (Rich Notifications)
+
+To display rich push notifications (e.g. notifications with media attachments like images or dynamic subtitle updates), you should create a Notification Service Extension in your iOS application.
+
+1. **Create the Extension in Xcode**:
+   In Xcode, go to **File > New > Target** and select **Notification Service Extension**. Give it a name (e.g., `NotificationService`).
+
+2. **Configure dependencies in `Podfile`**:
+   Add the Extension dependency to your `Podfile` outside the main target definition:
+   ```ruby
+   target 'NotificationService' do
+     pod 'AppAmbitPushNotificationsExtension', '~> 1.0.0'
+   end
+   ```
+   Then run `pod install` under the `ios/` folder.
+
+3. **Subclass `AppAmbitNotificationService`**:
+   Replace the contents of the generated `NotificationService.swift` file in your extension target with:
+
+   ```swift
+   import UserNotifications
+   import AppAmbitPushNotificationsExtension
+
+   class NotificationService: AppAmbitNotificationService {
+       override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+           // The base AppAmbitNotificationService automatically downloads and attaches rich media (images).
+           // If you need custom notification mutations, do them here before calling super.
+           super.didReceive(request, withContentHandler: contentHandler)
+       }
+
+       override func serviceExtensionTimeWillExpire() {
+           super.serviceExtensionTimeWillExpire()
+       }
+   }
+   ```
