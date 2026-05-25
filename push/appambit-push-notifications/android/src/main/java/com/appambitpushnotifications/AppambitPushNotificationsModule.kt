@@ -187,6 +187,10 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
         promise.resolve(enabled)
     }
 
+    override fun backgroundHandlerCompleted() {
+        // Android background execution is managed by the headless JS task registered with
+        // BACKGROUND_NOTIFICATION_TASK — no native completion signal needed here.
+    }
 
     // ── Required by NativeEventEmitter ───────────────────────────────────────
 

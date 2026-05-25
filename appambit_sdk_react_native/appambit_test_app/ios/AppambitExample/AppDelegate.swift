@@ -6,7 +6,7 @@ import AppAmbitSdkPushNotifications
 import UserNotifications
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ReactNativeDelegate?
@@ -16,8 +16,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    UNUserNotificationCenter.current().delegate = self
-
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -34,42 +32,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     )
 
     return true
-  }
-
-  func userNotificationCenter(
-    _ center: UNUserNotificationCenter,
-    didReceive response: UNNotificationResponse,
-    withCompletionHandler completionHandler: @escaping () -> Void
-  ) {
-    let userInfo = response.notification.request.content.userInfo
-    AppAmbitPushWrapper.didReceiveOpenedNotification(userInfo)
-    completionHandler()
-  }
-
-  func application(
-    _ application: UIApplication,
-    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
-  ) {
-    // Forward the payload to trigger the background listener in React Native.
-    AppAmbitPushWrapper.didReceiveBackgroundNotification(userInfo)
-    
-    // Request extra time from the OS to ensure React Native and AsyncStorage finish
-    var backgroundTask: UIBackgroundTaskIdentifier = .invalid
-    backgroundTask = application.beginBackgroundTask {
-      // If time runs out, end the task
-      application.endBackgroundTask(backgroundTask)
-      backgroundTask = .invalid
-    }
-    
-    // Give JS 5 seconds to process, then tell OS we are done
-    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-      completionHandler(.newData)
-      if backgroundTask != .invalid {
-        application.endBackgroundTask(backgroundTask)
-        backgroundTask = .invalid
-      }
-    }
   }
 }
 

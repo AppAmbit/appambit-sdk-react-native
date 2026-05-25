@@ -49,6 +49,12 @@ public class AppAmbitPushWrapper: NSObject {
   public static func didReceiveOpenedNotification(_ userInfo: [AnyHashable: Any]) {
     let payload = formatNotificationPayload(userInfo)
     pendingOpenedPayloads.append(payload)
+
+    NotificationCenter.default.post(
+      name: NSNotification.Name("AppAmbit_onOpenedNotification"),
+      object: nil,
+      userInfo: payload
+    )
   }
   
   @objc public static func getAndClearPendingBackgroundPayloads() -> [[String: Any]] {

@@ -85,7 +85,11 @@ export const Android = {
     backgroundSub = eventEmitter.addListener(
       EVENT_BACKGROUND,
       ((payload: NotificationPayload) => {
-        void callback(payload);
+        void callback(payload).finally(() => {
+          // Signal iOS that the async handler finished so it can reclaim background time.
+          // On Android this is a no-op; background execution is managed by the headless task.
+          AppambitPushNotifications.backgroundHandlerCompleted();
+        });
       }) as any
     );
     return () => {
