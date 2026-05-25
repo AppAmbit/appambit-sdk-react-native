@@ -4,10 +4,21 @@ import AppambitPushNotifications from './NativeAppambitPushNotifications';
 export interface AndroidNotificationData {
   color: string | null;
   smallIconName: string | null;
+  ticker: string | null;
+  sticky: boolean | null;
+  visibility: string | null;
+  channelId: string | null;
+  tag: string | null;
+  sound: string | null;
+  clickAction: string | null;
 }
 
 export interface IosNotificationData {
   subtitle: string | null;
+  badge: number | null;
+  sound: string | null;
+  category: string | null;
+  threadId: string | null;
 }
 
 export interface NotificationPayload {

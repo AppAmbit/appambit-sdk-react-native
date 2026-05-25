@@ -77,7 +77,8 @@ public class AppAmbitPushWrapper: NSObject {
     var imageUrl: String? = nil
     var customData: [String: Any] = [:]
 
-    if let aps = userInfo["aps"] as? [String: Any] {
+    let aps = userInfo["aps"] as? [String: Any]
+    if let aps = aps {
       if let alert = aps["alert"] as? [String: Any] {
         title    = alert["title"] as? String
         body     = alert["body"] as? String
@@ -87,12 +88,13 @@ public class AppAmbitPushWrapper: NSObject {
       }
     }
 
+    let imageUrlKeys: Set<String> = ["image_url", "imageUrl", "image"]
     for (key, value) in userInfo {
       let keyStr = (key as? String) ?? "\(key)"
       if keyStr == "aps" { continue }
 
-      if keyStr == "image_url" || keyStr == "imageUrl" {
-        imageUrl = value as? String
+      if imageUrlKeys.contains(keyStr) {
+        if imageUrl == nil { imageUrl = value as? String }
       } else if keyStr == "data", let nestedData = value as? [String: Any] {
         for (nestedKey, nestedValue) in nestedData {
           customData[nestedKey] = nestedValue
@@ -102,13 +104,19 @@ public class AppAmbitPushWrapper: NSObject {
       }
     }
 
+    var iosMap: [String: Any] = ["subtitle": subtitle as Any]
+    if let badge = aps?["badge"] as? Int       { iosMap["badge"]    = badge }
+    if let sound = aps?["sound"] as? String    { iosMap["sound"]    = sound }
+    if let cat   = aps?["category"] as? String { iosMap["category"] = cat }
+    if let tid   = aps?["thread-id"] as? String { iosMap["threadId"] = tid }
+
     var payload: [String: Any] = [
       "title":    title as Any,
       "body":     body as Any,
       "imageUrl": imageUrl as Any,
       "data":     customData,
       "android":  NSNull(),
-      "ios":      ["subtitle": subtitle as Any],
+      "ios":      iosMap,
     ]
 
     return payload

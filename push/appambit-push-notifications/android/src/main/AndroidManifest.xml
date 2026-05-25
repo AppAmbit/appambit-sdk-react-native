@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!--
         AppAmbit Push Notifications — React Native Bridge Manifest
 
         This manifest is MERGED into the consuming application's manifest.
         It registers:
-          1. AppAmbitInitProvider    — ContentProvider that seeds AppAmbitContextHolder
-                                       before Application.onCreate() runs, enabling the SDK
-                                       to function even when the process is started solely
-                                       to handle an FCM message (killed state).
-          2. AppAmbitHeadlessService — Starts Headless JS for background/killed notifications.
-          3. NotificationServiceExtension meta-data — tells MessagingService which extension class to load.
+          1. AppAmbitInitProvider       — ContentProvider that seeds AppAmbitContextHolder
+                                          before Application.onCreate() runs, enabling the SDK
+                                          to function even when the process is started solely
+                                          to handle an FCM message (killed state).
+          2. AppAmbitMessagingService   — Subclasses com.appambit.sdk.MessagingService to
+                                          capture the full RemoteMessage (including all
+                                          RemoteMessage.Notification fields) before the AppAmbit
+                                          SDK strips them into its own AppAmbitNotification model.
+          3. AppAmbitHeadlessService    — Starts Headless JS for background/killed notifications.
+          4. NotificationServiceExtension meta-data — tells MessagingService which extension class to load.
 
         The consuming app must also declare:
           - INTERNET permission
@@ -40,6 +45,34 @@
             android:authorities="${applicationId}.appambit-init-provider"
             android:exported="false"
             android:initOrder="100" />
+
+        <!--
+            Remove the base AppAmbit SDK's FirebaseMessagingService declaration so our
+            subclass (AppAmbitMessagingService) is the only handler for FCM events.
+            This library has higher manifest-merge priority than the AppAmbit SDK AAR,
+            so tools:node="remove" takes effect before the final manifest is assembled.
+        -->
+        <service
+            android:name="com.appambit.sdk.MessagingService"
+            tools:node="remove" />
+
+        <!--
+            AppAmbitMessagingService
+            Extends com.appambit.sdk.MessagingService (which extends FirebaseMessagingService).
+            Captures the full RemoteMessage in onMessageReceived, stores it in
+            AppAmbitRemoteMessageStore, then delegates to the AppAmbit SDK via super.onMessageReceived().
+
+            AppAmbitNotificationSerializer and AppAmbitHeadlessService read from the store
+            to populate notification fields not surfaced by AppAmbitNotification (e.g.
+            channelId, sound, tag, ticker, visibility, notificationPriority, vibrateTimings, etc.).
+        -->
+        <service
+            android:name="com.appambitpushnotifications.AppAmbitMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
         <!--
             AppAmbitHeadlessService

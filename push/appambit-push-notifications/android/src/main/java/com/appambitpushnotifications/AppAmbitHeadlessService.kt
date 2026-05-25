@@ -9,72 +9,34 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 
-/**
- * AppAmbitHeadlessService
- *
- * Launches a Headless JS task when a push notification arrives in
- * background / killed state. Mirrors the pattern used by react-native-firebase's
- * ReactNativeFirebaseMessagingHeadlessTask.
- *
- * How it works:
- * 1. [AppAmbitRNServiceExtension.onNotificationBackground] calls [enqueueNotification],
- *    passing the FirebaseMessagingService instance as context (always valid).
- * 2. [enqueueNotification] acquires a wakelock, packs the payload, and starts this Service.
- * 3. Android OS creates/reuses the app process and starts this Service.
- * 4. [onStartCommand] validates ReactApplication, then delegates to parent.
- * 5. [getTaskConfig] is called by the RN Headless machinery → HeadlessJsTaskConfig returned.
- * 6. React Native runs the registered JS task with the notification payload.
- *
- * JS-side registration (the consuming app must do this in index.js):
- *
- *   AppRegistry.registerHeadlessTask(
- *     BACKGROUND_NOTIFICATION_TASK,
- *     () => async (notification) => { ... }
- *   );
- */
 class AppAmbitHeadlessService : HeadlessJsTaskService() {
 
     companion object {
         private const val TAG = "AppAmbitHeadless"
 
-        /** The JS task name that must be registered with AppRegistry.registerHeadlessTask. */
         const val HEADLESS_TASK_NAME = "AppAmbitBackgroundNotification"
 
         // Intent extras
-        private const val EXTRA_TITLE            = "aa_title"
-        private const val EXTRA_BODY             = "aa_body"
-        private const val EXTRA_IMAGE_URL        = "aa_image_url"
-        private const val EXTRA_ANDROID_COLOR    = "aa_android_color"
-        private const val EXTRA_ANDROID_ICON     = "aa_android_small_icon"
-        private const val EXTRA_DATA_KEYS        = "aa_data_keys"
-        private const val EXTRA_DATA_VALS        = "aa_data_vals"
+        private const val EXTRA_TITLE              = "aa_title"
+        private const val EXTRA_BODY               = "aa_body"
+        private const val EXTRA_IMAGE_URL          = "aa_image_url"
+        private const val EXTRA_ANDROID_COLOR      = "aa_android_color"
+        private const val EXTRA_ANDROID_ICON       = "aa_android_small_icon"
+        private const val EXTRA_ANDROID_TICKER     = "aa_android_ticker"
+        private const val EXTRA_ANDROID_STICKY     = "aa_android_sticky"
+        private const val EXTRA_ANDROID_VISIBILITY = "aa_android_visibility"
+        private const val EXTRA_ANDROID_CHANNEL_ID = "aa_android_channel_id"
+        private const val EXTRA_ANDROID_TAG        = "aa_android_tag"
+        private const val EXTRA_ANDROID_SOUND      = "aa_android_sound"
+        private const val EXTRA_ANDROID_CLICK_ACTION = "aa_android_click_action"
+        private const val EXTRA_DATA_KEYS          = "aa_data_keys"
+        private const val EXTRA_DATA_VALS          = "aa_data_vals"
 
-        // Maximum time (ms) to allow the JS task to run.
         private const val TASK_TIMEOUT_MS = 30_000L
 
-        /**
-         * Starts this service with the notification payload.
-         *
-         * CRITICAL: [context] is the FirebaseMessagingService instance passed from
-         * [AppAmbitRNServiceExtension]. It is ALWAYS valid — even in killed state,
-         * even before the React Native bridge exists.
-         *
-         * We do NOT use [AppAmbitContextHolder] here. That holder is populated when the
-         * TurboModule initialises (i.e. when the RN bridge is ready), which happens AFTER
-         * the FCM callback fires in killed state — so it would always be null.
-         *
-         * Pattern mirrors react-native-firebase:
-         *   1. acquireWakeLockNow — prevents the process from dying before the JS runtime starts.
-         *   2. startService (NOT startForegroundService) — HeadlessJsTaskService manages its own
-         *      lifecycle; a visible foreground notification is not required here.
-         */
         fun enqueueNotification(context: Context, notification: AppAmbitNotification) {
             Log.d(TAG, "Enqueueing headless task for: ${notification.title}")
-
-            // Acquire wakelock BEFORE startService so Android cannot kill the process
-            // in the narrow window between the call and HeadlessJsTaskService taking control.
             HeadlessJsTaskService.acquireWakeLockNow(context)
-
             val intent = buildIntent(context, notification)
             try {
                 context.startService(intent)
@@ -83,18 +45,43 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
             }
         }
 
+        private val INTERNAL_KEYS = setOf(
+            "_aa_image_url", "_aa_ticker", "_aa_sticky",
+            "_aa_visibility", "_aa_channel_id", "_aa_priority",
+            "_aa_tag", "_aa_sound", "_aa_click_action"
+        )
+
         private fun buildIntent(context: Context, notification: AppAmbitNotification): Intent {
+            val data   = notification.data
             val intent = Intent(context, AppAmbitHeadlessService::class.java)
+
             intent.putExtra(EXTRA_TITLE,         notification.title)
             intent.putExtra(EXTRA_BODY,          notification.body)
-            intent.putExtra(EXTRA_IMAGE_URL,     notification.imageUrl)
             intent.putExtra(EXTRA_ANDROID_COLOR, notification.color)
             intent.putExtra(EXTRA_ANDROID_ICON,  notification.smallIconName)
 
-            val data = notification.data
-            if (data.isNotEmpty()) {
-                val keys   = data.keys.toTypedArray()
-                val values = keys.map { data[it] }.toTypedArray()
+            val imageUrl = notification.imageUrl
+                ?: data["_aa_image_url"]
+                ?: data["image_url"]
+                ?: data["image"]
+            intent.putExtra(EXTRA_IMAGE_URL, imageUrl)
+
+            intent.putExtra(EXTRA_ANDROID_TICKER,       data["_aa_ticker"]       ?: data["ticker"])
+            intent.putExtra(EXTRA_ANDROID_VISIBILITY,   data["_aa_visibility"]   ?: data["visibility"])
+            intent.putExtra(EXTRA_ANDROID_CHANNEL_ID,   data["_aa_channel_id"]   ?: data["channelId"] ?: data["channel_id"])
+            intent.putExtra(EXTRA_ANDROID_TAG,          data["_aa_tag"]          ?: data["tag"])
+            intent.putExtra(EXTRA_ANDROID_SOUND,        data["_aa_sound"]        ?: data["sound"])
+            intent.putExtra(EXTRA_ANDROID_CLICK_ACTION, data["_aa_click_action"] ?: data["clickAction"] ?: data["click_action"])
+
+            val stickyStr = data["_aa_sticky"] ?: data["sticky"]
+            if (stickyStr != null) {
+                intent.putExtra(EXTRA_ANDROID_STICKY, stickyStr.equals("true", ignoreCase = true) || stickyStr == "1")
+            }
+
+            val filteredData = data.filterKeys { it !in INTERNAL_KEYS }
+            if (filteredData.isNotEmpty()) {
+                val keys   = filteredData.keys.toTypedArray()
+                val values = keys.map { filteredData[it] }.toTypedArray()
                 intent.putExtra(EXTRA_DATA_KEYS, keys)
                 intent.putExtra(EXTRA_DATA_VALS, values)
             }
@@ -102,13 +89,6 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         }
     }
 
-    // ── HeadlessJsTaskService ─────────────────────────────────────────────────
-
-    /**
-     * Validates the ReactApplication contract before delegating to the parent.
-     * HeadlessJsTaskService crashes silently if the Application class does not
-     * implement ReactApplication, so we provide an explicit, actionable error.
-     */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (application !is ReactApplication) {
             Log.e(TAG,
@@ -122,15 +102,17 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
     }
 
     override fun getTaskConfig(intent: Intent?): HeadlessJsTaskConfig? {
-        val extras = intent?.extras ?: return null
+        val extras   = intent?.extras ?: return null
+        val rm       = AppAmbitRemoteMessageStore.get()
+        val fcmNotif = rm?.notification
 
-        // ── Build the payload matching PushNotificationData ──────────────────
         val payload = Arguments.createMap()
         payload.putString("title",    extras.getString(EXTRA_TITLE))
         payload.putString("body",     extras.getString(EXTRA_BODY))
-        payload.putString("imageUrl", extras.getString(EXTRA_IMAGE_URL))
 
-        // Custom data map
+        val imageUrl = extras.getString(EXTRA_IMAGE_URL) ?: fcmNotif?.imageUrl?.toString()
+        if (imageUrl != null) payload.putString("imageUrl", imageUrl) else payload.putNull("imageUrl")
+
         val keys   = extras.getStringArray(EXTRA_DATA_KEYS)
         val values = extras.getStringArray(EXTRA_DATA_VALS)
         val dataMap = Arguments.createMap()
@@ -141,13 +123,61 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         }
         payload.putMap("data", dataMap)
 
-        // Android sub-object
-        val androidMap = Arguments.createMap()
-        androidMap.putString("color",        extras.getString(EXTRA_ANDROID_COLOR))
-        androidMap.putString("smallIconName", extras.getString(EXTRA_ANDROID_ICON))
-        payload.putMap("android", androidMap)
+        // ── FCM message-level fields ──────────────────────────────────────────
+        if (rm != null) {
+            putStringOrNull(payload, "messageId",        rm.messageId)
+            payload.putDouble("sentTime",                rm.sentTime.toDouble())
+            payload.putInt("ttl",                        rm.ttl)
+            putStringOrNull(payload, "collapseKey",      rm.collapseKey)
+            putStringOrNull(payload, "from",             rm.from)
+            putStringOrNull(payload, "messagePriority",  fcmPriorityToString(rm.priority))
+            putStringOrNull(payload, "originalPriority", fcmPriorityToString(rm.originalPriority))
+        } else {
+            for (key in listOf("messageId", "sentTime", "ttl", "collapseKey", "from", "messagePriority", "originalPriority"))
+                payload.putNull(key)
+        }
 
-        // iOS is always null on Android
+        // ── Android sub-object ────────────────────────────────────────────────
+        val androidMap = Arguments.createMap()
+
+        putStringOrNull(androidMap, "color",        extras.getString(EXTRA_ANDROID_COLOR))
+        putStringOrNull(androidMap, "smallIconName", extras.getString(EXTRA_ANDROID_ICON))
+
+        // Intent extras take priority; fall back to RemoteMessage.Notification
+        putStringOrNull(androidMap, "ticker",
+            extras.getString(EXTRA_ANDROID_TICKER) ?: fcmNotif?.ticker)
+        putStringOrNull(androidMap, "channelId",
+            extras.getString(EXTRA_ANDROID_CHANNEL_ID) ?: fcmNotif?.channelId)
+        putStringOrNull(androidMap, "tag",
+            extras.getString(EXTRA_ANDROID_TAG) ?: fcmNotif?.tag)
+        putStringOrNull(androidMap, "sound",
+            extras.getString(EXTRA_ANDROID_SOUND) ?: fcmNotif?.sound)
+        putStringOrNull(androidMap, "clickAction",
+            extras.getString(EXTRA_ANDROID_CLICK_ACTION) ?: fcmNotif?.clickAction)
+        putStringOrNull(androidMap, "visibility",
+            extras.getString(EXTRA_ANDROID_VISIBILITY) ?: when (fcmNotif?.visibility) {
+                1  -> "public"
+                0  -> "private"
+                -1 -> "secret"
+                else -> null
+            })
+
+        when {
+            extras.containsKey(EXTRA_ANDROID_STICKY) ->
+                androidMap.putBoolean("sticky", extras.getBoolean(EXTRA_ANDROID_STICKY))
+            fcmNotif != null ->
+                androidMap.putBoolean("sticky", fcmNotif.sticky)
+            else ->
+                androidMap.putNull("sticky")
+        }
+
+        if (fcmNotif != null) {
+            androidMap.putBoolean("localOnly", fcmNotif.localOnly)
+        } else {
+            androidMap.putNull("localOnly")
+        }
+
+        payload.putMap("android", androidMap)
         payload.putNull("ios")
 
         Log.d(TAG, "HeadlessJsTask config built for: ${extras.getString(EXTRA_TITLE)}")
@@ -158,4 +188,17 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
             /* allowedInForeground = */ true
         )
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private fun putStringOrNull(map: com.facebook.react.bridge.WritableMap, key: String, value: String?) {
+        if (value != null) map.putString(key, value) else map.putNull(key)
+    }
+
+    private fun fcmPriorityToString(priority: Int): String? = when (priority) {
+        1    -> "high"
+        2    -> "normal"
+        else -> null
+    }
+
 }

@@ -82,14 +82,47 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
                         Log.d(TAG, "checkInitialIntent: Detected FCM System Tray Intent. Mutating format...")
                         val pushIntent = Intent(intent)
                         pushIntent.action = "com.appambit.sdk.NOTIFICATION_OPENED"
-                        
+
                         val title = extras.getString("gcm.notification.title") ?: extras.getString("title")
-                        val body = extras.getString("gcm.notification.body") ?: extras.getString("body")
+                        val body  = extras.getString("gcm.notification.body")  ?: extras.getString("body")
                         if (title != null) pushIntent.putExtra("appambit_title", title)
-                        if (body != null) pushIntent.putExtra("appambit_body", body)
-                        
-                        val keysList = mutableListOf<String>()
+                        if (body  != null) pushIntent.putExtra("appambit_body",  body)
+
+                        // imageUrl: gcm.notification.image is filtered from the data loop below,
+                        // so we extract it explicitly here.
+                        val imageUrl = extras.getString("gcm.notification.image")
+                            ?: extras.getString("image_url")
+                            ?: extras.getString("image")
+                        if (imageUrl != null) pushIntent.putExtra("appambit_image_url", imageUrl)
+
+                        // color and icon
+                        val color = extras.getString("gcm.notification.color")
+                        val icon  = extras.getString("gcm.notification.icon")
+                        if (color != null) pushIntent.putExtra("appambit_color", color)
+                        if (icon  != null) pushIntent.putExtra("appambit_icon",  icon)
+
+                        val keysList   = mutableListOf<String>()
                         val valuesList = mutableListOf<String>()
+
+                        // Inject Android notification display fields as _aa_* data keys so the
+                        // serializer can promote them into the android sub-object and strip them
+                        // from the custom data map exposed to JS.
+                        mapOf(
+                            "_aa_ticker"       to (extras.getString("gcm.notification.ticker")),
+                            "_aa_sticky"       to (extras.getString("gcm.notification.sticky")),
+                            "_aa_visibility"   to (extras.getString("gcm.notification.visibility")),
+                            "_aa_channel_id"   to (extras.getString("gcm.notification.channel_id")),
+                            "_aa_priority"     to (extras.getString("gcm.notification.priority")
+                                                   ?: extras.getString("gcm.notification.notification_priority")),
+                            "_aa_tag"          to (extras.getString("gcm.notification.tag")),
+                            "_aa_sound"        to (extras.getString("gcm.notification.sound")),
+                            "_aa_click_action" to (extras.getString("gcm.notification.click_action")
+                                                   ?: extras.getString("gcm.notification.clickAction"))
+                        ).forEach { (key, value) ->
+                            if (value != null) { keysList.add(key); valuesList.add(value) }
+                        }
+
+                        // Custom data keys from the FCM data payload
                         for (key in extras.keySet()) {
                             if (!key.startsWith("google.") && !key.startsWith("gcm.") && !key.startsWith("android.") &&
                                 key != "from" && key != "collapse_key" && key != "profile") {
@@ -97,12 +130,12 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
                                 valuesList.add(extras.get(key).toString())
                             }
                         }
-                        
+
                         if (keysList.isNotEmpty()) {
-                            pushIntent.putExtra("appambit_data_keys", keysList.toTypedArray())
+                            pushIntent.putExtra("appambit_data_keys",        keysList.toTypedArray())
                             pushIntent.putExtra("appambit_data_keys_values", valuesList.toTypedArray())
                         }
-                        
+
                         intent = pushIntent
                     }
                 } else if (extras == null) {
