@@ -2,6 +2,8 @@ package com.appambitpushnotifications
 
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import com.appambit.sdk.PushKernel
@@ -218,6 +220,17 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
             reactApplicationContext.applicationContext
         )
         promise.resolve(enabled)
+    }
+
+    override fun hasNotificationPermission(promise: Promise) {
+        val granted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            reactApplicationContext.checkSelfPermission(
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+        promise.resolve(granted)
     }
 
     override fun backgroundHandlerCompleted() {

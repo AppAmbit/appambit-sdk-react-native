@@ -66,6 +66,10 @@ export const isNotificationsEnabled = async (): Promise<boolean> => {
   return AppambitPushNotifications.isNotificationsEnabled();
 };
 
+export const hasNotificationPermission = async (): Promise<boolean> => {
+  return AppambitPushNotifications.hasNotificationPermission();
+};
+
 export const setForegroundListener = (
   callback: NotificationListener
 ): (() => void) => {

@@ -7,6 +7,7 @@ export interface Spec extends TurboModule {
   requestNotificationPermissionWithResult(): Promise<boolean>;
   setNotificationsEnabled(enabled: boolean): void;
   isNotificationsEnabled(): Promise<boolean>;
+  hasNotificationPermission(): Promise<boolean>;
 
   // iOS: call when the background notification async handler Promise resolves.
   // Signals iOS that background processing is complete so the system can reclaim

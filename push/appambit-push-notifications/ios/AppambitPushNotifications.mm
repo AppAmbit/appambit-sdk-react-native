@@ -193,6 +193,13 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
   resolve(@([AppAmbitPushWrapper isNotificationsEnabled]));
 }
 
+- (void)hasNotificationPermission:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject {
+  [AppAmbitPushWrapper hasNotificationPermissionWithCompletion:^(BOOL granted) {
+    resolve(@(granted));
+  }];
+}
+
 // Called by JS when the background notification async handler Promise resolves.
 // Signals the iOS system that background processing is complete so iOS can reclaim
 // time and allow future background wake-ups.

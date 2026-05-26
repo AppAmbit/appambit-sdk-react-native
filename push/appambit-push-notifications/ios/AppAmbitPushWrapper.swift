@@ -21,6 +21,14 @@ public class AppAmbitPushWrapper: NSObject {
     PushNotifications.requestNotificationPermission(listener: listener)
   }
 
+  @objc public static func hasNotificationPermission(completion: @escaping (Bool) -> Void) {
+    UNUserNotificationCenter.current().getNotificationSettings { settings in
+      let granted = settings.authorizationStatus == .authorized
+        || settings.authorizationStatus == .provisional
+      completion(granted)
+    }
+  }
+
   @objc(setNotificationListener:)
   public static func setNotificationListener(listener: @escaping ((NSDictionary, Int) -> Void)) {
     PushNotifications.setNotificationListener { userInfo, state in
