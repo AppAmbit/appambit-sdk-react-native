@@ -14,7 +14,6 @@ export interface AndroidNotificationData {
 }
 
 export interface IosNotificationData {
-  subtitle: string | null;
   badge: number | null;
   sound: string | null;
   category: string | null;

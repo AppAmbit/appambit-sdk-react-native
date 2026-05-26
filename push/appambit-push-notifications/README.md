@@ -180,7 +180,6 @@ interface NotificationPayload {
     clickAction: string | null;
   } | null;
   ios: {
-    subtitle: string | null;
     badge: number | null;
     sound: string | null;
     category: string | null;
