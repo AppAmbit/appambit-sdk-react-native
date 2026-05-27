@@ -26,7 +26,7 @@ This SDK is an extension of the core AppAmbit SDK, providing a simple and powerf
 * **Simple Setup**: Integrates in minutes.
 * **Enable/Disable Notifications**: Easily manage user preferences at both the business and FCM level.
 * **Robust Event Listeners**: Separate callbacks for Foreground, Background, and Opened (tapped) notifications on both platforms.
-* **Android Headless JS Support**: Handle background notifications via React Native Headless JS tasks even when the app is completely killed.
+* **Android Headless JS Support**: Handle background notifications via React Native Headless JS tasks even when the app is completely closed.
 * **Automatic Field Handling**: Automatically uses standard FCM payload fields like `color`, `icon`, `channel_id`, `click_action`, and rich images.
 * **Rich Media Support**: Full iOS Notification Service Extension support for rich payloads, badges, and media attachments.
 * **Permission Helpers**: Utilities to request and check the `POST_NOTIFICATIONS` permission.
@@ -134,7 +134,7 @@ useEffect(() => {
 ```
 
 #### Background Listener
-Fires when a notification arrives while the app is backgrounded or (on Android) killed. Works on both Android and iOS.
+Fires when a notification arrives while the app is backgrounded or (on Android) killed.
 
 > **Android only**: To handle notifications when the app is completely killed, you must also register a Headless JS task — see [Android Setup](#android-setup).
 
