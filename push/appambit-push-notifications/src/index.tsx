@@ -1,4 +1,4 @@
-import { NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, Platform } from 'react-native';
 import AppambitPushNotifications from './NativeAppambitPushNotifications';
 
 export interface AndroidNotificationData {
@@ -95,13 +95,14 @@ export const Android = {
   setBackgroundListener: (
     callback: BackgroundNotificationListener
   ): (() => void) => {
+    if (Platform.OS !== 'android') {
+      return () => {};
+    }
     backgroundSub?.remove();
     backgroundSub = eventEmitter.addListener(
       EVENT_BACKGROUND,
       ((payload: NotificationPayload) => {
         void callback(payload).finally(() => {
-          // Signal iOS that the async handler finished so it can reclaim background time.
-          // On Android this is a no-op; background execution is managed by the headless task.
           AppambitPushNotifications.backgroundHandlerCompleted();
         });
       }) as any
