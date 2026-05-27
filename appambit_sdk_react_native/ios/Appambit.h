@@ -1,6 +1,6 @@
 #import <AppambitSpec/AppambitSpec.h>
 
-@interface AppAmbitModule : NSObject <NativeAppambitCoreSpec>
+@interface AppAmbit : NSObject <NativeAppambitCoreSpec>
 
 @end
 

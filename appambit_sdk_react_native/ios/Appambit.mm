@@ -1,7 +1,7 @@
 #import "Appambit.h"
 #import <Appambit-Swift.h>
 
-@implementation AppAmbitModule
+@implementation AppAmbit
 RCT_EXPORT_MODULE(AppAmbitCore);
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
