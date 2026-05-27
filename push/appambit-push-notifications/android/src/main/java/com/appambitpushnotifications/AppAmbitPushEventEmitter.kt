@@ -20,6 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 internal object AppAmbitPushEventEmitter {
 
     private const val TAG = "AppAmbitEmitter"
+    private const val MAX_QUEUE_SIZE = 100
 
     // Events used by the SDK — kept here to avoid magic strings everywhere.
     const val EVENT_FOREGROUND  = "AppAmbit_onForegroundNotification"
@@ -70,6 +71,10 @@ internal object AppAmbitPushEventEmitter {
     fun emit(eventName: String, payload: WritableMap) {
         if (!dispatchToJS(eventName, payload)) {
             Log.d(TAG, "Bridge not ready — queuing event: $eventName")
+            if (eventQueue.size >= MAX_QUEUE_SIZE) {
+                eventQueue.removeAt(0)
+                Log.w(TAG, "Event queue full — dropped oldest event")
+            }
             eventQueue.add(eventName to payload)
         }
     }
