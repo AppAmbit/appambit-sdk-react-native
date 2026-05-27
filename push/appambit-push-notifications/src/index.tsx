@@ -24,7 +24,7 @@ export interface NotificationPayload {
   title: string | null;
   body: string | null;
   imageUrl: string | null;
-  data: Record<string, string>;
+  data: Record<string, any>;
   android: AndroidNotificationData | null;
   ios: IosNotificationData | null;
 }
