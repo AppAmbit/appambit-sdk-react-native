@@ -77,13 +77,19 @@ public class AppAmbitPushWrapper: NSObject {
     return payloads
   }
 
+  private static func stringify(_ value: Any) -> String {
+    if let s = value as? String { return s }
+    if let n = value as? NSNumber { return n.stringValue }
+    return "\(value)"
+  }
+
   @objc(formatNotificationPayload:)
   public static func formatNotificationPayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
     var title: String? = nil
     var body: String? = nil
     var subtitle: String? = nil
     var imageUrl: String? = nil
-    var customData: [String: Any] = [:]
+    var customData: [String: String] = [:]
 
     let aps = userInfo["aps"] as? [String: Any]
     if let aps = aps {
@@ -105,10 +111,10 @@ public class AppAmbitPushWrapper: NSObject {
         if imageUrl == nil { imageUrl = value as? String }
       } else if keyStr == "data", let nestedData = value as? [String: Any] {
         for (nestedKey, nestedValue) in nestedData {
-          customData[nestedKey] = nestedValue
+          customData[nestedKey] = stringify(nestedValue)
         }
       } else {
-        customData[keyStr] = value
+        customData[keyStr] = stringify(value)
       }
     }
 
