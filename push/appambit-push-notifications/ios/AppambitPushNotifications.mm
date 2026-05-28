@@ -1,8 +1,12 @@
 #import "AppambitPushNotifications.h"
 #import <AppAmbitSdkPushNotifications-Swift.h>
+#import <Network/Network.h>
 
 // Defined in AppAmbitNotificationSwizzler.m — call when JS background handler resolves
 extern "C" void AppAmbitNotifyJSBackgroundHandlerCompleted(void);
+
+static NSString * const kPushPrefsKey     = @"appambit_push_has_pending";
+static NSString * const kPushEnabledKey   = @"appambit_push_pending_enabled";
 
 @implementation AppambitPushNotifications {
   BOOL _hasListeners;
@@ -10,6 +14,7 @@ extern "C" void AppAmbitNotifyJSBackgroundHandlerCompleted(void);
   NSMutableArray<NSDictionary *> *_pendingBackgroundEvents;
   NSMutableArray<NSDictionary *> *_pendingOpenedEvents;
   NSMutableArray<NSDictionary *> *_pendingForegroundEvents;
+  nw_path_monitor_t _pathMonitor;
 }
 
 RCT_EXPORT_MODULE(AppambitPushNotifications)
@@ -20,7 +25,6 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
     _pendingBackgroundEvents = [NSMutableArray new];
     _pendingOpenedEvents     = [NSMutableArray new];
     _pendingForegroundEvents = [NSMutableArray new];
-
     NSArray<NSDictionary *> *earlyBackground = [AppAmbitPushWrapper getAndClearPendingBackgroundPayloads];
     if (earlyBackground.count > 0) {
       [_pendingBackgroundEvents addObjectsFromArray:earlyBackground];
@@ -115,6 +119,20 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)handleAppBecameActive:(NSNotification *)notification {
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  if ([ud boolForKey:kPushPrefsKey]) {
+    BOOL pendingEnabled = [ud boolForKey:kPushEnabledKey];
+    __weak AppambitPushNotifications *weakSelf = self;
+    [AppAmbitPushWrapper setNotificationsEnabled:pendingEnabled completion:^(BOOL success) {
+      if (success) {
+        [weakSelf clearPendingSync];
+        [weakSelf stopNetworkMonitor];
+      } else {
+        [weakSelf startNetworkMonitor];
+      }
+    }];
+  }
+
   if (!_hasListeners || _pendingOpenedEvents.count == 0) return;
   NSArray<NSDictionary *> *toSend = [_pendingOpenedEvents copy];
   [_pendingOpenedEvents removeAllObjects];
@@ -164,12 +182,14 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)dealloc {
+  [self stopNetworkMonitor];
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 // MARK: - TurboModule Methods
 
 - (void)start {
+  [self flushPendingSyncIfNeeded];
   [AppAmbitPushWrapper start];
 }
 
@@ -185,7 +205,16 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)setNotificationsEnabled:(BOOL)enabled {
-  [AppAmbitPushWrapper setNotificationsEnabled:enabled];
+  [self savePendingSync:enabled];
+  __weak AppambitPushNotifications *weakSelf = self;
+  [AppAmbitPushWrapper setNotificationsEnabled:enabled completion:^(BOOL success) {
+    if (success) {
+      [weakSelf clearPendingSync];
+      [weakSelf stopNetworkMonitor];
+    } else {
+      [weakSelf startNetworkMonitor];
+    }
+  }];
 }
 
 - (void)isNotificationsEnabled:(RCTPromiseResolveBlock)resolve
@@ -205,6 +234,85 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 // time and allow future background wake-ups.
 - (void)backgroundHandlerCompleted {
   AppAmbitNotifyJSBackgroundHandlerCompleted();
+}
+
+// MARK: - Offline-resilient consumer sync
+
+- (void)savePendingSync:(BOOL)enabled {
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  [ud setBool:YES forKey:kPushPrefsKey];
+  [ud setBool:enabled forKey:kPushEnabledKey];
+  [ud synchronize];
+}
+
+- (void)clearPendingSync {
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  [ud setBool:NO forKey:kPushPrefsKey];
+  [ud synchronize];
+}
+
+- (void)flushPendingSyncIfNeeded {
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  if (![ud boolForKey:kPushPrefsKey]) return;
+  BOOL enabled = [ud boolForKey:kPushEnabledKey];
+  __weak AppambitPushNotifications *weakSelf = self;
+  [AppAmbitPushWrapper setNotificationsEnabled:enabled completion:^(BOOL success) {
+    if (success) {
+      [weakSelf clearPendingSync];
+      [weakSelf stopNetworkMonitor];
+    } else {
+      [weakSelf startNetworkMonitor];
+    }
+  }];
+}
+
+// Monitors network path and retries the pending consumer sync as soon as
+// connectivity is restored. Mirrors Android's ConnectivityManager.NetworkCallback.
+// The monitor stays active until either clearPendingSync is called or the
+// module is deallocated — it never gives up on its own.
+- (void)startNetworkMonitor {
+  [self stopNetworkMonitor];
+
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  if (![ud boolForKey:kPushPrefsKey]) return;
+
+  __weak AppambitPushNotifications *weakSelf = self;
+  nw_path_monitor_t monitor = nw_path_monitor_create();
+  _pathMonitor = monitor;
+
+  nw_path_monitor_set_update_handler(monitor, ^(nw_path_t path) {
+    if (nw_path_get_status(path) != nw_path_status_satisfied) return;
+
+    AppambitPushNotifications *strongSelf = weakSelf;
+    if (!strongSelf) return;
+
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    if (![ud boolForKey:kPushPrefsKey]) {
+      [strongSelf stopNetworkMonitor];
+      return;
+    }
+
+    BOOL pendingEnabled = [ud boolForKey:kPushEnabledKey];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [AppAmbitPushWrapper setNotificationsEnabled:pendingEnabled completion:^(BOOL success) {
+        if (success) {
+          [strongSelf clearPendingSync];
+          [strongSelf stopNetworkMonitor];
+        }
+        // On failure: keep monitor running; next path update will retry.
+      }];
+    });
+  });
+
+  nw_path_monitor_set_queue(monitor, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
+  nw_path_monitor_start(monitor);
+}
+
+- (void)stopNetworkMonitor {
+  if (_pathMonitor) {
+    nw_path_monitor_cancel(_pathMonitor);
+    _pathMonitor = nil;
+  }
 }
 
 - (void)addListener:(NSString *)eventName {

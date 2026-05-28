@@ -13,6 +13,15 @@ public class AppAmbitPushWrapper: NSObject {
     PushNotifications.setNotificationsEnabled(enabled)
   }
 
+  /// Completion-based variant: reports whether the backend network call succeeded.
+  /// Used by the offline-retry path so it knows when to clear the pending flag.
+  @objc(setNotificationsEnabled:completion:)
+  public static func setNotificationsEnabled(_ enabled: Bool, completion: @escaping (Bool) -> Void) {
+    PushKernel.setNotificationsEnabled(enabled)
+    let token = PushKernel.getCurrentToken()
+    ConsumerService.shared.updateConsumer(deviceToken: token, pushEnabled: enabled, completion: completion)
+  }
+
   @objc public static func isNotificationsEnabled() -> Bool {
     return PushNotifications.isNotificationsEnabled()
   }

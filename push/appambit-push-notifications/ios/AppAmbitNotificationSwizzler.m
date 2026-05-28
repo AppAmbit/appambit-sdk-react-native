@@ -15,6 +15,29 @@
 
 static BOOL _capturedFromLaunchOptions = NO;
 
+// ─── APNs token swizzle ───────────────────────────────────────────────────────
+
+typedef void (*DidRegisterTokenIMPType)(id, SEL, UIApplication *, NSData *);
+static DidRegisterTokenIMPType _originalDidRegisterTokenIMP = NULL;
+
+static void AppAmbitDidRegisterTokenIMP(
+    id self,
+    SEL _cmd,
+    UIApplication *application,
+    NSData *deviceToken
+) {
+    NSMutableString *tokenString = [NSMutableString stringWithCapacity:deviceToken.length * 2];
+    const unsigned char *bytes = (const unsigned char *)deviceToken.bytes;
+    for (NSUInteger i = 0; i < deviceToken.length; i++) {
+        [tokenString appendFormat:@"%02x", bytes[i]];
+    }
+    [PushKernel handleNewToken:tokenString];
+
+    if (_originalDidRegisterTokenIMP != NULL) {
+        _originalDidRegisterTokenIMP(self, _cmd, application, deviceToken);
+    }
+}
+
 // ─── background remote notification swizzle ──────────────────────────────────
 
 typedef void (^RemoteNotificationCompletionHandler)(UIBackgroundFetchResult);
@@ -271,13 +294,23 @@ static void AppAmbitSetDelegateIMP(
         }
     }
 
-    // ── Background remote notification swizzle ────────────────────────────────
     id<UIApplicationDelegate> delegate = UIApplication.sharedApplication.delegate;
     if (!delegate) return;
 
     Class delegateClass = object_getClass(delegate);
-    SEL selector = @selector(application:didReceiveRemoteNotification:fetchCompletionHandler:);
 
+    // ── APNs token swizzle ────────────────────────────────────────────────────
+    SEL tokenSelector = @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:);
+    Method tokenMethod = class_getInstanceMethod(delegateClass, tokenSelector);
+    if (tokenMethod) {
+        _originalDidRegisterTokenIMP = (DidRegisterTokenIMPType)method_getImplementation(tokenMethod);
+        method_setImplementation(tokenMethod, (IMP)AppAmbitDidRegisterTokenIMP);
+    } else {
+        class_addMethod(delegateClass, tokenSelector, (IMP)AppAmbitDidRegisterTokenIMP, "v@:@@");
+    }
+
+    // ── Background remote notification swizzle ────────────────────────────────
+    SEL selector = @selector(application:didReceiveRemoteNotification:fetchCompletionHandler:);
     Method existingMethod = class_getInstanceMethod(delegateClass, selector);
     if (existingMethod) {
         _originalRemoteNotificationIMP = (RemoteNotificationIMPType)method_getImplementation(existingMethod);
