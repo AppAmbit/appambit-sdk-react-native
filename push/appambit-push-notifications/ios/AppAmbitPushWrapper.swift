@@ -114,10 +114,10 @@ public class AppAmbitPushWrapper: NSObject {
         if imageUrl == nil { imageUrl = value as? String }
       } else if keyStr == "data", let nestedData = value as? [String: Any] {
         for (nestedKey, nestedValue) in nestedData {
-          customData[nestedKey] = nestedValue
+          customData[nestedKey] = (nestedValue as? String) ?? String(describing: nestedValue)
         }
       } else {
-        customData[keyStr] = value
+        customData[keyStr] = (value as? String) ?? String(describing: value)
       }
     }
 

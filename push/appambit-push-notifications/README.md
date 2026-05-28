@@ -25,7 +25,7 @@ This SDK is an extension of the core AppAmbit SDK, providing a simple and powerf
 * **Zero-Config iOS**: No AppDelegate changes required — the SDK wires itself up automatically via method swizzling.
 * **Simple Setup**: Integrates in minutes.
 * **Enable/Disable Notifications**: Easily manage user preferences at both the business and FCM level.
-* **Robust Event Listeners**: Separate callbacks for Foreground, Background, and Opened (tapped) notifications on both platforms.
+* **Robust Event Listeners**: Separate callbacks for Foreground and Opened (tapped) notifications on both platforms, Background listener is Android-only.
 * **Android Headless JS Support**: Handle background notifications via React Native Headless JS tasks even when the app is completely closed.
 * **Automatic Field Handling**: Automatically uses standard FCM payload fields like `color`, `icon`, `channel_id`, `click_action`, and rich images.
 * **Rich Media Support**: Full iOS Notification Service Extension support for rich payloads, badges, and media attachments.
