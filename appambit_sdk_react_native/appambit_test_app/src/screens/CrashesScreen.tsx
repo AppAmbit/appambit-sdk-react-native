@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ScrollView, Text, Alert, View } from "react-native";
+import { ScrollView, Text, Alert, View, ActivityIndicator } from "react-native";
 import { uuidv4 } from "../utils/uuid";
 
 import {
@@ -21,25 +21,44 @@ export default function CrashesScreen() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkNotificationState = async () => {
       try {
         const [permission, enabled] = await Promise.all([
           PushNotifications.hasNotificationPermission(),
           PushNotifications.isNotificationsEnabled(),
         ]);
+
+        if (!isMounted) {
+          return;
+        }
+
         setHasPermission(permission);
         setNotificationsEnabledState(enabled);
-      } catch (e) {
-        console.warn("[CrashesScreen] Failed to read notification state:", e);
+      } catch (error) {
+        console.warn("[CrashesScreen] Failed to read notification state", error);
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
+
     checkNotificationState();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (isLoading) {
-    return null;
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 12, fontSize: 16 }}>Loading Crashes screen...</Text>
+      </View>
+    );
   }
 
   return (
@@ -113,7 +132,7 @@ export default function CrashesScreen() {
         }}
       />
 
-      <CustomButton title="Send Exception LogError" 
+      <CustomButton title="Send Exception LogError"
         onPress={() => {
             try {
               throw new Error();
@@ -125,14 +144,14 @@ export default function CrashesScreen() {
             }
       }} />
 
-      <CustomButton title="Throw new Crash" 
+      <CustomButton title="Throw new Crash"
         onPress={() => {
             Alert.alert("Info", "LogError sent");
             throw new Error("Test Crash");
         }
       } />
 
-      <CustomButton title="Generate Test Crash" 
+      <CustomButton title="Generate Test Crash"
         onPress={() => {
             generateTestCrash();
         }
