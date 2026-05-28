@@ -22,13 +22,18 @@ export default function CrashesScreen() {
 
   useEffect(() => {
     const checkNotificationState = async () => {
-      const [permission, enabled] = await Promise.all([
-        PushNotifications.hasNotificationPermission(),
-        PushNotifications.isNotificationsEnabled(),
-      ]);
-      setHasPermission(permission);
-      setNotificationsEnabledState(enabled);
-      setIsLoading(false);
+      try {
+        const [permission, enabled] = await Promise.all([
+          PushNotifications.hasNotificationPermission(),
+          PushNotifications.isNotificationsEnabled(),
+        ]);
+        setHasPermission(permission);
+        setNotificationsEnabledState(enabled);
+      } catch (e) {
+        console.warn("[CrashesScreen] Failed to read notification state:", e);
+      } finally {
+        setIsLoading(false);
+      }
     };
     checkNotificationState();
   }, []);
