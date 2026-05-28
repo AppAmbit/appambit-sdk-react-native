@@ -1,9 +1,16 @@
 package com.appambitpushnotifications
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
 import com.appambit.sdk.PushKernel
@@ -26,10 +33,19 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     companion object {
         const val NAME = "AppambitPushNotifications"
         private const val TAG = "AppAmbitPushModule"
+
+        // SharedPreferences for offline-resilient consumer sync
+        private const val PUSH_PREFS = "appambit_push_prefs"
+        private const val KEY_HAS_PENDING = "appambit_push_has_pending"
+        private const val KEY_PENDING_ENABLED = "appambit_push_pending_enabled"
     }
 
     private var hasRegisteredOpenedListener = false
     private var lastProcessedIntent: Intent? = null
+
+    // Offline retry state
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
+    private val retryHandler = Handler(Looper.getMainLooper())
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -49,6 +65,7 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     }
 
     override fun invalidate() {
+        cancelOfflineRetry()
         AppAmbitPushEventEmitter.detach()
         PushKernel.setOpenedNotificationListener(null)
         reactApplicationContext.removeActivityEventListener(this)
@@ -60,17 +77,17 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     private fun checkInitialIntent() {
         val activity = currentActivity
         Log.d(TAG, "checkInitialIntent called. activity=$activity")
-        
+
         if (activity != null) {
             var intent = activity.intent
             Log.d(TAG, "checkInitialIntent: intent=$intent, lastProcessedIntent=$lastProcessedIntent")
-            
+
             if (intent != null && intent != lastProcessedIntent) {
                 lastProcessedIntent = intent
-                
+
                 Log.d(TAG, "checkInitialIntent: original action=${intent.action}")
                 val extras = intent.extras
-                
+
                 if (extras != null && intent.action != "com.appambit.sdk.NOTIFICATION_OPENED") {
                     var isPush = extras.containsKey("google.message_id")
                     for (key in extras.keySet()) {
@@ -79,7 +96,7 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
                             isPush = true
                         }
                     }
-                    
+
                     if (isPush) {
                         Log.d(TAG, "checkInitialIntent: Detected FCM System Tray Intent. Mutating format...")
                         val pushIntent = Intent(intent)
@@ -185,6 +202,10 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
 
     override fun start() {
         checkInitialIntent()
+        // Replay any pending enabled/disabled state that failed to sync while offline.
+        // Must run before PushNotifications.start() so the correct state is in place
+        // before the token listener and initial consumer sync run.
+        flushPendingSyncIfNeeded()
         PushNotifications.start(reactApplicationContext.applicationContext)
     }
 
@@ -209,10 +230,13 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     }
 
     override fun setNotificationsEnabled(enabled: Boolean) {
-        PushNotifications.setNotificationsEnabled(
-            reactApplicationContext.applicationContext,
-            enabled
-        )
+        val context = reactApplicationContext.applicationContext
+        // Persist intent immediately so it survives process death and app restarts.
+        savePendingSync(context, enabled)
+        // Optimistic attempt — succeeds online, fails silently offline.
+        PushNotifications.setNotificationsEnabled(context, enabled)
+        // Register a connectivity callback to retry as soon as the network returns.
+        scheduleOfflineRetry(context)
     }
 
     override fun isNotificationsEnabled(promise: Promise) {
@@ -249,6 +273,84 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
 
     override fun removeListeners(count: Double) {
         // No-op
+    }
+
+    // ── Offline-resilient consumer sync ──────────────────────────────────────
+
+    /**
+     * Persists the desired enabled state so it survives process death.
+     * Cleared only by the connectivity callback after a successful retry.
+     */
+    private fun savePendingSync(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_HAS_PENDING, true)
+            .putBoolean(KEY_PENDING_ENABLED, enabled)
+            .apply()
+    }
+
+    private fun clearPendingSync(context: Context) {
+        context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_HAS_PENDING, false)
+            .apply()
+    }
+
+    /**
+     * Called from start() to replay a pending sync that was not delivered in a
+     * previous session (e.g. user toggled while offline, then the app was killed).
+     */
+    private fun flushPendingSyncIfNeeded() {
+        val context = reactApplicationContext.applicationContext
+        val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(KEY_HAS_PENDING, false)) return
+        val enabled = prefs.getBoolean(KEY_PENDING_ENABLED, true)
+        Log.d(TAG, "flushPendingSyncIfNeeded: replaying enabled=$enabled")
+        PushNotifications.setNotificationsEnabled(context, enabled)
+        // Keep the pending flag set; the ConnectivityManager callback clears it once
+        // the device has connectivity, guaranteeing at least one confirmed delivery.
+        scheduleOfflineRetry(context)
+    }
+
+    /**
+     * Registers a one-shot ConnectivityManager callback that retries the consumer
+     * sync as soon as an internet-capable network is available.
+     */
+    private fun scheduleOfflineRetry(context: Context) {
+        cancelOfflineRetry()
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val cb = object : ConnectivityManager.NetworkCallback() {
+            override fun onAvailable(network: Network) {
+                val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+                if (!prefs.getBoolean(KEY_HAS_PENDING, false)) {
+                    cancelOfflineRetry()
+                    return
+                }
+                val pendingEnabled = prefs.getBoolean(KEY_PENDING_ENABLED, true)
+                Log.d(TAG, "Network available — retrying setNotificationsEnabled=$pendingEnabled")
+                retryHandler.post {
+                    PushNotifications.setNotificationsEnabled(context, pendingEnabled)
+                    clearPendingSync(context)
+                    cancelOfflineRetry()
+                }
+            }
+        }
+        networkCallback = cb
+        cm.registerNetworkCallback(
+            NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build(),
+            cb
+        )
+    }
+
+    private fun cancelOfflineRetry() {
+        retryHandler.removeCallbacksAndMessages(null)
+        networkCallback?.let { cb ->
+            try {
+                (reactApplicationContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+                    as ConnectivityManager).unregisterNetworkCallback(cb)
+            } catch (_: Exception) { /* already unregistered */ }
+            networkCallback = null
+        }
     }
 
     // ── Internal helpers ──────────────────────────────────────────────────────
