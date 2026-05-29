@@ -9,6 +9,10 @@ public class AppAmbitPushWrapper: NSObject {
     PushNotifications.start()
   }
 
+  @objc public static func handleNewToken(_ token: String) {
+    PushKernel.handleNewToken(token)
+  }
+
   @objc public static func setNotificationsEnabled(_ enabled: Bool) {
     PushNotifications.setNotificationsEnabled(enabled)
   }
@@ -17,9 +21,7 @@ public class AppAmbitPushWrapper: NSObject {
   /// Used by the offline-retry path so it knows when to clear the pending flag.
   @objc(setNotificationsEnabled:completion:)
   public static func setNotificationsEnabled(_ enabled: Bool, completion: @escaping (Bool) -> Void) {
-    PushKernel.setNotificationsEnabled(enabled)
-    let token = PushKernel.getCurrentToken()
-    ConsumerService.shared.updateConsumer(deviceToken: token, pushEnabled: enabled, completion: completion)
+    PushNotifications.setNotificationsEnabled(enabled)
   }
 
   @objc public static func isNotificationsEnabled() -> Bool {

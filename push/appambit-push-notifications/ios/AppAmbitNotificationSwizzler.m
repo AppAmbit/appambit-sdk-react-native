@@ -31,7 +31,7 @@ static void AppAmbitDidRegisterTokenIMP(
     for (NSUInteger i = 0; i < deviceToken.length; i++) {
         [tokenString appendFormat:@"%02x", bytes[i]];
     }
-    [PushKernel handleNewToken:tokenString];
+    [AppAmbitPushWrapper handleNewToken:tokenString];
 
     if (_originalDidRegisterTokenIMP != NULL) {
         _originalDidRegisterTokenIMP(self, _cmd, application, deviceToken);
