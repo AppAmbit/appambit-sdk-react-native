@@ -242,6 +242,22 @@ AppRegistry.registerComponent(appName, () => App);
 
 ---
 
+### iOS Setup
+
+#### Push Notifications Capability & APNs Entitlement
+
+Enable **Push Notifications** in Xcode under your target's *Signing & Capabilities* tab. This automatically injects the `aps-environment` entitlement into your `.entitlements` file.
+
+If you manage `Runner.entitlements` manually (e.g. via version control or CI), make sure this key is present — without it APNs will reject device registration and no token will ever be delivered:
+
+```xml
+<!-- ios/Runner/Runner.entitlements -->
+<key>aps-environment</key>
+<string>development</string>   <!-- use "production" for App Store builds -->
+```
+
+---
+
 ### iOS Notification Service Extension (Rich Notifications)
 
 To display rich notifications with image attachments, create a Notification Service Extension in Xcode.
