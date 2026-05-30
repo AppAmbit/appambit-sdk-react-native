@@ -101,50 +101,171 @@ stop_metro() {
 # ── Logs nativos ──────────────────────────────────────────────────────────────
 start_ios_native_logs() {
   local udid="$1"
-  local bundle_id="com.AppAmbit.TestAppSwift"
 
-  log "Activando stream de logs iOS (sin relanzar la app)..."
-  # Do NOT terminate and relaunch — a second xcrun simctl launch causes
-  # "PlatformConstants could not be found" TurboModule errors.
-  # xcrun simctl spawn log stream captures NSLog, os_log and print() output
-  # (the Simulator redirects the app's stdout/stderr to the unified log)
-  # from the already-running process without touching it.
+  log "Activando stream de logs iOS..."
+  # Equivalente al --pid de Android: muestra todos los logs del proceso de la app
+  # (NSLog, os_log, print/debugPrint). Sin grep para no perder nada.
   xcrun simctl spawn "$udid" log stream \
     --predicate 'process == "AppambitExample"' \
     --level debug \
     2>&1 \
     | awk 'BEGIN{p="\033[0;35m"; r="\033[0m"} {print p "[iOS]" r " " $0; fflush()}' &
   NATIVE_LOG_PID=$!
-  success "Logs nativos iOS activos — log stream de AppambitExample (PID $NATIVE_LOG_PID)"
+  success "Logs nativos iOS activos — proceso AppambitExample (PID $NATIVE_LOG_PID)"
 }
 
 start_android_native_logs() {
   local device_id="$1"
-  log "Iniciando stream de logs Android (logcat filtrado)..."
+  log "Iniciando stream de logs Android..."
   adb -s "$device_id" logcat -c 2>/dev/null || true
 
-  # Filtra solo tags relevantes: JS console.* + SDK AppAmbit + crashes
-  adb -s "$device_id" logcat -v time \
-    'ReactNativeJS:V' \
-    'ReactNative:W' \
-    'AppAmbit:D' \
-    'AppAmbitEmitter:D' \
-    'AppAmbitRNExtension:D' \
-    'AppAmbitPushModule:D' \
-    'AppAmbitMessagingService:D' \
-    'AppAmbitHeadless:D' \
-    'AppAmbitInitProvider:D' \
-    'AndroidRuntime:E' \
-    'System.err:W' \
-    '*:S' 2>/dev/null \
-    | awk 'BEGIN{p="\033[1;33m"; r="\033[0m"} {print p "[ANDROID]" r " " $0; fflush()}' &
+  # Filtra por PID de la app para ver TODOS los Log.d/Log.e/Log.i/etc.
+  # sin importar el tag que usen — equivalente a lo que ves en Android Studio.
+  local app_pid
+  app_pid=$(adb -s "$device_id" shell pidof com.AppAmbit.TestApp 2>/dev/null \
+    | tr -d '\r' | awk '{print $1}')
 
+  if [[ -n "$app_pid" ]]; then
+    log "PID de la app: $app_pid"
+    adb -s "$device_id" logcat --pid="$app_pid" -v time 2>/dev/null \
+      | awk 'BEGIN{p="\033[1;33m"; r="\033[0m"} {print p "[ANDROID]" r " " $0; fflush()}' &
+  else
+    warn "No se encontró PID de la app; mostrando logcat con tags AppAmbit"
+    adb -s "$device_id" logcat -v time \
+      'AppAmbit:V' \
+      'AppAmbitEmitter:V' \
+      'AppAmbitRNExtension:V' \
+      'AppAmbitPushModule:V' \
+      'AppAmbitMessagingService:V' \
+      'AppAmbitHeadless:V' \
+      'AppAmbitInitProvider:V' \
+      '*:S' 2>/dev/null \
+      | awk 'BEGIN{p="\033[1;33m"; r="\033[0m"} {print p "[ANDROID]" r " " $0; fflush()}' &
+  fi
   NATIVE_LOG_PID=$!
   success "Logs Android activos (PID $NATIVE_LOG_PID)"
 }
 
+# ── Dependencias JS ───────────────────────────────────────────────────────────
+# El Podfile de React Native resuelve react_native_pods.rb vía
+# require.resolve('react-native', ...), por lo que node_modules DEBE existir
+# antes de `pod install` o de cualquier build. En un clon fresco esto falla con
+# "Cannot find module 'react-native/scripts/react_native_pods.rb'".
+ensure_node_modules() {
+  cd "$SCRIPT_DIR"
+  if [[ -d node_modules/react-native ]]; then
+    success "node_modules presente (react-native encontrado)"
+    return 0
+  fi
+  log "node_modules ausente o incompleto — instalando dependencias JS (yarn install)..."
+  yarn install
+  if [[ ! -d node_modules/react-native ]]; then
+    err "yarn install no instaló react-native. Revisa Node (>=20), Yarn y package.json."
+    exit 1
+  fi
+  success "Dependencias JS instaladas"
+}
+
+# ── Prerrequisitos ────────────────────────────────────────────────────────────
+# Verifica que un comando exista en PATH; si no, aborta con un mensaje accionable.
+require_cmd() {
+  local cmd="$1" hint="$2"
+  if ! command -v "$cmd" &>/dev/null; then
+    err "Falta el comando requerido: '$cmd'"
+    [[ -n "$hint" ]] && echo "  → $hint"
+    exit 1
+  fi
+}
+
+# Herramientas comunes a ambas plataformas.
+check_common_prereqs() {
+  require_cmd node "Instala Node >=20 (https://nodejs.org o vía nvm)."
+  require_cmd yarn "Instala Yarn: 'npm install -g yarn'."
+  require_cmd curl "curl es necesario para sondear Metro."
+  require_cmd lsof "lsof es necesario para gestionar el puerto de Metro."
+
+  local major
+  major=$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || echo 0)
+  if (( major < 20 )); then
+    warn "Node $(node -v) detectado. El proyecto requiere Node >=20 (recomendado LTS 20/22)."
+  fi
+}
+
+# Asegura que el Android SDK esté localizable y que android/local.properties
+# apunte a una ruta válida en ESTA máquina. local.properties es específico de
+# cada equipo y no debe versionarse; si está ausente o apunta a una ruta
+# inexistente (p. ej. la de otro desarrollador), lo regeneramos.
+ensure_android_sdk() {
+  local sdk=""
+  if [[ -n "${ANDROID_HOME:-}" && -d "${ANDROID_HOME}" ]]; then
+    sdk="$ANDROID_HOME"
+  elif [[ -n "${ANDROID_SDK_ROOT:-}" && -d "${ANDROID_SDK_ROOT}" ]]; then
+    sdk="$ANDROID_SDK_ROOT"
+  elif [[ -d "$HOME/Library/Android/sdk" ]]; then
+    sdk="$HOME/Library/Android/sdk"
+  fi
+
+  local props="$SCRIPT_DIR/android/local.properties"
+  local current=""
+  [[ -f "$props" ]] && current=$(grep -E '^sdk\.dir=' "$props" 2>/dev/null | head -1 | cut -d= -f2- || true)
+
+  # Si el local.properties existente ya apunta a una ruta válida, respétalo.
+  if [[ -n "$current" && -d "$current" ]]; then
+    success "Android SDK: $current (local.properties válido)"
+    sdk="$current"
+  elif [[ -n "$sdk" ]]; then
+    log "Regenerando android/local.properties con sdk.dir=$sdk"
+    printf 'sdk.dir=%s\n' "$sdk" > "$props"
+    success "android/local.properties configurado para esta máquina"
+  else
+    err "No se encontró el Android SDK."
+    echo "  → Instala Android Studio + SDK y exporta ANDROID_HOME, o"
+    echo "  → crea android/local.properties con: sdk.dir=/ruta/a/tu/Android/sdk"
+    exit 1
+  fi
+
+  # adb / platform-tools en PATH (el SDK puede estar instalado sin exportar PATH).
+  if ! command -v adb &>/dev/null; then
+    if [[ -n "$sdk" && -x "$sdk/platform-tools/adb" ]]; then
+      export PATH="$sdk/platform-tools:$PATH"
+      success "adb añadido al PATH desde $sdk/platform-tools"
+    else
+      err "Falta 'adb' en PATH."
+      echo "  → Añade \$ANDROID_HOME/platform-tools a tu PATH."
+      exit 1
+    fi
+  fi
+}
+
+# Asegura CocoaPods disponible. El proyecto fija la versión en el Gemfile, así
+# que preferimos `bundle exec pod` (versión reproducible) y caemos a `pod`
+# global solo si no hay bundler. Devuelve el comando a usar vía POD_CMD.
+POD_CMD=""
+ensure_cocoapods() {
+  require_cmd xcrun "Instala Xcode y sus Command Line Tools ('xcode-select --install')."
+  if [[ -f "$SCRIPT_DIR/Gemfile" ]] && command -v bundle &>/dev/null; then
+    log "Instalando gems (bundle install)..."
+    ( cd "$SCRIPT_DIR" && bundle install )
+    POD_CMD="bundle exec pod"
+    success "CocoaPods vía Bundler (versión fijada en Gemfile)"
+  elif command -v pod &>/dev/null; then
+    POD_CMD="pod"
+    warn "Usando CocoaPods global (no Bundler). Para versión reproducible: 'gem install bundler && bundle install'."
+  else
+    err "Falta CocoaPods."
+    echo "  → Recomendado: 'gem install bundler' y luego el script usará el Gemfile, o"
+    echo "  → 'sudo gem install cocoapods'."
+    exit 1
+  fi
+}
+
 # ── iOS ───────────────────────────────────────────────────────────────────────
 run_ios() {
+  # 0. Prerrequisitos + dependencias JS (node_modules) — requerido por el Podfile
+  check_common_prereqs
+  require_cmd xcrun "Instala Xcode y sus Command Line Tools ('xcode-select --install')."
+  ensure_node_modules
+
   # 1. Limpieza
   if $SKIP_CLEAN; then
     warn "Limpieza omitida (--skip-clean)"
@@ -160,9 +281,10 @@ run_ios() {
   if $SKIP_PODS; then
     warn "Pod install omitido (--skip-pods)"
   else
-    log "Ejecutando pod install..."
+    ensure_cocoapods
+    log "Ejecutando $POD_CMD install..."
     cd "$SCRIPT_DIR/ios"
-    pod install
+    $POD_CMD install
     cd "$SCRIPT_DIR"
     success "Pods instalados"
   fi
@@ -262,6 +384,11 @@ run_ios() {
 
 # ── Android ───────────────────────────────────────────────────────────────────
 run_android() {
+  # 0. Prerrequisitos + dependencias JS (node_modules) — requerido por el build de RN
+  check_common_prereqs
+  ensure_node_modules
+  ensure_android_sdk
+
   # 1. Limpieza
   if $SKIP_CLEAN; then
     warn "Limpieza omitida (--skip-clean)"
