@@ -9,10 +9,9 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.activity.ComponentActivity
+import com.appambit.sdk.AppAmbit
 import com.appambit.sdk.PushKernel
 import com.appambit.sdk.PushNotifications
 import com.facebook.react.bridge.ActivityEventListener
@@ -34,18 +33,18 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
         const val NAME = "AppambitPushNotifications"
         private const val TAG = "AppAmbitPushModule"
 
-        // SharedPreferences for offline-resilient consumer sync
+        // SharedPreferences for UI state persistence across restarts.
         private const val PUSH_PREFS = "appambit_push_prefs"
-        private const val KEY_HAS_PENDING = "appambit_push_has_pending"
-        private const val KEY_PENDING_ENABLED = "appambit_push_pending_enabled"
+        private const val KEY_ENABLED_STATE = "appambit_push_enabled_state"
+        private const val KEY_HAS_ENABLED_STATE = "appambit_push_has_enabled_state"
+        // Pending consumer-sync intent: last toggle not yet confirmed online.
+        private const val KEY_PENDING = "appambit_push_pending_sync"
+        private const val KEY_PENDING_VALUE = "appambit_push_pending_value"
     }
 
     private var hasRegisteredOpenedListener = false
     private var lastProcessedIntent: Intent? = null
-
-    // Offline retry state
     private var networkCallback: ConnectivityManager.NetworkCallback? = null
-    private val retryHandler = Handler(Looper.getMainLooper())
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
@@ -60,16 +59,18 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
         reactApplicationContext.addActivityEventListener(this)
         reactApplicationContext.addLifecycleEventListener(this)
 
+        registerNetworkCallback()
+
         // Try to check intent immediately if activity exists
         checkInitialIntent()
     }
 
     override fun invalidate() {
-        cancelOfflineRetry()
         AppAmbitPushEventEmitter.detach()
         PushKernel.setOpenedNotificationListener(null)
         reactApplicationContext.removeActivityEventListener(this)
         reactApplicationContext.removeLifecycleEventListener(this)
+        unregisterNetworkCallback()
         hasRegisteredOpenedListener = false
         super.invalidate()
     }
@@ -169,11 +170,9 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     // ── LifecycleEventListener ────────────────────────────────────────────────
 
     override fun onHostResume() {
-        // This handles the case where the React bridge was started in the background
-        // by a Headless task, and then the user tapped the notification.
-        // initialize() was already called when currentActivity was null.
-        // Now onHostResume is called and currentActivity is available!
         checkInitialIntent()
+        // Replay any deferred consumer sync (covers "toggle offline → reopen online").
+        flushPendingConsumerSync()
     }
 
     override fun onHostPause() {
@@ -202,11 +201,11 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
 
     override fun start() {
         checkInitialIntent()
-        // Replay any pending enabled/disabled state that failed to sync while offline.
-        // Must run before PushNotifications.start() so the correct state is in place
-        // before the token listener and initial consumer sync run.
-        flushPendingSyncIfNeeded()
         PushNotifications.start(reactApplicationContext.applicationContext)
+        // start() is invoked from JS right after AppAmbit.start() (Core init), so this
+        // is the first reliable point where a deferred consumer sync can succeed.
+        // onHostResume / the network callback may fire before Core is initialized.
+        flushPendingConsumerSync()
     }
 
     override fun requestNotificationPermission() {
@@ -231,19 +230,36 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
 
     override fun setNotificationsEnabled(enabled: Boolean) {
         val context = reactApplicationContext.applicationContext
-        // Persist intent immediately so it survives process death and app restarts.
-        savePendingSync(context, enabled)
-        // Optimistic attempt — succeeds online, fails silently offline.
-        PushNotifications.setNotificationsEnabled(context, enabled)
-        // Register a connectivity callback to retry as soon as the network returns.
-        scheduleOfflineRetry(context)
+        val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+        // 1. Persist user intent for UI state consistency across restarts and
+        //    2. record a pending consumer-sync intent (cleared once delivered).
+        prefs.edit()
+            .putBoolean(KEY_ENABLED_STATE, enabled)
+            .putBoolean(KEY_HAS_ENABLED_STATE, true)
+            .putBoolean(KEY_PENDING_VALUE, enabled)
+            .putBoolean(KEY_PENDING, true)
+            .apply()
+        // 3. Update the SDK's local enabled flag (no network) so cold-start token
+        //    sync knows the user's intent.
+        PushKernel.setNotificationsEnabled(context, enabled)
+        // 4. Push to the backend when online; otherwise defer until connectivity
+        //    returns (replayed from the network callback / onHostResume).
+        flushPendingConsumerSync()
     }
 
     override fun isNotificationsEnabled(promise: Promise) {
-        val enabled = PushNotifications.isNotificationsEnabled(
-            reactApplicationContext.applicationContext
-        )
-        promise.resolve(enabled)
+        val context = reactApplicationContext.applicationContext
+        val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_HAS_ENABLED_STATE, false)) {
+            // Return our own persisted state — always the last value the user explicitly set,
+            // survives cold restarts and SDK state inconsistencies.
+            promise.resolve(prefs.getBoolean(KEY_ENABLED_STATE, false))
+        } else {
+            // First-ever launch: no stored state yet, ask the SDK.
+            promise.resolve(
+                PushNotifications.isNotificationsEnabled(context)
+            )
+        }
     }
 
     override fun hasNotificationPermission(promise: Promise) {
@@ -276,81 +292,94 @@ class AppambitPushNotificationsModule(reactContext: ReactApplicationContext) :
     }
 
     // ── Offline-resilient consumer sync ──────────────────────────────────────
+    // The SDK's consumer update is fire-and-forget with no offline retry, so we
+    // defer it while offline and replay it when connectivity returns.
 
-    /**
-     * Persists the desired enabled state so it survives process death.
-     * Cleared only by the connectivity callback after a successful retry.
-     */
-    private fun savePendingSync(context: Context, enabled: Boolean) {
-        context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(KEY_HAS_PENDING, true)
-            .putBoolean(KEY_PENDING_ENABLED, enabled)
-            .apply()
-    }
-
-    private fun clearPendingSync(context: Context) {
-        context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(KEY_HAS_PENDING, false)
-            .apply()
-    }
-
-    /**
-     * Called from start() to replay a pending sync that was not delivered in a
-     * previous session (e.g. user toggled while offline, then the app was killed).
-     */
-    private fun flushPendingSyncIfNeeded() {
-        val context = reactApplicationContext.applicationContext
-        val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
-        if (!prefs.getBoolean(KEY_HAS_PENDING, false)) return
-        val enabled = prefs.getBoolean(KEY_PENDING_ENABLED, true)
-        Log.d(TAG, "flushPendingSyncIfNeeded: replaying enabled=$enabled")
-        PushNotifications.setNotificationsEnabled(context, enabled)
-        // Keep the pending flag set; the ConnectivityManager callback clears it once
-        // the device has connectivity, guaranteeing at least one confirmed delivery.
-        scheduleOfflineRetry(context)
-    }
-
-    /**
-     * Registers a one-shot ConnectivityManager callback that retries the consumer
-     * sync as soon as an internet-capable network is available.
-     */
-    private fun scheduleOfflineRetry(context: Context) {
-        cancelOfflineRetry()
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val cb = object : ConnectivityManager.NetworkCallback() {
+    private fun registerNetworkCallback() {
+        if (networkCallback != null) return
+        val cm = reactApplicationContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+            as? ConnectivityManager ?: return
+        val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
-                val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
-                if (!prefs.getBoolean(KEY_HAS_PENDING, false)) {
-                    cancelOfflineRetry()
-                    return
-                }
-                val pendingEnabled = prefs.getBoolean(KEY_PENDING_ENABLED, true)
-                Log.d(TAG, "Network available — retrying setNotificationsEnabled=$pendingEnabled")
-                retryHandler.post {
-                    PushNotifications.setNotificationsEnabled(context, pendingEnabled)
-                    clearPendingSync(context)
-                    cancelOfflineRetry()
+                Log.d(TAG, "NetworkCallback.onAvailable")
+                flushPendingConsumerSync()
+            }
+
+            override fun onCapabilitiesChanged(
+                network: Network,
+                caps: NetworkCapabilities
+            ) {
+                // onAvailable can fire before the link is actually usable; the
+                // capabilities update is a second chance to replay once the
+                // network reports INTERNET.
+                if (caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)) {
+                    flushPendingConsumerSync()
                 }
             }
         }
-        networkCallback = cb
-        cm.registerNetworkCallback(
-            NetworkRequest.Builder()
-                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                .build(),
-            cb
-        )
+        val request = NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+        try {
+            cm.registerNetworkCallback(request, callback)
+            networkCallback = callback
+        } catch (e: Exception) {
+            Log.w(TAG, "registerNetworkCallback failed: ${e.message}")
+        }
     }
 
-    private fun cancelOfflineRetry() {
-        retryHandler.removeCallbacksAndMessages(null)
-        networkCallback?.let { cb ->
-            try {
-                (reactApplicationContext.getSystemService(Context.CONNECTIVITY_SERVICE)
-                    as ConnectivityManager).unregisterNetworkCallback(cb)
-            } catch (_: Exception) { /* already unregistered */ }
-            networkCallback = null
+    private fun unregisterNetworkCallback() {
+        val cb = networkCallback ?: return
+        val cm = reactApplicationContext.getSystemService(Context.CONNECTIVITY_SERVICE)
+            as? ConnectivityManager
+        try {
+            cm?.unregisterNetworkCallback(cb)
+        } catch (e: Exception) {
+            Log.w(TAG, "unregisterNetworkCallback failed: ${e.message}")
         }
+        networkCallback = null
+    }
+
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE)
+            as? ConnectivityManager ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        // Only require INTERNET capability (matches iOS NWPathMonitor's `.satisfied`).
+        // We intentionally do NOT require NET_CAPABILITY_VALIDATED: emulators and
+        // freshly-reconnected networks often report a usable connection before (or
+        // without ever) flipping VALIDATED, which would otherwise make the deferred
+        // consumer sync skip forever.
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    @Synchronized
+    private fun flushPendingConsumerSync() {
+        val context = reactApplicationContext.applicationContext
+        val prefs = context.getSharedPreferences(PUSH_PREFS, Context.MODE_PRIVATE)
+        if (!prefs.getBoolean(KEY_PENDING, false)) return
+        if (!isNetworkAvailable(context)) {
+            Log.d(TAG, "flushPendingConsumerSync: offline, keeping pending intent")
+            return
+        }
+        // The Core SDK rejects (and logs) any consumer update before AppAmbit.start()
+        // has run. onHostResume / the network callback can fire during cold start
+        // BEFORE the JS layer initializes Core, so we must keep the pending intent
+        // until Core is ready — otherwise the replay is silently dropped.
+        if (!AppAmbit.isInitialized()) {
+            Log.d(TAG, "flushPendingConsumerSync: Core not initialized yet, keeping pending intent")
+            return
+        }
+        val desired = prefs.getBoolean(KEY_PENDING_VALUE, false)
+        Log.d(TAG, "flushPendingConsumerSync: replaying consumer update enabled=$desired")
+        // The SDK's consumer update reuses the last stored device token when no
+        // live token is available, so this succeeds as long as a token was ever
+        // registered (it only skips when nothing has ever been stored).
+        PushNotifications.setNotificationsEnabled(context, desired)
+        prefs.edit()
+            .remove(KEY_PENDING)
+            .remove(KEY_PENDING_VALUE)
+            .apply()
     }
 
     // ── Internal helpers ──────────────────────────────────────────────────────

@@ -1,27 +1,74 @@
 import Foundation
 import UserNotifications
+import Network
 import AppAmbitPushNotifications
+import AppAmbit
 
 @objc(AppAmbitPushWrapper)
 public class AppAmbitPushWrapper: NSObject {
 
-  @objc public static func start() {
-    PushNotifications.start()
+  // MARK: - Network monitoring
+  //
+  // The AppAmbit SDK's ConsumerService has no offline retry queue and dedups
+  // consumer updates against its local DB, so an update attempted while offline
+  // poisons that cache and is never re-sent. We therefore gate consumer updates
+  // on real connectivity and replay them when the network returns.
+  private static let pathMonitor = NWPathMonitor()
+  private static let monitorQueue = DispatchQueue(label: "com.appambit.push.netmonitor")
+  private static var monitorStarted = false
+  private static var lastSatisfied = false
+
+  @objc public static func startNetworkMonitor() {
+    if monitorStarted { return }
+    monitorStarted = true
+    pathMonitor.pathUpdateHandler = { path in
+      let satisfied = path.status == .satisfied
+      let becameAvailable = satisfied && !lastSatisfied
+      lastSatisfied = satisfied
+      if becameAvailable {
+        NotificationCenter.default.post(
+          name: NSNotification.Name("AppAmbit_networkAvailable"),
+          object: nil
+        )
+      }
+    }
+    pathMonitor.start(queue: monitorQueue)
   }
 
-  @objc public static func handleNewToken(_ token: String) {
-    PushKernel.handleNewToken(token)
+  @objc public static func isNetworkAvailable() -> Bool {
+    if !monitorStarted { startNetworkMonitor() }
+    return pathMonitor.currentPath.status == .satisfied
+  }
+
+  @objc public static func start() {
+    startNetworkMonitor()
+    // In Debug builds enable the SDK's verbose logging so its native logs are
+    // visible in the simulator/device log stream during development.
+    #if DEBUG
+    PushNotifications.start(debugMode: true)
+    #else
+    PushNotifications.start()
+    #endif
   }
 
   @objc public static func setNotificationsEnabled(_ enabled: Bool) {
     PushNotifications.setNotificationsEnabled(enabled)
   }
 
+  /// Persists the enabled flag locally (UserDefaults only — no network call).
+  /// Used so the SDK's cold-start token sync knows the user's intent without
+  /// triggering an offline-poisoning consumer update.
+  @objc public static func setNotificationsEnabledLocal(_ enabled: Bool) {
+    PushKernel.setNotificationsEnabled(enabled)
+  }
+
   /// Completion-based variant: reports whether the backend network call succeeded.
   /// Used by the offline-retry path so it knows when to clear the pending flag.
   @objc(setNotificationsEnabled:completion:)
   public static func setNotificationsEnabled(_ enabled: Bool, completion: @escaping (Bool) -> Void) {
-    PushNotifications.setNotificationsEnabled(enabled)
+    PushKernel.setNotificationsEnabled(enabled)
+    let token = PushKernel.getCurrentToken()
+    ConsumerService.shared.updateConsumer(deviceToken: token, pushEnabled: enabled, completion: completion)
   }
 
   @objc public static func isNotificationsEnabled() -> Bool {
@@ -36,7 +83,17 @@ public class AppAmbitPushWrapper: NSObject {
     UNUserNotificationCenter.current().getNotificationSettings { settings in
       let granted = settings.authorizationStatus == .authorized
         || settings.authorizationStatus == .provisional
-      completion(granted)
+      if granted {
+        // Cache the grant so we can survive simulator reinstalls where the
+        // system returns .notDetermined even though permission was given before.
+        UserDefaults.standard.set(true, forKey: "appambit_push_has_permission")
+      }
+      // If the system says .denied, the user explicitly revoked — always return false.
+      // If the system says .notDetermined AND we have a cached grant, the app was
+      // likely reinstalled (common on iOS Simulator) — return true as fallback.
+      let fallback = settings.authorizationStatus == .notDetermined
+        && UserDefaults.standard.bool(forKey: "appambit_push_has_permission")
+      completion(granted || fallback)
     }
   }
 

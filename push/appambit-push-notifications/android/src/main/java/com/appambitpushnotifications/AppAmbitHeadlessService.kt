@@ -45,12 +45,6 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
             }
         }
 
-        private val INTERNAL_KEYS = setOf(
-            "_aa_image_url", "_aa_ticker", "_aa_sticky",
-            "_aa_visibility", "_aa_channel_id", "_aa_priority",
-            "_aa_tag", "_aa_sound", "_aa_click_action"
-        )
-
         private fun buildIntent(context: Context, notification: AppAmbitNotification): Intent {
             val data   = notification.data
             val intent = Intent(context, AppAmbitHeadlessService::class.java)
@@ -78,7 +72,7 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
                 intent.putExtra(EXTRA_ANDROID_STICKY, stickyStr.equals("true", ignoreCase = true) || stickyStr == "1")
             }
 
-            val filteredData = data.filterKeys { it !in INTERNAL_KEYS }
+            val filteredData = data.filterKeys { it !in AppAmbitPayloadUtils.INTERNAL_KEYS }
             if (filteredData.isNotEmpty()) {
                 val keys   = filteredData.keys.toTypedArray()
                 val values = keys.map { filteredData[it] }.toTypedArray()
@@ -124,18 +118,7 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         payload.putMap("data", dataMap)
 
         // ── FCM message-level fields ──────────────────────────────────────────
-        if (rm != null) {
-            putStringOrNull(payload, "messageId",        rm.messageId)
-            payload.putDouble("sentTime",                rm.sentTime.toDouble())
-            payload.putInt("ttl",                        rm.ttl)
-            putStringOrNull(payload, "collapseKey",      rm.collapseKey)
-            putStringOrNull(payload, "from",             rm.from)
-            putStringOrNull(payload, "messagePriority",  fcmPriorityToString(rm.priority))
-            putStringOrNull(payload, "originalPriority", fcmPriorityToString(rm.originalPriority))
-        } else {
-            for (key in listOf("messageId", "sentTime", "ttl", "collapseKey", "from", "messagePriority", "originalPriority"))
-                payload.putNull(key)
-        }
+        AppAmbitPayloadUtils.putFcmMessageFields(payload, rm)
 
         // ── Android sub-object ────────────────────────────────────────────────
         val androidMap = Arguments.createMap()
@@ -155,12 +138,8 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
         putStringOrNull(androidMap, "clickAction",
             extras.getString(EXTRA_ANDROID_CLICK_ACTION) ?: fcmNotif?.clickAction)
         putStringOrNull(androidMap, "visibility",
-            extras.getString(EXTRA_ANDROID_VISIBILITY) ?: when (fcmNotif?.visibility) {
-                1  -> "public"
-                0  -> "private"
-                -1 -> "secret"
-                else -> null
-            })
+            extras.getString(EXTRA_ANDROID_VISIBILITY)
+                ?: AppAmbitPayloadUtils.fcmVisibilityToString(fcmNotif?.visibility))
 
         when {
             extras.containsKey(EXTRA_ANDROID_STICKY) ->
@@ -192,13 +171,7 @@ class AppAmbitHeadlessService : HeadlessJsTaskService() {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun putStringOrNull(map: com.facebook.react.bridge.WritableMap, key: String, value: String?) {
-        if (value != null) map.putString(key, value) else map.putNull(key)
-    }
-
-    private fun fcmPriorityToString(priority: Int): String? = when (priority) {
-        1    -> "high"
-        2    -> "normal"
-        else -> null
+        AppAmbitPayloadUtils.putStringOrNull(map, key, value)
     }
 
 }

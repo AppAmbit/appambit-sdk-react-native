@@ -1,12 +1,15 @@
 #import "AppambitPushNotifications.h"
 #import <AppAmbitSdkPushNotifications-Swift.h>
-#import <Network/Network.h>
 
 // Defined in AppAmbitNotificationSwizzler.m — call when JS background handler resolves
 extern "C" void AppAmbitNotifyJSBackgroundHandlerCompleted(void);
 
-static NSString * const kPushPrefsKey     = @"appambit_push_has_pending";
-static NSString * const kPushEnabledKey   = @"appambit_push_pending_enabled";
+static NSString * const kPushEnabledStateKey = @"appambit_push_enabled_state";
+static NSString * const kPushHasStateKey     = @"appambit_push_has_enabled_state";
+// Pending consumer-sync intent: the last value the user toggled that has not yet
+// been confirmed as delivered to the backend. Replayed when connectivity returns.
+static NSString * const kPushPendingKey      = @"appambit_push_pending_sync";
+static NSString * const kPushPendingValueKey = @"appambit_push_pending_value";
 
 @implementation AppambitPushNotifications {
   BOOL _hasListeners;
@@ -14,7 +17,6 @@ static NSString * const kPushEnabledKey   = @"appambit_push_pending_enabled";
   NSMutableArray<NSDictionary *> *_pendingBackgroundEvents;
   NSMutableArray<NSDictionary *> *_pendingOpenedEvents;
   NSMutableArray<NSDictionary *> *_pendingForegroundEvents;
-  nw_path_monitor_t _pathMonitor;
 }
 
 RCT_EXPORT_MODULE(AppambitPushNotifications)
@@ -49,6 +51,13 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
                                              selector:@selector(handleAppBecameActive:)
                                                  name:UIApplicationDidBecomeActiveNotification
                                                object:nil];
+
+    // Replay any deferred consumer sync as soon as the network comes back.
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleNetworkAvailable:)
+                                                 name:@"AppAmbit_networkAvailable"
+                                               object:nil];
+    [AppAmbitPushWrapper startNetworkMonitor];
   }
   return self;
 }
@@ -119,19 +128,10 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)handleAppBecameActive:(NSNotification *)notification {
-  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-  if ([ud boolForKey:kPushPrefsKey]) {
-    BOOL pendingEnabled = [ud boolForKey:kPushEnabledKey];
-    __weak AppambitPushNotifications *weakSelf = self;
-    [AppAmbitPushWrapper setNotificationsEnabled:pendingEnabled completion:^(BOOL success) {
-      if (success) {
-        [weakSelf clearPendingSync];
-        [weakSelf stopNetworkMonitor];
-      } else {
-        [weakSelf startNetworkMonitor];
-      }
-    }];
-  }
+  // The SDK has had time to finish its async init (and register the device token)
+  // by the time the app becomes active, so this is a safe place to replay a
+  // deferred consumer sync (covers "toggle offline → reopen online").
+  [self flushPendingConsumerSync];
 
   if (!_hasListeners || _pendingOpenedEvents.count == 0) return;
   NSArray<NSDictionary *> *toSend = [_pendingOpenedEvents copy];
@@ -141,6 +141,10 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
       [self sendEventWithName:@"AppAmbit_onOpenedNotification" body:payload];
     }
   }
+}
+
+- (void)handleNetworkAvailable:(NSNotification *)notification {
+  [self flushPendingConsumerSync];
 }
 
 - (void)handleOpenedNotification:(NSNotification *)notification {
@@ -182,14 +186,16 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 }
 
 - (void)dealloc {
-  [self stopNetworkMonitor];
   [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 // MARK: - TurboModule Methods
 
 - (void)start {
-  [self flushPendingSyncIfNeeded];
+  // Initialize the SDK. Do NOT call flushPendingSyncIfNeeded here — PushNotifications.start()
+  // registers the device token asynchronously, so getCurrentToken() returns nil immediately
+  // after start(), causing updateConsumer to fail. handleAppBecameActive: fires after the SDK
+  // has had time to complete its async init and is the correct place to flush pending sync.
   [AppAmbitPushWrapper start];
 }
 
@@ -200,26 +206,48 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 - (void)requestNotificationPermissionWithResult:(RCTPromiseResolveBlock)resolve
                                          reject:(RCTPromiseRejectBlock)reject {
   [AppAmbitPushWrapper requestNotificationPermissionWithListener:^(BOOL granted) {
+    if (granted) {
+      // Cache immediately so hasNotificationPermission() returns true on next
+      // restart even if the system permission resets (e.g. simulator reinstall).
+      [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"appambit_push_has_permission"];
+      [[NSUserDefaults standardUserDefaults] synchronize];
+    }
     resolve(@(granted));
   }];
 }
 
 - (void)setNotificationsEnabled:(BOOL)enabled {
-  [self savePendingSync:enabled];
-  __weak AppambitPushNotifications *weakSelf = self;
-  [AppAmbitPushWrapper setNotificationsEnabled:enabled completion:^(BOOL success) {
-    if (success) {
-      [weakSelf clearPendingSync];
-      [weakSelf stopNetworkMonitor];
-    } else {
-      [weakSelf startNetworkMonitor];
-    }
-  }];
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  // 1. Persist the user's intended state for UI consistency across restarts.
+  [ud setBool:enabled forKey:kPushEnabledStateKey];
+  [ud setBool:YES forKey:kPushHasStateKey];
+  // 2. Record a pending consumer-sync intent. It is cleared only once the
+  //    backend update actually succeeds (see flushPendingConsumerSync).
+  [ud setBool:enabled forKey:kPushPendingValueKey];
+  [ud setBool:YES forKey:kPushPendingKey];
+  [ud synchronize];
+  // 3. Update the SDK's local enabled flag (no network) so cold-start token
+  //    sync knows the user's intent.
+  [AppAmbitPushWrapper setNotificationsEnabledLocal:enabled];
+  // 4. Try to push it to the backend now. When offline this is a no-op: calling
+  //    updateConsumer offline poisons the SDK's dedup cache (it writes the new
+  //    state to its DB before the failed network send, so identical retries are
+  //    skipped as "already synced"). The pending intent is replayed when the
+  //    network returns or the app becomes active.
+  [self flushPendingConsumerSync];
 }
 
 - (void)isNotificationsEnabled:(RCTPromiseResolveBlock)resolve
                         reject:(RCTPromiseRejectBlock)reject {
-  resolve(@([AppAmbitPushWrapper isNotificationsEnabled]));
+  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+  if ([ud boolForKey:kPushHasStateKey]) {
+    // Return our own persisted state — this is always the last value the user
+    // explicitly set, survives cold restarts and SDK state inconsistencies.
+    resolve(@([ud boolForKey:kPushEnabledStateKey]));
+  } else {
+    // First-ever launch: no stored state yet, ask the SDK.
+    resolve(@([AppAmbitPushWrapper isNotificationsEnabled]));
+  }
 }
 
 - (void)hasNotificationPermission:(RCTPromiseResolveBlock)resolve
@@ -238,81 +266,27 @@ RCT_EXPORT_MODULE(AppambitPushNotifications)
 
 // MARK: - Offline-resilient consumer sync
 
-- (void)savePendingSync:(BOOL)enabled {
+// Replays the pending consumer-sync intent to the backend when online. The SDK
+// has no offline retry queue and dedups consumer updates against its local DB,
+// so we must only call updateConsumer with real connectivity. The pending flag
+// is cleared only on a confirmed successful backend update.
+- (void)flushPendingConsumerSync {
   NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-  [ud setBool:YES forKey:kPushPrefsKey];
-  [ud setBool:enabled forKey:kPushEnabledKey];
-  [ud synchronize];
-}
+  if (![ud boolForKey:kPushPendingKey]) return;
+  if (![AppAmbitPushWrapper isNetworkAvailable]) return;
 
-- (void)clearPendingSync {
-  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-  [ud setBool:NO forKey:kPushPrefsKey];
-  [ud synchronize];
-}
-
-- (void)flushPendingSyncIfNeeded {
-  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-  if (![ud boolForKey:kPushPrefsKey]) return;
-  BOOL enabled = [ud boolForKey:kPushEnabledKey];
-  __weak AppambitPushNotifications *weakSelf = self;
-  [AppAmbitPushWrapper setNotificationsEnabled:enabled completion:^(BOOL success) {
-    if (success) {
-      [weakSelf clearPendingSync];
-      [weakSelf stopNetworkMonitor];
-    } else {
-      [weakSelf startNetworkMonitor];
+  BOOL desired = [ud boolForKey:kPushPendingValueKey];
+  [AppAmbitPushWrapper setNotificationsEnabled:desired completion:^(BOOL success) {
+    if (!success) return;
+    NSUserDefaults *u = [NSUserDefaults standardUserDefaults];
+    // Only clear if the pending value still matches what we just synced — a
+    // newer toggle during the network call must keep its own pending intent.
+    if ([u boolForKey:kPushPendingKey] && [u boolForKey:kPushPendingValueKey] == desired) {
+      [u removeObjectForKey:kPushPendingKey];
+      [u removeObjectForKey:kPushPendingValueKey];
+      [u synchronize];
     }
   }];
-}
-
-// Monitors network path and retries the pending consumer sync as soon as
-// connectivity is restored. Mirrors Android's ConnectivityManager.NetworkCallback.
-// The monitor stays active until either clearPendingSync is called or the
-// module is deallocated — it never gives up on its own.
-- (void)startNetworkMonitor {
-  [self stopNetworkMonitor];
-
-  NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-  if (![ud boolForKey:kPushPrefsKey]) return;
-
-  __weak AppambitPushNotifications *weakSelf = self;
-  nw_path_monitor_t monitor = nw_path_monitor_create();
-  _pathMonitor = monitor;
-
-  nw_path_monitor_set_update_handler(monitor, ^(nw_path_t path) {
-    if (nw_path_get_status(path) != nw_path_status_satisfied) return;
-
-    AppambitPushNotifications *strongSelf = weakSelf;
-    if (!strongSelf) return;
-
-    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-    if (![ud boolForKey:kPushPrefsKey]) {
-      [strongSelf stopNetworkMonitor];
-      return;
-    }
-
-    BOOL pendingEnabled = [ud boolForKey:kPushEnabledKey];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [AppAmbitPushWrapper setNotificationsEnabled:pendingEnabled completion:^(BOOL success) {
-        if (success) {
-          [strongSelf clearPendingSync];
-          [strongSelf stopNetworkMonitor];
-        }
-        // On failure: keep monitor running; next path update will retry.
-      }];
-    });
-  });
-
-  nw_path_monitor_set_queue(monitor, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0));
-  nw_path_monitor_start(monitor);
-}
-
-- (void)stopNetworkMonitor {
-  if (_pathMonitor) {
-    nw_path_monitor_cancel(_pathMonitor);
-    _pathMonitor = nil;
-  }
 }
 
 - (void)addListener:(NSString *)eventName {

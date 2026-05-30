@@ -3,38 +3,37 @@ import AppAmbitPushNotificationsExtension
 
 class NotificationService: AppAmbitNotificationService {
 
-  override func didReceive(_ request: UNNotificationRequest,
-               withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
+  override func didReceive(
+    _ request: UNNotificationRequest,
+    withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void
+  ) {
     guard let bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent else {
-      NSLog("[AppAmbitPushSDK] NotificationService: Failed to create mutable content copy.")
       contentHandler(request.content)
       return
     }
 
-    NSLog("[AppAmbitPushSDK] NotificationService: Processing notification -> %@", bestAttemptContent.title)
-
     let userInfo = bestAttemptContent.userInfo
-    let dataPayload = userInfo["data"] as? [AnyHashable: Any] ?? userInfo
+    let aps = userInfo["aps"] as? [String: Any]
+    
+    bestAttemptContent.title += " Custom"
 
-    bestAttemptContent.title += " Customs"
-
-    if let category = dataPayload["category_type"] as? String {
+    if let category = aps?["category"] as? String {
       bestAttemptContent.categoryIdentifier = category
     }
-
-    if let threadId = dataPayload["chat_id"] as? String {
+    if let threadId = aps?["thread-id"] as? String {
       bestAttemptContent.threadIdentifier = threadId
     }
 
+    // Custom data fields sent in FCM data payload
+    let data = userInfo["data"] as? [String: Any]
+    if let badgeCount = data?["badge_count"] as? String,
+       let badge = Int(badgeCount) {
+      bestAttemptContent.badge = NSNumber(value: badge)
+    }
     if #available(iOS 15.0, *) {
-      if let isUrgent = dataPayload["is_urgent"] as? String, isUrgent == "true" {
+      if let isUrgent = data?["is_urgent"] as? String, isUrgent == "true" {
         bestAttemptContent.interruptionLevel = .timeSensitive
       }
-    }
-
-    if let badgeCountString = dataPayload["badge_count"] as? String,
-      let badgeCount = Int(badgeCountString) {
-      bestAttemptContent.badge = NSNumber(value: badgeCount)
     }
 
     let newRequest = UNNotificationRequest(
@@ -42,13 +41,11 @@ class NotificationService: AppAmbitNotificationService {
       content: bestAttemptContent,
       trigger: request.trigger
     )
-
-    NSLog("[AppAmbitPushSDK] NotificationService: Content modified, delegating to parent handler.")
+    // Base class downloads the image from "image" key and attaches it
     super.didReceive(newRequest, withContentHandler: contentHandler)
   }
 
   override func serviceExtensionTimeWillExpire() {
-    NSLog("[AppAmbitPushSDK] NotificationService: Time limit reached — delivering best attempt content.")
     super.serviceExtensionTimeWillExpire()
   }
 }
