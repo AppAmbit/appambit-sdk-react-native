@@ -36,6 +36,7 @@ PODS:
     - AppAmbitSdkPushNotifications/Core (= 0.3.1)
   - AppAmbitSdkPushNotifications/Core (0.3.1):
     - AppAmbitPushNotifications (~> 1.0.0)
+    - AppAmbitSdk
     - boost
     - DoubleConversion
     - fast_float
@@ -2747,7 +2748,7 @@ SPEC CHECKSUMS:
   AppAmbitPushNotifications: 28bd6f53c725e00decab7ad237cfcb1d63f8161d
   AppAmbitPushNotificationsExtension: 73ee92dd7a0f5fde53e24096a45bd49d6e88a50e
   AppAmbitSdk: ac397240eccc94a28d66a262e063652ca2bbd5c3
-  AppAmbitSdkPushNotifications: 897d8a90c7269137a67915634ceff0884ec2abb9
+  AppAmbitSdkPushNotifications: ed69b58a0652e52e5708dcfc04454968a5b20c77
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
