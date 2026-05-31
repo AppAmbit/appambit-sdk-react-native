@@ -149,7 +149,6 @@ public class AppAmbitPushWrapper: NSObject {
   public static func formatNotificationPayload(_ userInfo: [AnyHashable: Any]) -> [String: Any] {
     var title: String? = nil
     var body: String? = nil
-    var subtitle: String? = nil
     var imageUrl: String? = nil
     var customData: [String: Any] = [:]
 
@@ -158,7 +157,6 @@ public class AppAmbitPushWrapper: NSObject {
       if let alert = aps["alert"] as? [String: Any] {
         title    = alert["title"] as? String
         body     = alert["body"] as? String
-        subtitle = alert["subtitle"] as? String
       } else if let alertStr = aps["alert"] as? String {
         body = alertStr
       }
@@ -180,7 +178,7 @@ public class AppAmbitPushWrapper: NSObject {
       }
     }
 
-    var iosMap: [String: Any] = ["subtitle": subtitle as Any]
+    var iosMap: [String: Any] = [:]
     if let badge = aps?["badge"] as? Int       { iosMap["badge"]    = badge }
     if let sound = aps?["sound"] as? String    { iosMap["sound"]    = sound }
     if let cat   = aps?["category"] as? String { iosMap["category"] = cat }
