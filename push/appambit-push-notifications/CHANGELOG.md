@@ -1,5 +1,23 @@
 ___
 
+## Version 1.0.0
+
+### AppAmbit Push Notifications SDK
+
+* **[Breaking Change]** Removed `setNotificationCustomizerListener` — use `Android.setBackgroundListener` instead
+* **[Breaking Change]** Android background notifications now require Headless JS (`AppAmbitHeadlessService`). Register `BACKGROUND_NOTIFICATION_TASK` in `index.js`
+* **[Breaking Change]** `NotificationPayload` now has typed `android` and `ios` sub-objects instead of flat fields
+* **[Feature]** Added `hasNotificationPermission()` for Android and iOS
+* **[Feature]** Full iOS support: foreground and opened notifications (including app closed/killed state)
+* **[Feature]** iOS Notification Service Extension (`AppAmbitRNNotificationService`) for rich media notifications
+* **[Feature]** Expanded payload fields: `imageUrl`, `data` map, platform-specific `android`/`ios` metadata
+* **[Fix]** Fixed opened notification on iOS when app is killed
+* **[Fix]** Fixed offline notification queue on iOS
+* **[Fix]** Notification custom data values serialized as strings to prevent bridge type errors
+* **[Improvement]** Native SDKs migrated from local to remote dependencies on both platforms
+
+---
+
 ## Version 0.3.1
 
 ### AppAmbit SDK
