@@ -12,7 +12,7 @@ import {
   TextInput,
 } from 'react-native';
 import { AppAmbitCms } from 'appambit';
-import type { CmsPost } from '../CmsPost';
+import type { CmsPost } from '../models/CmsPost';
 
 function stripHtml(html?: string): string {
   if (!html) return '';

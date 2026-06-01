@@ -15,10 +15,8 @@ buildscript {
   }
 }
 
-
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
-
 apply plugin: "com.facebook.react"
 
 def getExtOrIntegerDefault(name) {
@@ -72,7 +70,27 @@ repositories {
 def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
-  implementation "com.appambit:appambit.push.notifications:0.5.0"
+  // ─── Remote Push SDK Dependency ─────────────────────────────────────────────
+  // 'api' (not 'implementation') is required so that classes like PushNotifications
+  // are visible at compile time to the consuming app (e.g. MainActivity.kt).
+  api 'com.appambit:appambit.push.notifications:1.0.0'
+
+  // ─── Core SDK (compile-time only) ───────────────────────────────────────────
+  // The Push SDK depends on the AppAmbit Core SDK. We reference Core's `AppAmbit`
+  // class (e.g. AppAmbit.isInitialized()) at compile time, but it is provided at
+  // runtime by the consuming app's Core SDK dependency, so use `compileOnly` to
+  // avoid bundling a second copy and risking duplicate-class conflicts.
+  compileOnly 'com.appambit:appambit:1.0.0'
+
+  // ─── Firebase (required transitively by the push AAR) ──────────────────────
+  implementation platform('com.google.firebase:firebase-bom:33.6.0')
+  implementation 'com.google.firebase:firebase-messaging'
+
+  // ─── AndroidX transitive deps ───────────────────────────────────────────────
+  implementation 'androidx.appcompat:appcompat:1.7.0'
+  implementation 'androidx.activity:activity:1.9.0'
+
+  // ─── React Native ─────────────────────────────────────────────────────────────
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }

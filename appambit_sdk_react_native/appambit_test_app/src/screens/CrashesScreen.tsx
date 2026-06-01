@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ScrollView, Text, Alert, View, Settings } from "react-native";
+import { ScrollView, Text, Alert, View, ActivityIndicator } from "react-native";
 import { uuidv4 } from "../utils/uuid";
 
 import {
@@ -14,29 +14,51 @@ import CustomInput from "../components/CustomInput";
 import CustomButton from "../components/CustomButton";
 import * as PushNotifications from "appambit-push-notifications";
 
-const NOTIFICATIONS_PROMPTED_KEY = "appambit_notifications_prompted";
-
 export default function CrashesScreen() {
   const [userId] = useState<string>(uuidv4());
+  const [hasPermission, setHasPermission] = useState(false);
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
-  const [isFirstRun, setIsFirstRun] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkNotificationState = async () => {
-      const hasBeenPrompted = Settings.get(NOTIFICATIONS_PROMPTED_KEY);
-      if (hasBeenPrompted) {
-        setIsFirstRun(false);
-        const enabled = await PushNotifications.isNotificationsEnabled();
+      try {
+        const [permission, enabled] = await Promise.all([
+          PushNotifications.hasNotificationPermission(),
+          PushNotifications.isNotificationsEnabled(),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setHasPermission(permission);
         setNotificationsEnabledState(enabled);
+      } catch (error) {
+        console.warn("[CrashesScreen] Failed to read notification state", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     };
+
     checkNotificationState();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (isLoading) {
-    return null;
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 12, fontSize: 16 }}>Loading Crashes screen...</Text>
+      </View>
+    );
   }
 
   return (
@@ -46,9 +68,9 @@ export default function CrashesScreen() {
       <View style={{ height: 30 }} />
 
       <CustomButton
-        title={isFirstRun ? "Allow notifications" : notificationsEnabled ? "Disable notifications" : "Enable notifications"}
+        title={!hasPermission ? "Allow notifications" : notificationsEnabled ? "Disable notifications" : "Enable notifications"}
         onPress={async () => {
-          if (!notificationsEnabled) {
+          if (!hasPermission) {
             const granted =
               await PushNotifications.requestNotificationPermissionWithResult();
 
@@ -56,18 +78,19 @@ export default function CrashesScreen() {
               return;
             }
 
+            setHasPermission(true);
             await PushNotifications.setNotificationsEnabled(true);
             setNotificationsEnabledState(true);
-
-            if (isFirstRun) {
-              Settings.set({ [NOTIFICATIONS_PROMPTED_KEY]: true });
-              setIsFirstRun(false);
-            }
             return;
           }
 
-          await PushNotifications.setNotificationsEnabled(false);
-          setNotificationsEnabledState(false);
+          if (notificationsEnabled) {
+            PushNotifications.setNotificationsEnabled(false);
+            setNotificationsEnabledState(false);
+          } else {
+            PushNotifications.setNotificationsEnabled(true);
+            setNotificationsEnabledState(true);
+          }
         }}
       />
 
@@ -109,7 +132,7 @@ export default function CrashesScreen() {
         }}
       />
 
-      <CustomButton title="Send Exception LogError" 
+      <CustomButton title="Send Exception LogError"
         onPress={() => {
             try {
               throw new Error();
@@ -121,14 +144,14 @@ export default function CrashesScreen() {
             }
       }} />
 
-      <CustomButton title="Throw new Crash" 
+      <CustomButton title="Throw new Crash"
         onPress={() => {
             Alert.alert("Info", "LogError sent");
             throw new Error("Test Crash");
         }
       } />
 
-      <CustomButton title="Generate Test Crash" 
+      <CustomButton title="Generate Test Crash"
         onPress={() => {
             generateTestCrash();
         }
