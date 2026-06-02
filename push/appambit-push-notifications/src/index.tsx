@@ -1,15 +1,48 @@
-import { NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, Platform } from 'react-native';
 import AppambitPushNotifications from './NativeAppambitPushNotifications';
+
+export interface AndroidNotificationData {
+  color: string | null;
+  smallIconName: string | null;
+  ticker: string | null;
+  sticky: boolean | null;
+  visibility: string | null;
+  channelId: string | null;
+  tag: string | null;
+  sound: string | null;
+  clickAction: string | null;
+}
+
+export interface IosNotificationData {
+  badge: number | null;
+  sound: string | null;
+  category: string | null;
+  threadId: string | null;
+}
+
+export interface NotificationPayload {
+  title: string | null;
+  body: string | null;
+  imageUrl: string | null;
+  data: Record<string, any>;
+  android: AndroidNotificationData | null;
+  ios: IosNotificationData | null;
+}
+
+export type NotificationListener = (notification: NotificationPayload) => void;
+export type BackgroundNotificationListener = (notification: NotificationPayload) => Promise<void>;
+
+export const BACKGROUND_NOTIFICATION_TASK = 'AppAmbitBackgroundNotification';
+
+const EVENT_FOREGROUND = 'AppAmbit_onForegroundNotification';
+const EVENT_BACKGROUND = 'AppAmbit_onBackgroundNotification';
+const EVENT_OPENED     = 'AppAmbit_onOpenedNotification';
 
 const eventEmitter = new NativeEventEmitter(AppambitPushNotifications);
 
-export interface NotificationPayload {
-  notification: {
-    title: string;
-    body: string;
-  }
-  data?: Record<string, string>;
-}
+let foregroundSub: ReturnType<typeof eventEmitter.addListener> | null = null;
+let backgroundSub: ReturnType<typeof eventEmitter.addListener> | null = null;
+let openedSub:     ReturnType<typeof eventEmitter.addListener> | null = null;
 
 export const start = (): void => {
   AppambitPushNotifications.start();
@@ -19,24 +52,64 @@ export const requestNotificationPermission = (): void => {
   AppambitPushNotifications.requestNotificationPermission();
 };
 
-export const requestNotificationPermissionWithResult = async (): Promise<boolean> => {
-  return await AppambitPushNotifications.requestNotificationPermissionWithResult();
-};
+export const requestNotificationPermissionWithResult =
+  async (): Promise<boolean> => {
+    return AppambitPushNotifications.requestNotificationPermissionWithResult();
+  };
 
 export const setNotificationsEnabled = (enabled: boolean): void => {
   AppambitPushNotifications.setNotificationsEnabled(enabled);
 };
 
 export const isNotificationsEnabled = async (): Promise<boolean> => {
-  return await AppambitPushNotifications.isNotificationsEnabled();
+  return AppambitPushNotifications.isNotificationsEnabled();
 };
 
-export const setNotificationCustomizer = (
-  callback: (payload: NotificationPayload) => void
-): void => {
-  AppambitPushNotifications.setNotificationCustomizer();
-  eventEmitter.removeAllListeners('onNotificationReceived');
-  eventEmitter.addListener('onNotificationReceived', (payload) => {
-    callback(payload as any);
-  });
-}; 
+export const hasNotificationPermission = async (): Promise<boolean> => {
+  return AppambitPushNotifications.hasNotificationPermission();
+};
+
+export const setForegroundListener = (
+  callback: NotificationListener
+): (() => void) => {
+  foregroundSub?.remove();
+  foregroundSub = eventEmitter.addListener(EVENT_FOREGROUND, callback as any);
+  return () => {
+    foregroundSub?.remove();
+    foregroundSub = null;
+  };
+};
+
+export const setOpenedListener = (
+  callback: NotificationListener
+): (() => void) => {
+  openedSub?.remove();
+  openedSub = eventEmitter.addListener(EVENT_OPENED, callback as any);
+  return () => {
+    openedSub?.remove();
+    openedSub = null;
+  };
+};
+
+export const Android = {
+  setBackgroundListener: (
+    callback: BackgroundNotificationListener
+  ): (() => void) => {
+    if (Platform.OS !== 'android') {
+      return () => {};
+    }
+    backgroundSub?.remove();
+    backgroundSub = eventEmitter.addListener(
+      EVENT_BACKGROUND,
+      ((payload: NotificationPayload) => {
+        void callback(payload).finally(() => {
+          AppambitPushNotifications.backgroundHandlerCompleted();
+        });
+      }) as any
+    );
+    return () => {
+      backgroundSub?.remove();
+      backgroundSub = null;
+    };
+  }
+};
