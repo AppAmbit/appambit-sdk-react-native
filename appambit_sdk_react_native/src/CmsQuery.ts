@@ -101,14 +101,6 @@ export class Cms {
     content(contentType: string): CmsQuery {
         return new CmsQuery(contentType);
     }
-
-    clearCache(contentType: string): void {
-        NativeAppambitCms.clearCache(contentType);
-    }
-
-    clearAllCache(): void {
-        NativeAppambitCms.clearAllCache();
-    }
 }
 
 export const AppAmbitCms = new Cms();
