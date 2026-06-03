@@ -88,12 +88,7 @@ export class CmsQuery {
     }
 
     async getList(): Promise<any[]> {
-        const hasPagination = this.filters.some(f => f.method === 'getPage' || f.method === 'getPerPage');
-        const finalFilters = hasPagination 
-            ? this.filters 
-            : [...this.filters, { method: 'getPerPage', args: [-1] }];
-            
-        return NativeAppambitCms.getList(this.contentType, finalFilters);
+        return NativeAppambitCms.getList(this.contentType, this.filters);
     }
 }
 

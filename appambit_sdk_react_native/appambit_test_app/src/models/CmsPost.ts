@@ -20,7 +20,7 @@ export interface CmsPost {
     views_count?: number | string;
     author_email?: string | null;
     is_published?: boolean;
-    featured_image?: string | null;
+    featured_image_url?: string | null;
     scheduled_publish_at?: string | null;
     published_at?: string;
     created_at?: string;
