@@ -3,15 +3,17 @@
 #
 # Usage: ./setup.sh [options]
 #   --deep          Delete node_modules in all packages before installing
-#   --ios           Run bundle install + pod install at the end
+#   --ios           Run bundle install + pod install for the test app
+#   --android       Refresh Android native layer (local.properties + Gradle deps)
 #   --skip-push     Skip the push notifications SDK
 #   --skip-build    Skip yarn prepare (install only, do not compile)
 #
 # Order:
 #   1. Core SDK     → clean → install → prepare (build to lib/)
 #   2. Push SDK     → clean → install → prepare
-#   3. Test app     → install (already a workspace under core, but enforced)
+#   3. Test app     → yarn install (always) + Metro cache clear
 #   4. iOS (--ios)  → bundle install → pod install
+#   5. Android (--android) → local.properties → Gradle dependency refresh
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,6 +34,7 @@ section() { echo -e "\n${BOLD}${CYAN}── $* ───────────
 # ── Flags ─────────────────────────────────────────────────────────────────────
 DEEP=false
 IOS=false
+ANDROID=false
 SKIP_PUSH=false
 SKIP_BUILD=false
 
@@ -39,10 +42,11 @@ for arg in "$@"; do
   case "$arg" in
     --deep)       DEEP=true      ;;
     --ios)        IOS=true       ;;
+    --android)    ANDROID=true   ;;
     --skip-push)  SKIP_PUSH=true ;;
     --skip-build) SKIP_BUILD=true ;;
     --help|-h)
-      grep '^#' "$0" | head -12 | sed 's/^# \?//'
+      grep '^#' "$0" | head -14 | sed 's/^# \?//'
       exit 0
       ;;
     *) err "Unknown option: '$arg'. Use --help to see available options." ;;
@@ -67,6 +71,7 @@ echo -e "${BOLD}${CYAN}╚══════════════════
 echo ""
 $DEEP       && warn "--deep mode: node_modules will be deleted in all packages"
 $IOS        && log  "iOS enabled: bundle install + pod install will run at the end"
+$ANDROID    && log  "Android enabled: local.properties + Gradle dep refresh will run at the end"
 $SKIP_PUSH  && warn "Push SDK: skipped (--skip-push)"
 $SKIP_BUILD && warn "Build skipped: --skip-build active"
 
@@ -131,15 +136,13 @@ fi
 # ── 3. Test app ───────────────────────────────────────────────────────────────
 section "Test app  (appambit_test_app)"
 
-# The test app is a Yarn workspace under the core SDK, so yarn install in $CORE
-# already covers it. We verify react-native is present and re-install if not.
-if [[ ! -d "$TEST_APP/node_modules/react-native" ]]; then
-  log "[test-app] node_modules/react-native missing — reinstalling from workspace..."
-  (cd "$TEST_APP" && yarn install)
-  success "[test-app] Dependencies installed"
-else
-  success "[test-app] node_modules OK (react-native present)"
-fi
+# Always run yarn install in the test app. Although it is a Yarn workspace under
+# the core SDK (so the core install covers shared deps), running it explicitly
+# here ensures workspace-local devDependencies and any recently changed file:
+# references (e.g. push SDK) are re-linked and up-to-date.
+log "[test-app] Installing / updating dependencies (yarn install)..."
+(cd "$TEST_APP" && yarn install)
+success "[test-app] Dependencies installed"
 
 # Clear Metro cache so the next launch starts clean
 log "[test-app] Clearing Metro cache..."
@@ -183,6 +186,51 @@ if $IOS; then
   success "[ios] Pods installed"
 fi
 
+# ── 5. Android (optional) ─────────────────────────────────────────────────────
+if $ANDROID; then
+  section "Android  (local.properties + Gradle dependency refresh)"
+
+  ANDROID_DIR="$TEST_APP/android"
+  PROPS_FILE="$ANDROID_DIR/local.properties"
+
+  # Locate the Android SDK — check env vars first, then the macOS default path.
+  SDK_DIR=""
+  if   [[ -n "${ANDROID_HOME:-}"     && -d "${ANDROID_HOME}"     ]]; then SDK_DIR="$ANDROID_HOME"
+  elif [[ -n "${ANDROID_SDK_ROOT:-}" && -d "${ANDROID_SDK_ROOT}" ]]; then SDK_DIR="$ANDROID_SDK_ROOT"
+  elif [[ -d "$HOME/Library/Android/sdk"                         ]]; then SDK_DIR="$HOME/Library/Android/sdk"
+  fi
+
+  # Check if the existing local.properties already has a valid sdk.dir.
+  EXISTING_SDK=""
+  if [[ -f "$PROPS_FILE" ]]; then
+    EXISTING_SDK=$(grep -E '^sdk\.dir=' "$PROPS_FILE" 2>/dev/null | head -1 | cut -d= -f2- || true)
+  fi
+
+  if [[ -n "$EXISTING_SDK" && -d "$EXISTING_SDK" ]]; then
+    success "[android] local.properties OK — sdk.dir=$EXISTING_SDK"
+    SDK_DIR="$EXISTING_SDK"
+  elif [[ -n "$SDK_DIR" ]]; then
+    log "[android] Writing android/local.properties (sdk.dir=$SDK_DIR)..."
+    printf 'sdk.dir=%s\n' "$SDK_DIR" > "$PROPS_FILE"
+    success "[android] local.properties written"
+  else
+    warn "[android] Android SDK not found — skipping local.properties."
+    warn "          Set ANDROID_HOME or create android/local.properties manually."
+  fi
+
+  # Refresh Gradle dependency resolution. This forces Gradle to re-download or
+  # re-verify all Maven artifacts declared in build.gradle files, which is
+  # equivalent to "Sync Project with Gradle Files" in Android Studio.
+  if [[ -x "$ANDROID_DIR/gradlew" ]]; then
+    log "[android] Refreshing Gradle dependencies (./gradlew --refresh-dependencies :app:dependencies)..."
+    (cd "$ANDROID_DIR" && ./gradlew --refresh-dependencies :app:dependencies --quiet 2>/dev/null) \
+      && success "[android] Gradle dependencies refreshed" \
+      || warn "[android] Gradle refresh failed (SDK or network issue — continuing)"
+  else
+    warn "[android] gradlew not found at $ANDROID_DIR/gradlew — skipping Gradle refresh"
+  fi
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}${GREEN}╔══════════════════════════════════════════╗${NC}"
@@ -192,7 +240,8 @@ echo ""
 echo -e "  ${GREEN}✓${NC} Core SDK built at ${BOLD}appambit_sdk_react_native/lib/${NC}"
 $SKIP_PUSH || echo -e "  ${GREEN}✓${NC} Push SDK built at ${BOLD}push/appambit-push-notifications/lib/${NC}"
 echo -e "  ${GREEN}✓${NC} Test app ready at ${BOLD}appambit_sdk_react_native/appambit_test_app/${NC}"
-$IOS       && echo -e "  ${GREEN}✓${NC} iOS Pods installed"
+$IOS     && echo -e "  ${GREEN}✓${NC} iOS Pods installed"
+$ANDROID && echo -e "  ${GREEN}✓${NC} Android local.properties + Gradle deps refreshed"
 echo ""
 echo -e "To run the app:"
 echo -e "  ${CYAN}cd appambit_sdk_react_native/appambit_test_app${NC}"

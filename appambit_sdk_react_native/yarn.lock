@@ -4114,11 +4114,11 @@ __metadata:
 
 "appambit-push-notifications@file:../../push/appambit-push-notifications::locator=appambit-testapp%40workspace%3Aappambit_test_app":
   version: 1.0.0
-  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=3f4eb8&locator=appambit-testapp%40workspace%3Aappambit_test_app"
+  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=9c6db1&locator=appambit-testapp%40workspace%3Aappambit_test_app"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: e8c245d5afda9dc45d6905a7bd9d4c77f60aca01a2fd9fe2fcb3dee93d7d995cde418aaab13633b186439f652b773e3a2c35c2c0e6a2ac93627a2f56d5d9b66b
+  checksum: e4e028a98d3d3966f29d3f16d9c66618667611aef57ab7420e1a7ecc879df04a58cc07190fb3dba4e309b70861e89b72d469d28c1fad41f3ced58997f5ff5594
   languageName: node
   linkType: hard
 
