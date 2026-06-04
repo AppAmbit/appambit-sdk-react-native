@@ -4114,11 +4114,11 @@ __metadata:
 
 "appambit-push-notifications@file:../../push/appambit-push-notifications::locator=appambit-testapp%40workspace%3Aappambit_test_app":
   version: 1.0.0
-  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=749da7&locator=appambit-testapp%40workspace%3Aappambit_test_app"
+  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=3f4eb8&locator=appambit-testapp%40workspace%3Aappambit_test_app"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 1b08e3ed119256f297b9174d290ac0d17b084a4328ee23536f26304cb67e54c9e75bc0414b29c180a03a5d0cf3a9c6f7fa6baa0e2f5c477db045a98167276a0f
+  checksum: e8c245d5afda9dc45d6905a7bd9d4c77f60aca01a2fd9fe2fcb3dee93d7d995cde418aaab13633b186439f652b773e3a2c35c2c0e6a2ac93627a2f56d5d9b66b
   languageName: node
   linkType: hard
 
@@ -4163,6 +4163,7 @@ __metadata:
     "@react-native-community/cli": 20.0.1
     "@react-native/babel-preset": 0.81.1
     "@react-native/eslint-config": ^0.81.1
+    "@react-navigation/native": ^7.1.26
     "@release-it/conventional-changelog": ^10.0.1
     "@types/jest": ^29.5.14
     "@types/react": ^19.1.0
