@@ -87,14 +87,6 @@ class AppambitCmsModule(reactContext: ReactApplicationContext) : NativeAppambitC
         }
     }
 
-    override fun clearCache(contentType: String) {
-        Cms.clearCache(contentType)
-    }
-
-    override fun clearAllCache() {
-        Cms.clearAllCache()
-    }
-
     private fun convertJsonToMap(jsonObject: JSONObject): WritableMap {
         val map = Arguments.createMap()
         val iterator = jsonObject.keys()

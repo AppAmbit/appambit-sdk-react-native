@@ -37,9 +37,9 @@ function PostCard({ post }: { post: CmsPost }) {
 
   return (
     <View style={styles.card}>
-      {post.featured_image ? (
+      {post.featured_image_url ? (
         <Image
-          source={{ uri: post.featured_image }}
+          source={{ uri: post.featured_image_url }}
           style={styles.cardImage}
           resizeMode="cover"
         />

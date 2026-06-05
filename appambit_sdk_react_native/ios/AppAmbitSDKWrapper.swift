@@ -110,20 +110,6 @@ public class AppAmbitSDKWrapper: NSObject {
 
   // MARK: - CMS
   @objc
-  public static func clearCmsCache(contentType: String) {
-    Task {
-      await Cms.clearCache(contentType)
-    }
-  }
-
-  @objc
-  public static func clearAllCmsCache() {
-    Task {
-      await Cms.clearAllCache()
-    }
-  }
-
-  @objc
   public static func getCmsQuery(contentType: String) -> CmsQueryObjC {
       return Cms.contentTypelessObjC(contentType)
   }
