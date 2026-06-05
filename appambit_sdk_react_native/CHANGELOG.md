@@ -1,5 +1,13 @@
 ___
 
+## Version 1.0.1
+
+### AppAmbit SDK
+
+* **[Refactor]** Removed `clearCmsCache` and `clearAllCmsCache` APIs.Ccache management is now handled internally by the native SDK.
+
+---
+
 ## Version 1.0.0
 
 ### AppAmbit Push Notifications SDK

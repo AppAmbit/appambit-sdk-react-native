@@ -267,7 +267,7 @@ To display rich notifications with image attachments, create a Notification Serv
 2. **Add the pod** to your `Podfile` outside the main target:
    ```ruby
    target 'NotificationService' do
-     pod 'AppAmbitPushNotificationsExtension', '~> 1.0.0'
+     pod 'AppAmbitPushNotificationsExtension', '~> 1.0.1'
    end
    ```
    Then run `pod install` under `ios/`.
