@@ -1,6 +1,6 @@
 PODS:
-  - Appambit (0.3.1):
-    - AppAmbitSdk (~> 1.0.0)
+  - Appambit (1.0.0):
+    - AppAmbitSdk (~> 1.0.2)
     - boost
     - DoubleConversion
     - fast_float
@@ -28,14 +28,14 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - AppAmbitPushNotifications (1.0.0):
+  - AppAmbitPushNotifications (1.0.2):
     - AppAmbitSdk
-  - AppAmbitPushNotificationsExtension (1.0.0)
-  - AppAmbitSdk (1.0.0)
-  - AppAmbitSdkPushNotifications (0.3.1):
-    - AppAmbitSdkPushNotifications/Core (= 0.3.1)
-  - AppAmbitSdkPushNotifications/Core (0.3.1):
-    - AppAmbitPushNotifications (~> 1.0.0)
+  - AppAmbitPushNotificationsExtension (1.0.2)
+  - AppAmbitSdk (1.0.2)
+  - AppAmbitSdkPushNotifications (1.0.0):
+    - AppAmbitSdkPushNotifications/Core (= 1.0.0)
+  - AppAmbitSdkPushNotifications/Core (1.0.0):
+    - AppAmbitPushNotifications (~> 1.0.2)
     - AppAmbitSdk
     - boost
     - DoubleConversion
@@ -2744,11 +2744,11 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: d62bbb2a1bf527e179d05e6aa45f5ab50b611ad8
-  AppAmbitPushNotifications: 28bd6f53c725e00decab7ad237cfcb1d63f8161d
-  AppAmbitPushNotificationsExtension: 73ee92dd7a0f5fde53e24096a45bd49d6e88a50e
-  AppAmbitSdk: ac397240eccc94a28d66a262e063652ca2bbd5c3
-  AppAmbitSdkPushNotifications: ed69b58a0652e52e5708dcfc04454968a5b20c77
+  Appambit: 7253bf24096c7a2157890bfd6247f177d3bc1a81
+  AppAmbitPushNotifications: a0aa26cb0f99204675630bce82df6b8b6ff3e50c
+  AppAmbitPushNotificationsExtension: 9b28acd46bf82e1735dc530b2902f55955c12134
+  AppAmbitSdk: 7970c20fbcafdff4fde33ee8050f3a29e9f03ff5
+  AppAmbitSdkPushNotifications: b63d68c4a8d7bb27c0cf7e8ffbff40c2c9d0087a
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6

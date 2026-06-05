@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 
 vendor
 .DS_Store
+CLAUDE.md
