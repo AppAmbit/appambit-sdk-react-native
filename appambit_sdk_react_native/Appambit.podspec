@@ -15,8 +15,16 @@ Pod::Spec.new do |s|
 
   s.source_files = "ios/**/*.{h,m,mm,cpp,swift}"
   s.private_header_files = "ios/**/*.h"
-  
-  s.dependency 'AppAmbitSdk', '~> 1.0.2'
+
+  # Local development: point Podfile to local SDK with:
+  #   pod 'AppAmbitSdk', :path => '../../../appambit-sdk-ios/AppAmbitSdk'
+  # Published: remote pod is resolved automatically via the version below.
+  local_sdk = File.expand_path("../../appambit-sdk-ios/AppAmbitSdk", __dir__)
+  if File.exist?(local_sdk)
+    s.dependency 'AppAmbitSdk'
+  else
+    s.dependency 'AppAmbitSdk', '~> 1.0.2'
+  end
 
   install_modules_dependencies(s)
 end

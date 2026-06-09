@@ -74,5 +74,9 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+  // Local development: consumer app's settings.gradle uses includeBuild to add the Android SDK
+  // as a composite build with a dependencySubstitution rule that redirects this artifact to
+  // the local :appambit-sdk project. No code change needed here — substitution is transparent.
   implementation("com.appambit:appambit:1.0.2")
 }

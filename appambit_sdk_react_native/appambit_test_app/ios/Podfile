@@ -19,6 +19,9 @@ end
 target 'AppambitExample' do
   config = use_native_modules!
 
+  # Local iOS SDK — resolves AppAmbitSdk from sibling repo instead of CocoaPods registry
+  pod 'AppAmbitSdk', :path => '../../../../appambit-sdk-ios/AppAmbitSdk'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
