@@ -4,12 +4,15 @@ import {
   Text,
   TextInput,
   ScrollView,
-  Pressable,
+  TouchableOpacity,
+  Modal,
   ActivityIndicator,
   StyleSheet,
 } from "react-native";
 import { db } from "appambit";
 import type { DbRow } from "appambit";
+
+type DemoItem = { label: string; action: () => void };
 
 export default function DatabaseScreen() {
   const [sql, setSql] = useState("SELECT * FROM tasks LIMIT 10");
@@ -18,6 +21,8 @@ export default function DatabaseScreen() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   function reset() {
     setColumns([]);
@@ -109,11 +114,11 @@ export default function DatabaseScreen() {
       if (result.error) { err(result.error); return; }
       setColumns(result.columns);
       setRows(result.rows);
-      ok(`execute(sql) — rows_read=${result.rowsRead}  rows_written=${result.rowsWritten}`);
+      ok(`sqlite_master tables — ${result.rowsRead} row(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
-  async function demoPresetWherePriorityHigh() {
+  async function demoPresetHighPriority() {
     const q = "SELECT * FROM tasks WHERE priority = 'high'";
     setSql(q);
     reset();
@@ -123,7 +128,7 @@ export default function DatabaseScreen() {
       if (result.error) { err(result.error); return; }
       setColumns(result.columns);
       setRows(result.rows);
-      ok(`execute(sql) — rows_read=${result.rowsRead}  rows_written=${result.rowsWritten}`);
+      ok(`tasks WHERE priority='high' — ${result.rowsRead} row(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
@@ -137,8 +142,8 @@ export default function DatabaseScreen() {
         db().statement("SELECT COUNT(*) AS total FROM tasks"),
       ]);
       const written = results.reduce((sum, r) => sum + r.rowsWritten, 0);
-      setColumns(["statement", "rows_written"]);
-      setRows(results.map((r, i) => [i + 1, r.rowsWritten]));
+      setColumns(["statement", "rows_written", "rows_read"]);
+      setRows(results.map((r, i) => [i + 1, r.rowsWritten, r.rowsRead]));
       ok(`batch() — ${written} row(s) written across ${results.length} statements (no transaction)`);
     } catch (e: any) { err(e.message ?? "Batch error"); }
   }
@@ -152,6 +157,8 @@ export default function DatabaseScreen() {
         db().statement("INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)", ["Prepare agenda", 0, "medium", "2026-06-06"]),
       ]);
       const written = results.reduce((sum, r) => sum + r.rowsWritten, 0);
+      setColumns(["statement", "rows_written"]);
+      setRows(results.map((r, i) => [i + 1, r.rowsWritten]));
       ok(`batchInTransaction() — ${written} row(s) written, rolled back on any failure`);
     } catch (e: any) { err(e.message ?? "Transaction error"); }
   }
@@ -167,8 +174,9 @@ export default function DatabaseScreen() {
         .orderByDesc("due_date")
         .limit(5)
         .get();
+      if (dbRows.length === 0) { ok("No pending tasks"); return; }
       showRows(dbRows);
-      ok(dbRows.length === 0 ? "No pending tasks" : `pending tasks to complete — ${dbRows.length} row(s)`);
+      ok(`from().select().where().orderByDesc().limit(5) — ${dbRows.length} row(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
@@ -177,8 +185,9 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const dbRows = await db().from("tasks").where("is_completed", 0).get();
+      if (dbRows.length === 0) { ok("No pending tasks"); return; }
       showRows(dbRows);
-      ok(dbRows.length === 0 ? "No pending tasks" : `where(is_completed, 0) — ${dbRows.length} pending task(s)`);
+      ok(`where(is_completed, 0) — ${dbRows.length} pending task(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
@@ -191,8 +200,9 @@ export default function DatabaseScreen() {
         .whereIn("priority", ["high", "medium"])
         .orderBy("due_date")
         .get();
+      if (dbRows.length === 0) { ok("No high/medium tasks"); return; }
       showRows(dbRows);
-      ok(dbRows.length === 0 ? "No high/medium tasks" : `whereIn(priority, [high, medium]) — ${dbRows.length} row(s)`);
+      ok(`whereIn(priority, [high, medium]) — ${dbRows.length} row(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
@@ -201,8 +211,9 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const dbRows = await db().from("tasks").orderBy("due_date").limit(5).offset(0).get();
+      if (dbRows.length === 0) { ok("No tasks"); return; }
       showRows(dbRows);
-      ok(dbRows.length === 0 ? "No tasks" : `limit(5).offset(0) — page 1, ${dbRows.length} row(s)`);
+      ok(`limit(5).offset(0) — page 1, ${dbRows.length} row(s)`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
@@ -236,6 +247,8 @@ export default function DatabaseScreen() {
     try {
       const result = await db().from("tasks").insert({ title: "New task", is_completed: 0, priority: "medium", due_date: "2026-06-10" });
       if (result.error) { err(result.error); return; }
+      setColumns(["rows_written"]);
+      setRows([[result.rowsWritten]]);
       ok(`insert() — task created, rows_written=${result.rowsWritten}`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
@@ -246,6 +259,8 @@ export default function DatabaseScreen() {
     try {
       const result = await db().from("tasks").insert({ title: "Fix critical bug", is_completed: 0, priority: "high", due_date: "2026-06-05" });
       if (result.error) { err(result.error); return; }
+      setColumns(["rows_written"]);
+      setRows([[result.rowsWritten]]);
       ok(`insert() high priority — task created, rows_written=${result.rowsWritten}`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
@@ -259,6 +274,8 @@ export default function DatabaseScreen() {
         ["Raw SQL insert", 0, "medium", "2026-06-12"]
       );
       if (result.error) { err(result.error); return; }
+      setColumns(["rows_written"]);
+      setRows([[result.rowsWritten]]);
       ok(`execute() INSERT OK — rows_written=${result.rowsWritten}`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
@@ -275,6 +292,8 @@ export default function DatabaseScreen() {
         db().statement("INSERT INTO tasks (title, is_completed, priority, due_date) VALUES (?, ?, ?, ?)", ["Monitor metrics", 0, "low", "2026-06-20"]),
       ]);
       const written = results.reduce((sum, r) => sum + r.rowsWritten, 0);
+      setColumns(["rows_inserted"]);
+      setRows([[written]]);
       ok(`insert many — ${written} rows inserted via batch`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
@@ -285,6 +304,8 @@ export default function DatabaseScreen() {
     try {
       const result = await db().from("tasks").where("title", "New task").update({ is_completed: 1 });
       if (result.error) { err(result.error); return; }
+      setColumns(["rows_written"]);
+      setRows([[result.rowsWritten]]);
       ok(`update() — task marked as completed, rows_written=${result.rowsWritten}`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
@@ -295,14 +316,38 @@ export default function DatabaseScreen() {
     try {
       const result = await db().from("tasks").where("is_completed", 1).delete();
       if (result.error) { err(result.error); return; }
+      setColumns(["rows_written"]);
+      setRows([[result.rowsWritten]]);
       ok(`delete() — completed tasks deleted, rows_written=${result.rowsWritten}`);
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
+  const demos: DemoItem[] = [
+    { label: "Raw SQL → execute(sql)", action: demoExecute },
+    { label: "Raw SQL → execute(sql, params)", action: demoExecuteParams },
+    { label: "Schema → CREATE TABLE tasks", action: demoCreateTable },
+    { label: "Schema → DROP TABLE tasks", action: demoDropTable },
+    { label: "Batch → batch()", action: demoBatch },
+    { label: "Batch → batchInTransaction()", action: demoBatchInTransaction },
+    { label: "Fluent SELECT → select+where+orderByDesc+limit", action: demoFluentSelect },
+    { label: "Fluent SELECT → where(col, val)", action: demoWhereEquality },
+    { label: "Fluent SELECT → whereIn()", action: demoWhereIn },
+    { label: "Fluent SELECT → limit+offset", action: demoOffset },
+    { label: "Fluent SELECT → first()", action: demoFirst },
+    { label: "Fluent SELECT → count()", action: demoCount },
+    { label: "Fluent WRITE → insert()", action: demoInsert },
+    { label: "Fluent WRITE → insert() high priority", action: demoInsertHigh },
+    { label: "Fluent WRITE → insert() raw SQL", action: demoInsertRawSQL },
+    { label: "Fluent WRITE → insert many (batch)", action: demoInsertMany },
+    { label: "Fluent WRITE → update()", action: demoUpdate },
+    { label: "Fluent WRITE → delete()", action: demoDelete },
+    { label: "Preset → List tables", action: demoPresetTables },
+    { label: "Preset → SELECT * WHERE priority='high'", action: demoPresetHighPriority },
+  ];
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <SectionHeader title="Raw SQL" />
         <TextInput
           style={styles.sqlInput}
           value={sql}
@@ -311,50 +356,27 @@ export default function DatabaseScreen() {
           multiline
           numberOfLines={3}
         />
+
         <View style={styles.row}>
-          <DbBtn label="execute(sql)" onPress={demoExecute} half disabled={loading} />
-          <DbBtn label="execute(sql, params)" onPress={demoExecuteParams} half disabled={loading} />
+          <TouchableOpacity
+            style={styles.dropdownBtn}
+            onPress={() => setExpanded(true)}
+            disabled={loading}
+          >
+            <Text style={styles.dropdownBtnText} numberOfLines={1}>
+              {demos[selectedIndex]!.label}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.runBtn, loading && styles.btnDisabled]}
+            onPress={() => demos[selectedIndex]!.action()}
+            disabled={loading}
+          >
+            <Text style={styles.runBtnText}>▶  Run</Text>
+          </TouchableOpacity>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          <Chip label="List tables" onPress={demoPresetTables} disabled={loading} />
-          <Chip label="SELECT high priority" onPress={demoPresetWherePriorityHigh} disabled={loading} />
-        </ScrollView>
 
-        <SectionHeader title="Schema" />
-        <View style={styles.row}>
-          <DbBtn label="CREATE TABLE tasks" onPress={demoCreateTable} half disabled={loading} />
-          <DbBtn label="DROP TABLE tasks" onPress={demoDropTable} half disabled={loading} />
-        </View>
-
-        <SectionHeader title="Batch" />
-        <View style={styles.row}>
-          <DbBtn label="batch()" onPress={demoBatch} half disabled={loading} />
-          <DbBtn label="batchInTransaction()" onPress={demoBatchInTransaction} half disabled={loading} />
-        </View>
-
-        <SectionHeader title="Fluent Builder — SELECT" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          <Chip label="select+where+orderByDesc+limit" onPress={demoFluentSelect} disabled={loading} />
-          <Chip label="where(col, val)" onPress={demoWhereEquality} disabled={loading} />
-          <Chip label="whereIn()" onPress={demoWhereIn} disabled={loading} />
-          <Chip label="limit+offset" onPress={demoOffset} disabled={loading} />
-          <Chip label="first()" onPress={demoFirst} disabled={loading} />
-          <Chip label="count()" onPress={demoCount} disabled={loading} />
-        </ScrollView>
-
-        <SectionHeader title="Fluent Builder — WRITE" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          <Chip label="insert()" onPress={demoInsert} disabled={loading} />
-          <Chip label="insert() high" onPress={demoInsertHigh} disabled={loading} />
-          <Chip label="insert() raw SQL" onPress={demoInsertRawSQL} disabled={loading} />
-          <Chip label="insert many" onPress={demoInsertMany} disabled={loading} />
-          <Chip label="update()" onPress={demoUpdate} disabled={loading} />
-          <Chip label="delete()" onPress={demoDelete} disabled={loading} />
-        </ScrollView>
-      </ScrollView>
-
-      <View style={styles.panel}>
-        {loading && <ActivityIndicator style={styles.spinner} />}
         {!!status && (
           <View style={styles.statusOk}>
             <Text style={styles.statusOkText}>{status}</Text>
@@ -365,95 +387,98 @@ export default function DatabaseScreen() {
             <Text style={styles.statusErrText}>{error}</Text>
           </View>
         )}
+        {loading && <ActivityIndicator style={styles.spinner} />}
+
         {columns.length > 0 && <ResultTable columns={columns} rows={rows} />}
-      </View>
+      </ScrollView>
+
+      <Modal
+        visible={expanded}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setExpanded(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setExpanded(false)}
+        >
+          <View style={styles.modalContent}>
+            <ScrollView>
+              {demos.map((demo, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setSelectedIndex(i);
+                    setExpanded(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{demo.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
-  );
-}
-
-function SectionHeader({ title }: { title: string }) {
-  return <Text style={styles.sectionTitle}>{title}</Text>;
-}
-
-function DbBtn({
-  label,
-  onPress,
-  half,
-  disabled,
-}: {
-  label: string;
-  onPress: () => void;
-  half?: boolean;
-  disabled: boolean;
-}) {
-  return (
-    <Pressable
-      style={[styles.btn, half && styles.btnHalf, disabled && styles.btnDisabled]}
-      onPress={onPress}
-      disabled={disabled}
-    >
-      <Text style={styles.btnText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function Chip({
-  label,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled: boolean;
-}) {
-  return (
-    <Pressable
-      style={[styles.chip, disabled && styles.chipDisabled]}
-      onPress={onPress}
-      disabled={disabled}
-    >
-      <Text style={styles.chipText}>{label}</Text>
-    </Pressable>
   );
 }
 
 function ResultTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator>
-      <View>
-        <View style={styles.tableHeader}>
-          {columns.map((col) => (
-            <Text key={col} style={styles.tableHeaderCell}>
-              {col}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.tableDivider} />
-        <ScrollView style={styles.tableBody} nestedScrollEnabled>
-          {rows.map((row, ri) => (
-            <View key={ri} style={styles.tableRow}>
-              {row.map((cell, ci) => (
-                <Text
-                  key={ci}
-                  style={[styles.tableCell, cell === null && styles.tableCellNull]}
-                  numberOfLines={2}
+    <View style={styles.tableCard}>
+      <ScrollView horizontal showsHorizontalScrollIndicator>
+        <View>
+          <View style={styles.tableHeader}>
+            {columns.map((col) => (
+              <Text key={col} style={styles.tableHeaderCell} numberOfLines={1}>
+                {col}
+              </Text>
+            ))}
+          </View>
+          <View style={styles.tableDivider} />
+          {rows.length === 0 ? (
+            <Text style={styles.noRows}>(no rows)</Text>
+          ) : (
+            <ScrollView style={styles.tableBody} nestedScrollEnabled>
+              {rows.map((row, ri) => (
+                <View
+                  key={ri}
+                  style={[styles.tableRow, ri % 2 === 1 && styles.tableRowAlt]}
                 >
-                  {cell === null ? "null" : String(cell)}
-                </Text>
+                  {row.map((cell, ci) => (
+                    <Text
+                      key={ci}
+                      style={[styles.tableCell, cell === null && styles.tableCellNull]}
+                      numberOfLines={2}
+                    >
+                      {cell === null ? "null" : String(cell)}
+                    </Text>
+                  ))}
+                </View>
               ))}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    </ScrollView>
+            </ScrollView>
+          )}
+        </View>
+      </ScrollView>
+      {rows.length > 0 && (
+        <>
+          <View style={styles.tableDivider} />
+          <Text style={styles.rowCount}>
+            {rows.length} row{rows.length === 1 ? "" : "s"}
+          </Text>
+        </>
+      )}
+    </View>
   );
 }
 
-const COL_W = 120;
+const COL_W = 140;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 16, paddingBottom: 8 },
+  content: { padding: 12 },
   sqlInput: {
     borderWidth: 1,
     borderColor: "#aaa",
@@ -465,62 +490,96 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlignVertical: "top",
   },
-  row: { flexDirection: "row", gap: 8, marginBottom: 8 },
-  btn: {
-    backgroundColor: "#007AFF",
-    paddingVertical: 10,
-    paddingHorizontal: 8,
+  row: { flexDirection: "row", gap: 8, marginBottom: 8, alignItems: "center" },
+  dropdownBtn: {
+    flex: 1,
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#d1d5db",
     borderRadius: 8,
-    alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
-  },
-  btnHalf: { flex: 1, marginBottom: 0 },
-  btnDisabled: { opacity: 0.5 },
-  btnText: { color: "#fff", fontSize: 12, fontWeight: "600", textAlign: "center" },
-  chipRow: { flexDirection: "row", gap: 8, paddingBottom: 12 },
-  chip: {
-    backgroundColor: "#E8F0FE",
-    paddingVertical: 6,
     paddingHorizontal: 12,
-    borderRadius: 16,
   },
-  chipDisabled: { opacity: 0.5 },
-  chipText: { fontSize: 13, color: "#1A73E8", fontWeight: "500" },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#007AFF",
-    marginBottom: 6,
-    marginTop: 8,
+  dropdownBtnText: { fontSize: 13, color: "#374151" },
+  runBtn: {
+    height: 40,
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  panel: { paddingHorizontal: 16, paddingBottom: 12 },
-  spinner: { marginBottom: 4 },
+  btnDisabled: { opacity: 0.5 },
+  runBtnText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    maxHeight: "80%",
+    overflow: "hidden",
+  },
+  modalOption: {
+    padding: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e5e7eb",
+  },
+  modalOptionText: { fontSize: 14, color: "#111" },
+  spinner: { marginBottom: 8 },
   statusOk: {
     backgroundColor: "#E8F5E9",
     borderRadius: 6,
-    padding: 8,
-    marginBottom: 6,
+    padding: 10,
+    marginBottom: 8,
   },
   statusOkText: { fontSize: 12, color: "#1B5E20", fontFamily: "monospace" },
   statusErr: {
     backgroundColor: "#FFEBEE",
     borderRadius: 6,
-    padding: 8,
-    marginBottom: 6,
+    padding: 10,
+    marginBottom: 8,
   },
   statusErrText: { fontSize: 12, color: "#C62828", fontFamily: "monospace" },
-  tableHeader: { flexDirection: "row", backgroundColor: "#EEEEEE" },
+  tableCard: {
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  tableHeader: { flexDirection: "row", backgroundColor: "#E8F0FE" },
   tableHeaderCell: {
     width: COL_W,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     fontSize: 12,
     fontWeight: "700",
+    color: "#1A73E8",
   },
-  tableDivider: { height: 1, backgroundColor: "#CCC" },
-  tableBody: { maxHeight: 240 },
-  tableRow: { flexDirection: "row", paddingVertical: 3 },
-  tableCell: { width: COL_W, paddingHorizontal: 8, fontSize: 12, fontFamily: "monospace" },
+  tableDivider: { height: 1, backgroundColor: "#e5e7eb" },
+  tableBody: { maxHeight: 320 },
+  tableRow: { flexDirection: "row" },
+  tableRowAlt: { backgroundColor: "#F5F7FA" },
+  tableCell: {
+    width: COL_W,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 12,
+    fontFamily: "monospace",
+  },
   tableCellNull: { color: "#BDBDBD" },
+  noRows: {
+    padding: 12,
+    fontSize: 13,
+    color: "#9CA3AF",
+  },
+  rowCount: {
+    padding: 8,
+    fontSize: 11,
+    color: "#9CA3AF",
+  },
 });
