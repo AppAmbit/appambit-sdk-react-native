@@ -4,16 +4,3 @@ extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autoli
 rootProject.name = 'appambit.example'
 include ':app'
 includeBuild('../node_modules/@react-native/gradle-plugin')
-
-// Local Android SDK — composite build so the SDK's own settings.gradle.kts (and its
-// libs.versions.toml version catalog) are loaded correctly. Without this, alias() calls
-// inside appambit-sdk/build.gradle.kts fail with "Unresolved reference: libs".
-// The substitution rule redirects com.appambit:appambit → local :appambit-sdk project.
-def localAndroidSdkRoot = new File(rootDir, '../../../../appambit-sdk-android')
-if (localAndroidSdkRoot.exists()) {
-    includeBuild(localAndroidSdkRoot) {
-        dependencySubstitution {
-            substitute(module('com.appambit:appambit')).using(project(':appambit-sdk'))
-        }
-    }
-}
