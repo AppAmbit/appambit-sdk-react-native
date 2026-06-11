@@ -142,7 +142,7 @@ public class AppAmbitSDKWrapper: NSObject {
     let dbStatements: [DbStatement] = statements.compactMap { dict in
       guard let sql = dict["sql"] as? String else { return nil }
       let params = dict["params"] as? [Any]
-      return params != nil ? DbStatement.of(sql, params: params!) : DbStatement.of(sql)
+      return DbStatement(sql: sql, params: params)
     }
 
     let finish: @Sendable ([DbResult]?, Error?) -> Void = { results, error in

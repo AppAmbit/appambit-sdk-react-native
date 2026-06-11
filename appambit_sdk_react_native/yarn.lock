@@ -4113,12 +4113,12 @@ __metadata:
   linkType: hard
 
 "appambit-push-notifications@file:../../push/appambit-push-notifications::locator=appambit-testapp%40workspace%3Aappambit_test_app":
-  version: 1.0.0
-  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=9c6db1&locator=appambit-testapp%40workspace%3Aappambit_test_app"
+  version: 1.0.1
+  resolution: "appambit-push-notifications@file:../../push/appambit-push-notifications#../../push/appambit-push-notifications::hash=74fd25&locator=appambit-testapp%40workspace%3Aappambit_test_app"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: e4e028a98d3d3966f29d3f16d9c66618667611aef57ab7420e1a7ecc879df04a58cc07190fb3dba4e309b70861e89b72d469d28c1fad41f3ced58997f5ff5594
+  checksum: 416b6bd9f205922acdf3b9d2d889c8abeab9e3c9f4936de5db7f66d8617e4c74450f6f2cb18c351d7ee45972aed7cc2c1d9456000eafd2cf7e06b392953bedc9
   languageName: node
   linkType: hard
 

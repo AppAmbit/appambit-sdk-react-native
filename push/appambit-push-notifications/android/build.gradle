@@ -83,7 +83,7 @@ dependencies {
   // ─── Remote Push SDK Dependency ─────────────────────────────────────────────
   // 'api' (not 'implementation') is required so that classes like PushNotifications
   // are visible at compile time to the consuming app (e.g. MainActivity.kt).
-  api 'com.appambit:appambit.push.notifications:1.0.2'
+  api 'com.appambit:appambit.push.notifications:1.1.0'
 
   // ─── Core SDK (compile-time only) ───────────────────────────────────────────
   // The Push SDK depends on the AppAmbit Core SDK. We reference Core's `AppAmbit`
@@ -93,7 +93,7 @@ dependencies {
   if (localCoreAar.exists()) {
     compileOnly(name: "appambit-sdk-local", ext: "aar")
   } else {
-    compileOnly 'com.appambit:appambit:1.0.2'
+    compileOnly 'com.appambit:appambit:1.1.0'
   }
 
   // ─── Firebase (required transitively by the push AAR) ──────────────────────
