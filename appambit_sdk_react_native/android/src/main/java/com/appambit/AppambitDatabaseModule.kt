@@ -65,11 +65,11 @@ class AppambitDatabaseModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    private fun readableArrayToList(array: ReadableArray): List<Any> {
-        val list = mutableListOf<Any>()
+    private fun readableArrayToList(array: ReadableArray): List<Any?> {
+        val list = mutableListOf<Any?>()
         for (i in 0 until array.size()) {
             when (array.getType(i)) {
-                ReadableType.Null -> list.add("null")
+                ReadableType.Null -> list.add(null)
                 ReadableType.Boolean -> list.add(array.getBoolean(i))
                 ReadableType.Number -> {
                     val num = array.getDouble(i)

@@ -234,7 +234,6 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const result = await db().from("tasks").insert({ title: "New task", is_completed: 0, priority: "medium", due_date: "2026-06-10" });
-      if (result.error) { err(result.error); return; }
       setColumns(["rows_written"]);
       setRows([[result.rowsWritten]]);
       ok(`insert() — task created, rows_written=${result.rowsWritten}`);
@@ -246,7 +245,6 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const result = await db().from("tasks").insert({ title: "Fix critical bug", is_completed: 0, priority: "high", due_date: "2026-06-05" });
-      if (result.error) { err(result.error); return; }
       setColumns(["rows_written"]);
       setRows([[result.rowsWritten]]);
       ok(`insert() high priority — task created, rows_written=${result.rowsWritten}`);
@@ -291,7 +289,6 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const result = await db().from("tasks").where("title", "New task").update({ is_completed: 1 });
-      if (result.error) { err(result.error); return; }
       setColumns(["rows_written"]);
       setRows([[result.rowsWritten]]);
       ok(`update() — task marked as completed, rows_written=${result.rowsWritten}`);
@@ -303,7 +300,6 @@ export default function DatabaseScreen() {
     setLoading(true);
     try {
       const result = await db().from("tasks").where("is_completed", 1).delete();
-      if (result.error) { err(result.error); return; }
       setColumns(["rows_written"]);
       setRows([[result.rowsWritten]]);
       ok(`delete() — completed tasks deleted, rows_written=${result.rowsWritten}`);

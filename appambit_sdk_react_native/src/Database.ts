@@ -8,6 +8,11 @@ export type DbResult = {
   error?: string;
 };
 
+export type DbWriteResult = Pick<DbResult, 'rowsRead' | 'rowsWritten'>;
+
+export type DbOperator = '=' | '!=' | '<>' | '>' | '>=' | '<' | '<='
+  | 'LIKE' | 'NOT LIKE' | 'IS' | 'IS NOT';
+
 export type DbRow = Record<string, any>;
 
 export type DbStatementInput = {
@@ -47,6 +52,8 @@ export class DbQueryBuilder {
     return this;
   }
 
+  where(column: string, value: any): this;
+  where(column: string, op: DbOperator, value: any): this;
   where(column: string, valueOrOp: any, value?: any): this {
     if (value === undefined) {
       this._whereConditions.push(quoteDbIdentifier(column) + ' = ?');
@@ -153,7 +160,7 @@ export class DbQueryBuilder {
     return typeof val === 'number' ? val : parseInt(String(val), 10) || 0;
   }
 
-  async insert(data: Record<string, any>): Promise<DbResult> {
+  async insert(data: Record<string, any>): Promise<DbWriteResult> {
     const cols = Object.keys(data);
     const vals = cols.map(c => data[c]);
     const colList = cols.map(quoteDbIdentifier).join(', ');
@@ -161,10 +168,10 @@ export class DbQueryBuilder {
     const sql = `INSERT INTO ${quoteDbIdentifier(this._table)} (${colList}) VALUES (${placeholders})`;
     const result = await NativeAppambitDatabase.execute(sql, vals);
     if ((result as any).error) throw new Error((result as any).error);
-    return result as DbResult;
+    return result as DbWriteResult;
   }
 
-  async update(data: Record<string, any>): Promise<DbResult> {
+  async update(data: Record<string, any>): Promise<DbWriteResult> {
     if (this._whereConditions.length === 0) {
       throw new Error(
         'update() without WHERE would affect all rows. Use AppAmbitDatabase.execute() for intentional full-table updates.',
@@ -176,10 +183,10 @@ export class DbQueryBuilder {
     const sql = `UPDATE ${quoteDbIdentifier(this._table)} SET ${setClause} WHERE ${this._whereConditions.join(' AND ')}`;
     const result = await NativeAppambitDatabase.execute(sql, params);
     if ((result as any).error) throw new Error((result as any).error);
-    return result as DbResult;
+    return result as DbWriteResult;
   }
 
-  async delete(): Promise<DbResult> {
+  async delete(): Promise<DbWriteResult> {
     if (this._whereConditions.length === 0) {
       throw new Error(
         'delete() without WHERE would delete all rows. Use AppAmbitDatabase.execute() for intentional full-table deletes.',
@@ -188,7 +195,7 @@ export class DbQueryBuilder {
     const sql = `DELETE FROM ${quoteDbIdentifier(this._table)} WHERE ${this._whereConditions.join(' AND ')}`;
     const result = await NativeAppambitDatabase.execute(sql, this._whereParams);
     if ((result as any).error) throw new Error((result as any).error);
-    return result as DbResult;
+    return result as DbWriteResult;
   }
 }
 
