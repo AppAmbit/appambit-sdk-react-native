@@ -82,6 +82,16 @@ export default function DatabaseScreen() {
     } catch (e: any) { err(e.message ?? "Error"); }
   }
 
+  async function demoDropTable() {
+    reset();
+    setLoading(true);
+    try {
+      const result = await db().execute("DROP TABLE IF EXISTS tasks");
+      if (result.error) { err(result.error); return; }
+      ok(`DROP TABLE OK — rows_read=${result.rowsRead}  rows_written=${result.rowsWritten}`);
+    } catch (e: any) { err(e.message ?? "Error"); }
+  }
+
   async function demoPresetTables() {
     const q = "SELECT name FROM sqlite_master WHERE type = 'table'";
     setSql(q);
@@ -303,6 +313,7 @@ export default function DatabaseScreen() {
   const demos: DemoItem[] = [
     { label: "Raw SQL → execute(sql)", action: demoExecute },
     { label: "Raw SQL → execute(sql, params)", action: demoExecuteParams },
+    { label: "Schema → DROP TABLE tasks", action: demoDropTable },
     { label: "Batch → batch()", action: demoBatch },
     { label: "Batch → batchInTransaction()", action: demoBatchInTransaction },
     { label: "Fluent SELECT → select+where+orderByDesc+limit", action: demoFluentSelect },
