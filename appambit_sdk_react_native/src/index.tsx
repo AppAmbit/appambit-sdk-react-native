@@ -3,6 +3,8 @@ import AppambitAnalytics from './NativeAppambitAnalytics';
 import AppambitCrashes from './NativeAppambitCrashes';
 import AppambitRemoteConfig from './NativeAppambitRemoteConfig';
 import { AppAmbitCms } from './CmsQuery';
+export { AppAmbitDatabase, DbQueryBuilder, db } from './Database';
+export type { DbResult, DbRow, DbStatementInput } from './Database';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { Platform } from 'react-native';
 

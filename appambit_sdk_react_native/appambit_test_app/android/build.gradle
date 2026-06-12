@@ -25,5 +25,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs project(':appambit').file('libs')
+        }
     }
 }
