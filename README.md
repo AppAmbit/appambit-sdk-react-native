@@ -33,6 +33,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Error logging for quick diagnostics 
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
+* Cloud SQLite database with raw SQL and query builder
 * Create multiple app profiles for staging and production
 * Small footprint
 
@@ -63,7 +64,7 @@ Add the package to your React Native project:
 ```bash
 npm install appambit
 # or specify version
-npm install appambit@1.0.1
+npm install appambit@1.1.0
 ```
 ---
 
@@ -118,6 +119,15 @@ Add these permissions to your `AndroidManifest.xml`:
     }
   ```
 * **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
+
+  ```javascript
+  import { db } from "appambit";
+
+  await db().from("notes").insert({ title: "Hello", done: 0 });
+  const notes = await db().from("notes").where("done", 0).orderByDesc("title").get();
+  ```
+
+* **Database**: local SQL database with a fluent query builder
 
 ```dart
 import * as AppAmbit from "appambit";

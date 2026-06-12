@@ -63,7 +63,7 @@ Add the package to your React Native project:
 ```bash
 npm install appambit
 # or specify version
-npm install appambit@1.0.1
+npm install appambit@1.1.0
 ```
 ---
 
@@ -117,6 +117,14 @@ Add these permissions to your `AndroidManifest.xml`:
     }
   ```
 * **Crash Reporting**: uncaught crashes are automatically captured and uploaded on next launch
+* **Database**: local SQL database with a fluent query builder
+
+  ```javascript
+  import { db } from "appambit";
+
+  await db().from("notes").insert({ title: "Hello", done: 0 });
+  const notes = await db().from("notes").where("done", 0).orderByDesc("title").get();
+  ```
 
 ---
 
