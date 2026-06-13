@@ -114,4 +114,59 @@ public class AppAmbitSDKWrapper: NSObject {
       return Cms.contentTypelessObjC(contentType)
   }
 
+  // MARK: - Database
+
+  @objc
+  public static func dbExecute(
+    _ sql: String,
+    params: [Any]?,
+    completion: @escaping @Sendable ([String: Any]?, Error?) -> Void
+  ) {
+    if let params = params, !params.isEmpty {
+      AppAmbitDb.execute(sql, params: params) { result, error in
+        completion(result.map { Self.dbResultToDict($0) }, error)
+      }
+    } else {
+      AppAmbitDb.execute(sql) { result, error in
+        completion(result.map { Self.dbResultToDict($0) }, error)
+      }
+    }
+  }
+
+  @objc
+  public static func dbBatch(
+    _ statements: [[String: Any]],
+    transaction: Bool,
+    completion: @escaping @Sendable ([Any]?, Error?) -> Void
+  ) {
+    let dbStatements: [DbStatement] = statements.compactMap { dict -> DbStatement? in
+      guard let sql = dict["sql"] as? String else { return nil }
+      let params = dict["params"] as? [Any]
+      return DbStatement(sql: sql, params: params)
+    }
+
+    let finish: @Sendable ([DbResult]?, Error?) -> Void = { results, error in
+      if let error = error { completion(nil, error); return }
+      let dicts = results?.map { Self.dbResultToDict($0) } ?? []
+      completion(dicts, nil)
+    }
+
+    if transaction {
+      AppAmbitDb.batchInTransaction(dbStatements, completion: finish)
+    } else {
+      AppAmbitDb.batch(dbStatements, completion: finish)
+    }
+  }
+
+  private static func dbResultToDict(_ result: DbResult) -> [String: Any] {
+    var dict: [String: Any] = [
+      "columns": result.columns,
+      "rows": result.rows.map { row in row.map { $0 is NSNull ? NSNull() : $0 } },
+      "rowsRead": result.rowsRead,
+      "rowsWritten": result.rowsWritten,
+    ]
+    if let err = result.error { dict["error"] = err }
+    return dict
+  }
+
 }
