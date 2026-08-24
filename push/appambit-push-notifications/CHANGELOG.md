@@ -1,5 +1,14 @@
 ___
 
+## Version 1.1.1
+
+### AppAmbit SDK
+
+* **[Bugfix]** Fixed crashes on Android caused by lifecycle callbacks running before the SDK finished starting up.
+* **[Improvement]** Updated the Android native SDK to 1.2.0.
+
+---
+
 ## Version 1.1.0
 
 ### AppAmbit SDK
