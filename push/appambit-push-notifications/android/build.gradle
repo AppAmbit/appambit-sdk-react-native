@@ -65,13 +65,6 @@ android {
 repositories {
   mavenCentral()
   google()
-  // Local AAR build of appambit-sdk-android, shared via the :appambit project's libs/ dir.
-  // Used below for the Core SDK compile-time dependency to avoid a Gradle Module Metadata
-  // AgpVersionAttr mismatch (published com.appambit:appambit:1.0.2 was built with AGP 8.9.1,
-  // while RN 0.81's gradle plugin resolves AGP 8.11.0).
-  flatDir {
-    dirs rootProject.project(':appambit').file('libs')
-  }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -83,7 +76,7 @@ dependencies {
   // ─── Remote Push SDK Dependency ─────────────────────────────────────────────
   // 'api' (not 'implementation') is required so that classes like PushNotifications
   // are visible at compile time to the consuming app (e.g. MainActivity.kt).
-  api 'com.appambit:appambit.push.notifications:1.1.0'
+  api 'com.appambit:appambit.push.notifications:1.2.0'
 
   // ─── Core SDK (compile-time only) ───────────────────────────────────────────
   // The Push SDK depends on the AppAmbit Core SDK. We reference Core's `AppAmbit`
@@ -93,7 +86,7 @@ dependencies {
   if (localCoreAar.exists()) {
     compileOnly(name: "appambit-sdk-local", ext: "aar")
   } else {
-    compileOnly 'com.appambit:appambit:1.1.0'
+    compileOnly 'com.appambit:appambit:1.2.0'
   }
 
   // ─── Firebase (required transitively by the push AAR) ──────────────────────
