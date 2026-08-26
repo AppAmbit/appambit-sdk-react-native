@@ -169,4 +169,205 @@ public class AppAmbitSDKWrapper: NSObject {
     return dict
   }
 
+  // MARK: - CloudCode
+
+  // CloudCode itself has no requestId-keyed bookkeeping (each call() returns one fresh
+  // CloudCodeCancellationToken scoped to that call only) and cancelling never invokes the
+  // completion at all — it's simply never called again. So this module owns the only map of
+  // in-flight requests, guarded by a lock the same way CloudCode's own token guards its single
+  // cancelled flag internally. Each entry keeps both the cancellation token *and* the original
+  // `cloudCodeCall` completion block, so `cloudCodeCancel`/`cloudCodeInvalidate` can settle the
+  // original TurboModule promise immediately instead of leaving it to resolve on its own once
+  // the underlying transport eventually completes or times out (mirrors
+  // AppambitCloudCodeModule.kt's `PendingRequest(request, promise)` on Android).
+  private final class CloudCodePendingRequest {
+    let token: CloudCodeCancellationToken
+    let completion: @Sendable (NSDictionary?, NSError?) -> Void
+
+    init(token: CloudCodeCancellationToken, completion: @escaping @Sendable (NSDictionary?, NSError?) -> Void) {
+      self.token = token
+      self.completion = completion
+    }
+  }
+
+  private static var cloudCodePending: [String: CloudCodePendingRequest] = [:]
+  private static let cloudCodeLock = NSLock()
+
+  private static func cloudCodeHttpMethod(from raw: String) -> CloudCodeHttpMethod? {
+    switch raw {
+    case "GET": return .get
+    case "POST": return .post
+    case "PUT": return .put
+    case "PATCH": return .patch
+    case "DELETE": return .delete
+    default: return nil
+    }
+  }
+
+  private static func cloudCodeMakeError(
+    code: String,
+    message: String,
+    function: String? = nil,
+    header: String? = nil,
+    statusCode: Int? = nil,
+    body: Any? = nil,
+    rawBody: String? = nil,
+    requestId: String? = nil
+  ) -> NSError {
+    var userInfo: [String: Any] = [
+      "code": code,
+      NSLocalizedDescriptionKey: message,
+    ]
+    if let function = function { userInfo["function"] = function }
+    if let header = header { userInfo["header"] = header }
+    if let statusCode = statusCode { userInfo["statusCode"] = statusCode }
+    if let body = body { userInfo["body"] = body }
+    if let rawBody = rawBody { userInfo["rawBody"] = rawBody }
+    if let requestId = requestId { userInfo["requestId"] = requestId }
+    return NSError(domain: "com.appambit.reactnative.cloudcode", code: 0, userInfo: userInfo)
+  }
+
+  // Pattern-matches the native Swift `CloudCodeError` enum directly (before it would get
+  // boxed to NSError by the Obj-C bridge) so the resulting userInfo keys are the same,
+  // predictable, flat shape on both platforms instead of depending on however
+  // `CloudCodeError.errorUserInfo` happens to bridge.
+  private static func cloudCodeCanonicalError(from error: Error) -> NSError {
+    guard let cloudCodeError = error as? CloudCodeError else {
+      return cloudCodeMakeError(code: "UNKNOWN", message: error.localizedDescription)
+    }
+    switch cloudCodeError {
+    case .notInitialized:
+      return cloudCodeMakeError(code: "NOT_INITIALIZED", message: cloudCodeError.localizedDescription ?? "Cloud Code is not initialized")
+    case .invalidFunction(let function):
+      return cloudCodeMakeError(code: "INVALID_FUNCTION", message: cloudCodeError.localizedDescription ?? "Invalid Cloud Code function", function: function)
+    case .invalidBody:
+      return cloudCodeMakeError(code: "INVALID_BODY", message: cloudCodeError.localizedDescription ?? "Invalid Cloud Code body")
+    case .invalidHeader(let header):
+      return cloudCodeMakeError(code: "INVALID_HEADER", message: cloudCodeError.localizedDescription ?? "Invalid Cloud Code header", header: header)
+    case .networkUnavailable:
+      return cloudCodeMakeError(code: "NETWORK_UNAVAILABLE", message: cloudCodeError.localizedDescription ?? "Network unavailable")
+    case .timedOut:
+      return cloudCodeMakeError(code: "TIMED_OUT", message: cloudCodeError.localizedDescription ?? "Cloud Code request timed out")
+    case .invalidURL:
+      return cloudCodeMakeError(code: "INVALID_URL", message: cloudCodeError.localizedDescription ?? "Invalid Cloud Code URL")
+    case .transport(let detail):
+      return cloudCodeMakeError(code: "TRANSPORT", message: detail)
+    case .decoding(let detail):
+      return cloudCodeMakeError(code: "DECODING", message: detail)
+    case .http(let statusCode, let body, let rawBody, let requestId):
+      return cloudCodeMakeError(
+        code: "HTTP",
+        message: cloudCodeError.localizedDescription ?? "Cloud Code returned HTTP \(statusCode)",
+        statusCode: statusCode,
+        body: body?.toAny(),
+        rawBody: rawBody,
+        requestId: requestId
+      )
+    }
+  }
+
+  private static func cloudCodeResponseDict(_ response: CloudCodeResponse) -> [String: Any] {
+    return [
+      "data": response.data,
+      "statusCode": response.statusCode,
+      "requestId": response.requestId as Any,
+      "headers": response.headers,
+    ]
+  }
+
+  @objc
+  public static func cloudCodeCall(
+    _ requestId: String,
+    function: String,
+    method: String,
+    query: [String: Any],
+    body: [String: Any],
+    headers: [String: Any],
+    completion: @escaping @Sendable (NSDictionary?, NSError?) -> Void
+  ) {
+    guard let httpMethod = cloudCodeHttpMethod(from: method) else {
+      completion(nil, cloudCodeMakeError(code: "INVALID_METHOD", message: "Unsupported Cloud Code method: \(method)"))
+      return
+    }
+
+    // `query`/`headers` are typed [String: Any] (not [String: String]) specifically so this
+    // conversion — not an implicit NSDictionary bridge — is what decides what happens to a
+    // non-string value: Swift's automatic NSDictionary -> [String: String] bridging traps
+    // (fatal error) on a type mismatch instead of raising a catchable error. CloudCode.ts's
+    // snapshotStringMap already rejects a non-string query/header value before the bridge is
+    // ever called, so this is defense-in-depth against a caller that bypasses that JS-side
+    // check — drop the entry instead of crashing the app, mirroring
+    // AppambitCloudCodeModule.kt's readableMapToStringMap type guard on Android.
+    let stringQuery = query.compactMapValues { $0 as? String }
+    let stringHeaders = headers.compactMapValues { $0 as? String }
+
+    let token = CloudCode.call(
+      function,
+      method: httpMethod,
+      query: stringQuery.isEmpty ? nil : stringQuery,
+      body: body.isEmpty ? nil : body,
+      headers: stringHeaders.isEmpty ? nil : stringHeaders
+    ) { response, error in
+      cloudCodeLock.lock()
+      let stillPending = cloudCodePending.removeValue(forKey: requestId) != nil
+      cloudCodeLock.unlock()
+      // Already removed by cloudCodeCancel/cloudCodeInvalidate — that path already delivered
+      // CANCELLED to JS, so this natural completion must not deliver a second, conflicting
+      // result. `stillPending` being the single atomic gate is what makes this safe under a
+      // concurrent cancel: only whichever side wins the removeValue(forKey:) gets to settle.
+      guard stillPending else { return }
+
+      if let error = error {
+        completion(nil, cloudCodeCanonicalError(from: error))
+      } else if let response = response {
+        completion(cloudCodeResponseDict(response) as NSDictionary, nil)
+      } else {
+        completion(nil, cloudCodeMakeError(code: "UNKNOWN", message: "Cloud Code returned no response"))
+      }
+    }
+
+    cloudCodeLock.lock()
+    cloudCodePending[requestId] = CloudCodePendingRequest(token: token, completion: completion)
+    cloudCodeLock.unlock()
+  }
+
+  @objc
+  public static func cloudCodeCancel(
+    _ requestId: String,
+    completion: @escaping @Sendable (NSError?) -> Void
+  ) {
+    cloudCodeLock.lock()
+    let entry = cloudCodePending.removeValue(forKey: requestId)
+    cloudCodeLock.unlock()
+
+    // Idempotent: cancelling an unknown/already-settled requestId is a no-op, not an error.
+    if let entry = entry {
+      entry.token.cancel()
+      // Settle the *original* cloudCodeCall completion right now instead of leaving its
+      // TurboModule promise (and the native closure capturing it) pending until the
+      // underlying transport naturally completes or hits the ~60s Cloud Code timeout.
+      // Matches AppambitCloudCodeModule.kt's cancel(), which rejects the original promise
+      // synchronously via the same atomic remove-then-settle pattern.
+      entry.completion(nil, cloudCodeMakeError(code: "CANCELLED", message: "Cloud Code request was cancelled"))
+    }
+    completion(nil)
+  }
+
+  // RCTInvalidating hook (see AppAmbitCloudCode.mm): cancels and settles every request still
+  // pending when the bridge tears down, so no native completion closure — or the JS promise
+  // it would have resolved — outlives the bridge instance that owns it. The only module in
+  // this repo that needs this, because it's the only one with state between calls.
+  @objc
+  public static func cloudCodeInvalidate() {
+    cloudCodeLock.lock()
+    let entries = Array(cloudCodePending.values)
+    cloudCodePending.removeAll()
+    cloudCodeLock.unlock()
+
+    for entry in entries {
+      entry.token.cancel()
+      entry.completion(nil, cloudCodeMakeError(code: "CANCELLED", message: "Cloud Code request was cancelled"))
+    }
+  }
+
 }
