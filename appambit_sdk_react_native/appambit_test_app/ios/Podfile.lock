@@ -1,6 +1,6 @@
 PODS:
-  - Appambit (1.0.1):
-    - AppAmbitSdk (~> 1.1.0)
+  - Appambit (1.1.1):
+    - AppAmbitSdk (~> 1.2.0)
     - boost
     - DoubleConversion
     - fast_float
@@ -31,7 +31,7 @@ PODS:
   - AppAmbitPushNotifications (1.1.0):
     - AppAmbitSdk
   - AppAmbitPushNotificationsExtension (1.0.2)
-  - AppAmbitSdk (1.1.0)
+  - AppAmbitSdk (1.2.0)
   - AppAmbitSdkPushNotifications (1.0.1):
     - AppAmbitSdkPushNotifications/Core (= 1.0.1)
   - AppAmbitSdkPushNotifications/Core (1.0.1):
@@ -2500,7 +2500,7 @@ PODS:
 DEPENDENCIES:
   - Appambit (from `../..`)
   - AppAmbitPushNotificationsExtension (~> 1.0.1)
-  - AppAmbitSdk (from `/Users/roelleal/Documents/Github/appambit-sdk-ios/AppAmbitSdk`)
+  - AppAmbitSdk (from `/Users/isaiasmc/workspace/workspace_kavaup/appambit-sdk-ios/AppAmbitSdk`)
   - AppAmbitSdkPushNotifications (from `../node_modules/appambit-push-notifications`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
@@ -2590,7 +2590,7 @@ EXTERNAL SOURCES:
   Appambit:
     :path: "../.."
   AppAmbitSdk:
-    :path: "/Users/roelleal/Documents/Github/appambit-sdk-ios/AppAmbitSdk"
+    :path: "/Users/isaiasmc/workspace/workspace_kavaup/appambit-sdk-ios/AppAmbitSdk"
   AppAmbitSdkPushNotifications:
     :path: "../node_modules/appambit-push-notifications"
   boost:
@@ -2746,10 +2746,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Appambit: 6be73fdb5b9321dc6c8c64b5f361536034b44695
+  Appambit: f2b3e0aa5d19c06c41d02760bb5fda9c2bf74eec
   AppAmbitPushNotifications: ca48024ec96a42a97fea757a8e97e35f521241b8
   AppAmbitPushNotificationsExtension: 9b28acd46bf82e1735dc530b2902f55955c12134
-  AppAmbitSdk: 3c353462b775e608dc6b7aa918feb2efd789188b
+  AppAmbitSdk: 52f5a6677e73cec17e2d32eb0bc54d3877f79ce8
   AppAmbitSdkPushNotifications: 7d239c63495202b61c1b68b185613f6418d1554a
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
