@@ -220,6 +220,68 @@ describe('CloudCode.call', () => {
     });
   });
 
+  describe('native error parsing (real native rejection shape)', () => {
+    // These don't hand toCloudCodeError a hand-rolled { code } like the it.each mapping test
+    // above — they mock exactly what each native bridge actually produces for an HTTP error
+    // with a JSON body, so a change to either bridge's userInfo shape (AppambitCloudCodeModule.kt's
+    // rejectCloudCodeError / AppAmbitSDKWrapper.swift's cloudCodeCanonicalError+cloudCodeMakeError)
+    // that stops matching what CloudCode.ts expects would fail here, not just silently degrade
+    // to CloudCodeErrorCode.Unknown at runtime.
+
+    it('parses an Android-shaped HTTP 422 rejection (promise.reject(code, message, userInfo))', async () => {
+      // Mirrors AppambitCloudCodeModule.kt's rejectCloudCodeError: promise.reject(code.name,
+      // message, userInfo) bridges to a rejected JS value shaped { code, message, userInfo },
+      // where userInfo.body came through mapToWritableMap (a nested WritableMap, not a raw
+      // Kotlin Map) and userInfo.statusCode was written via userInfo.putInt.
+      nativeCall.mockRejectedValue({
+        code: 'HTTP',
+        message: 'Cloud Code returned HTTP 422.',
+        userInfo: {
+          code: 'HTTP',
+          statusCode: 422,
+          body: { error: 'validation_failed', fields: { title: 'required' } },
+          rawBody: '{"error":"validation_failed","fields":{"title":"required"}}',
+          requestId: 'req-android-422',
+        },
+      });
+
+      const request = CloudCode.call('fn');
+      await expect(request).rejects.toMatchObject({
+        code: CloudCodeErrorCode.Http,
+        statusCode: 422,
+        body: { error: 'validation_failed', fields: { title: 'required' } },
+        rawBody: '{"error":"validation_failed","fields":{"title":"required"}}',
+        requestId: 'req-android-422',
+      });
+    });
+
+    it('parses an iOS-shaped HTTP 422 rejection (NSError with a flat userInfo dictionary)', async () => {
+      // Mirrors AppAmbitSDKWrapper.swift's cloudCodeMakeError: an NSError whose userInfo is
+      // bridged to JS with the same flat key set as Android (code, statusCode, body, rawBody,
+      // requestId) built from CloudCodeError.http's decoded JSON body via body?.toAny().
+      nativeCall.mockRejectedValue({
+        code: 'HTTP',
+        message: 'Cloud Code returned HTTP 422',
+        userInfo: {
+          code: 'HTTP',
+          statusCode: 422,
+          body: { error: 'validation_failed', fields: { title: 'required' } },
+          rawBody: '{"error":"validation_failed","fields":{"title":"required"}}',
+          requestId: 'req-ios-422',
+        },
+      });
+
+      const request = CloudCode.call('fn');
+      await expect(request).rejects.toMatchObject({
+        code: CloudCodeErrorCode.Http,
+        statusCode: 422,
+        body: { error: 'validation_failed', fields: { title: 'required' } },
+        rawBody: '{"error":"validation_failed","fields":{"title":"required"}}',
+        requestId: 'req-ios-422',
+      });
+    });
+  });
+
   describe('timeout (opt-in)', () => {
     beforeEach(() => jest.useFakeTimers());
     afterEach(() => jest.useRealTimers());

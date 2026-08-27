@@ -181,11 +181,14 @@ public class AppAmbitSDKWrapper: NSObject {
   // the underlying transport eventually completes or times out (mirrors
   // AppambitCloudCodeModule.kt's `PendingRequest(request, promise)` on Android).
   private final class CloudCodePendingRequest {
-    let token: CloudCodeCancellationToken
+    // Optional and assigned *after* CloudCode.call(...) returns: the entry must be registered
+    // in `cloudCodePending` before that call happens (see cloudCodeCall below), so at
+    // registration time the token doesn't exist yet. `token?.cancel()` is a safe no-op if a
+    // cancel/invalidate races in during that narrow window before the assignment lands.
+    var token: CloudCodeCancellationToken?
     let completion: @Sendable (NSDictionary?, NSError?) -> Void
 
-    init(token: CloudCodeCancellationToken, completion: @escaping @Sendable (NSDictionary?, NSError?) -> Void) {
-      self.token = token
+    init(completion: @escaping @Sendable (NSDictionary?, NSError?) -> Void) {
       self.completion = completion
     }
   }
@@ -301,6 +304,25 @@ public class AppAmbitSDKWrapper: NSObject {
     let stringQuery = query.compactMapValues { $0 as? String }
     let stringHeaders = headers.compactMapValues { $0 as? String }
 
+    // Registered *before* CloudCode.call(...) is invoked, not after. CloudCode.call delivers
+    // every validation error (notInitialized, invalidFunction/-Header/-Body) via
+    // DispatchQueue.main.async from inside the call itself, and this method has no declared
+    // methodQueue (see AppAmbitCloudCode.mm), so it runs on the TurboModule's default queue
+    // rather than main. If the main queue drained that block before this thread reached the
+    // old post-call registration line, the completion closure below would find nothing in
+    // `cloudCodePending`, treat it as an already-settled/cancelled request, and return without
+    // ever invoking `completion` — the JS promise would hang forever. Registering first closes
+    // that window: the entry always exists by the time any completion (sync or async) can look
+    // it up. Matches Flutter's CloudCodeFlutter.swift, which registers its PendingRequest
+    // before calling CloudCode.call for the same reason. `pending.token` is filled in
+    // afterwards; a cancel/invalidate that races in before that assignment just finds
+    // `token == nil` and skips the `cancel()` call — the entry is already gone from the map by
+    // then, so the completion below still won't double-settle.
+    let pending = CloudCodePendingRequest(completion: completion)
+    cloudCodeLock.lock()
+    cloudCodePending[requestId] = pending
+    cloudCodeLock.unlock()
+
     let token = CloudCode.call(
       function,
       method: httpMethod,
@@ -327,7 +349,8 @@ public class AppAmbitSDKWrapper: NSObject {
     }
 
     cloudCodeLock.lock()
-    cloudCodePending[requestId] = CloudCodePendingRequest(token: token, completion: completion)
+    // No-op if the completion above already won the race and removed this entry from the map.
+    pending.token = token
     cloudCodeLock.unlock()
   }
 
@@ -342,7 +365,7 @@ public class AppAmbitSDKWrapper: NSObject {
 
     // Idempotent: cancelling an unknown/already-settled requestId is a no-op, not an error.
     if let entry = entry {
-      entry.token.cancel()
+      entry.token?.cancel()
       // Settle the *original* cloudCodeCall completion right now instead of leaving its
       // TurboModule promise (and the native closure capturing it) pending until the
       // underlying transport naturally completes or hits the ~60s Cloud Code timeout.
@@ -365,7 +388,7 @@ public class AppAmbitSDKWrapper: NSObject {
     cloudCodeLock.unlock()
 
     for entry in entries {
-      entry.token.cancel()
+      entry.token?.cancel()
       entry.completion(nil, cloudCodeMakeError(code: "CANCELLED", message: "Cloud Code request was cancelled"))
     }
   }

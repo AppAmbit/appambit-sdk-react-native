@@ -242,6 +242,12 @@ function toCloudCodeError(err: unknown): CloudCodeError {
     function:
       typeof userInfo.function === 'string' ? userInfo.function : undefined,
     header: typeof userInfo.header === 'string' ? userInfo.header : undefined,
+    // Defensive completeness only: as of this writing neither native SDK ever populates
+    // userInfo.query (Android's CloudCodeError model has no query field to bridge from; iOS
+    // doesn't validate query at all — see review001.md, F4). This branch exists so the type
+    // contract stops lying the moment a native SDK does start sending it, without requiring a
+    // matching change here.
+    query: typeof userInfo.query === 'string' ? userInfo.query : undefined,
     statusCode:
       typeof userInfo.statusCode === 'number' && userInfo.statusCode >= 0
         ? userInfo.statusCode
@@ -278,6 +284,13 @@ export class CloudCodeRequest<T> implements PromiseLike<T> {
         else reject(result.error);
       };
     });
+    // Marks _promise as observed so a fire-and-cancel caller (e.g. a useEffect cleanup that
+    // calls request.cancel() without awaiting/catching the original request) doesn't trip
+    // Hermes's unhandled-rejection tracker. This does not swallow the error for anyone who
+    // does attach .then/.catch via the public then()/catch() below — those call
+    // this._promise.then/catch independently and still see the rejection normally. Mirrors
+    // Flutter's `request.future.ignore()`.
+    this._promise.catch(() => {});
   }
 
   /** @internal */
