@@ -65,6 +65,11 @@ class AppambitDatabaseModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    // Intentionally NOT shared with AppambitCloudCodeModule.kt's near-identical-looking
+    // helper: this one defaults a null string to "" and flattens nested maps via
+    // ReadableMap.toHashMap(), which is correct for SQL bind params/result rows but would
+    // be wrong for Cloud Code's arbitrary JSON bodies (which must preserve explicit null
+    // and fully recurse). If you're fixing a bug here, check whether it also applies there.
     private fun readableArrayToList(array: ReadableArray): List<Any?> {
         val list = mutableListOf<Any?>()
         for (i in 0 until array.size()) {

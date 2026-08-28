@@ -5,6 +5,19 @@ import AppambitRemoteConfig from './NativeAppambitRemoteConfig';
 import { AppAmbitCms } from './CmsQuery';
 export { AppAmbitDatabase, DbQueryBuilder, db } from './Database';
 export type { DbResult, DbRow, DbStatementInput } from './Database';
+export {
+  CloudCode,
+  CloudCodeError,
+  CloudCodeErrorCode,
+  CloudCodeRequest,
+} from './CloudCode';
+export type {
+  CloudCodeHttpMethod,
+  CloudCodeCallOptions,
+  CloudCodeResponse,
+  CloudCodeResult,
+  CloudCodeErrorDetails,
+} from './CloudCode';
 import type { NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { Platform } from 'react-native';
 
@@ -61,7 +74,7 @@ export function registerNavigationTracking(
 
   onStateChange();
 
-  return navigationRef.addListener("state", onStateChange);
+  return navigationRef.addListener('state', onStateChange);
 }
 
 // Start the Appambit SDK with the provided app key
@@ -102,7 +115,10 @@ export function enableManualSession(): void {
   AppambitAnalytics.enableManualSession();
 }
 
-export function trackEvent(eventTitle: string, properties?: Record<string, string>): void {
+export function trackEvent(
+  eventTitle: string,
+  properties?: Record<string, string>
+): void {
   AppambitAnalytics.trackEvent(eventTitle, properties);
 }
 
@@ -148,7 +164,10 @@ export function cms() {
   return AppAmbitCms;
 }
 
-export function logErrorMessage(message: string, properties?: Record<string, string>): void {
+export function logErrorMessage(
+  message: string,
+  properties?: Record<string, string>
+): void {
   AppambitCrashes.logErrorMessage(message, properties);
 }
 
@@ -171,7 +190,7 @@ export async function logError({
       ? message
       : exception
         ? exception.message || JSON.stringify(exception)
-        : "UnknownError";
+        : 'UnknownError';
 
   const stackStr =
     stack && stack.length > 0
@@ -189,7 +208,11 @@ export async function logError({
   if (classFqn) payload.classFqn = classFqn;
   if (fileName) payload.fileName = fileName;
 
-  if (typeof lineNumber === 'number' && !isNaN(lineNumber) && isFinite(lineNumber)) {
+  if (
+    typeof lineNumber === 'number' &&
+    !isNaN(lineNumber) &&
+    isFinite(lineNumber)
+  ) {
     payload.lineNumber = lineNumber;
   }
 
@@ -205,7 +228,8 @@ export async function logError({
 }
 
 ErrorUtils.setGlobalHandler((error) => {
-  const hasMessage = typeof error?.message === "string" && error.message.trim().length > 0;
+  const hasMessage =
+    typeof error?.message === 'string' && error.message.trim().length > 0;
 
   if (hasMessage) {
     logError({
