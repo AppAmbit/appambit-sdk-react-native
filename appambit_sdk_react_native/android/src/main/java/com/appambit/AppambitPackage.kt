@@ -16,6 +16,7 @@ class AppambitPackage : BaseReactPackage() {
       AppambitRemoteConfigModule.NAME -> AppambitRemoteConfigModule(reactContext)
       AppambitCmsModule.NAME -> AppambitCmsModule(reactContext)
       AppambitDatabaseModule.NAME -> AppambitDatabaseModule(reactContext)
+      AppambitCloudCodeModule.NAME -> AppambitCloudCodeModule(reactContext)
       else -> null
     }
   }
@@ -41,6 +42,7 @@ class AppambitPackage : BaseReactPackage() {
       addInfo(AppambitRemoteConfigModule.NAME)
       addInfo(AppambitCmsModule.NAME)
       addInfo(AppambitDatabaseModule.NAME)
+      addInfo(AppambitCloudCodeModule.NAME)
 
       moduleInfos
     }

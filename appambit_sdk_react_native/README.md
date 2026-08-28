@@ -33,6 +33,7 @@ Lightweight SDK for analytics, events, logging, crashes, and offline support. Si
 * Error logging for quick diagnostics 
 * Crash capture with stack traces and threads
 * Offline support with batching, retry, and queue
+* Cloud Code: invoke Cloud Functions HTTP triggers with dynamic or typed responses
 * Create multiple app profiles for staging and production
 * Small footprint
 
@@ -63,7 +64,7 @@ Add the package to your React Native project:
 ```bash
 npm install appambit
 # or specify version
-npm install appambit@1.1.1
+npm install appambit@1.2.0
 ```
 ---
 
@@ -125,6 +126,30 @@ Add these permissions to your `AndroidManifest.xml`:
   await db().from("notes").insert({ title: "Hello", done: 0 });
   const notes = await db().from("notes").where("done", 0).orderByDesc("title").get();
   ```
+* **Cloud Code**: invoke a Cloud Functions HTTP trigger by slug
+
+  ```javascript
+  import { CloudCode } from "appambit";
+
+  const response = await CloudCode.call("cloud-demo-http-inspector", {
+    method: "POST",
+    body: { hello: "world" },
+    // Optional client-side timeout, in milliseconds.
+    timeout: 10000,
+  });
+  console.log(response.statusCode, response.data);
+
+  // Typed decode, request cancellation:
+  const request = CloudCode.callTyped("cloud-demo-dashboard-summary-android", {
+    fromJson: (value) => value as { task_count: number },
+  });
+  request.cancel(); // rejects with CloudCodeError.code === "CANCELLED"
+  ```
+
+  The optional `timeout` is enforced on the JavaScript side. When it expires,
+  the request rejects with `CloudCodeError.code === "TIMED_OUT"` and the native
+  request is cancelled. Native Cloud Code requests retain their platform timeout
+  independently.
 
 ---
 

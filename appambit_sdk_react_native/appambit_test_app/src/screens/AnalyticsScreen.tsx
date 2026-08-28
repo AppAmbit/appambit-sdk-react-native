@@ -22,7 +22,6 @@ export default function AnalyticsScreen() {
       );
 
       Promise.all(logTasks);
-      clearToken();
       Promise.all(eventTasks);
 
       Alert.alert("Info", "Events and errors sent successfully");
