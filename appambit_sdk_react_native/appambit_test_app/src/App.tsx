@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Pressable, Text, StyleSheet, Platform } from "react-native";
+import { View, Pressable, Text, StyleSheet } from "react-native";
 import * as AppAmbit from "appambit";
 import * as PushNotifications from "appambit-push-notifications";
 import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
