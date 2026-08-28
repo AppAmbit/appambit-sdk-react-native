@@ -1,6 +1,6 @@
 ___
 
-## Unreleased
+## Version 1.2.0
 
 ### AppAmbit SDK
 
