@@ -5,6 +5,7 @@ ___
 ### AppAmbit SDK
 
 * **[Feature]** Added Cloud Code support: `CloudCode.call()`/`CloudCode.callTyped()` to invoke Cloud Functions HTTP triggers with dynamic or typed responses, request cancellation, an optional JavaScript-side `timeout` in milliseconds, and structured `CloudCodeError` metadata (status code, headers, body/rawBody, request ID). A client timeout rejects with `TIMED_OUT` and best-effort cancels the native request; the native platform timeout remains independent. Requires the native SDKs' Cloud Code release (`com.appambit:appambit:1.2.0` / `AppAmbitSdk ~> 1.2.0`, already pinned).
+* **[Docs]** Updated the README with a quick start, requirements, a package/import reference table, usage guides for events, logs, breadcrumbs, remote config, CMS, Database, and Cloud Code, plus release distribution pipelines, sample apps, starter apps, MCP setup, and the REST API.
 
 ---
 
